@@ -3,7 +3,7 @@ import numpy
 import os
 import math
 import sys
-sys.path.append('/users/h2/th544/CMSSW_11_0_0_pre2/src/PairedPairs2D/data_analysis/')
+sys.path.append("../.")
 import PlottingPayload as PL
 
 ROOT.gROOT.SetBatch()
