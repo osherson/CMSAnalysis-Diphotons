@@ -79,32 +79,32 @@ def integralInterpo(Min, INTS, M, log=True):
     return SPLINE
 
 class HC:
-    def __init__(self, histArr, massArr, alph):
-        self._massArr  = massArr
+    def __init__(self, histArr, massArr):
+        self._massArr = massArr
         self._histArr = histArr
         self._x  = ROOT.RooRealVar("x","x",histArr[0].GetXaxis().GetXmin(),histArr[0].GetXaxis().GetXmax())
         self._x.setBins(histArr[0].GetNbinsX())
         self._histInts = [h.Integral() for h in histArr]
 
-    def morph(self, M, sl, normalize=True):
+    def morph(self, M, N, scaled=False):
         self._lowI, self._hiI = computeBoundingIndices(M, self._massArr)
 
-        HL = self._histArr[self._lowI].Clone("tempL_%d_%d" % (M, sl))
-        HH = self._histArr[self._hiI].Clone("tempH_%d_%d" % (M, sl))
+        HL = self._histArr[self._lowI].Clone("tempHL_%d" % M)
+        HH = self._histArr[self._hiI].Clone("tempHH_%d" % M)
         
         alpha = (M - self._massArr[self._lowI])/(self._massArr[self._hiI] - self._massArr[self._lowI])
-        rmass = ROOT.RooRealVar("rm_%d" % sl, "rmass", alpha, 0., 1.)
+        rmass = ROOT.RooRealVar("rm_%d" % M, "rmass", alpha, 0., 1.)
 
-        RHL = ROOT.RooDataHist("HL_%d" % sl, ";Average Dijet Mass [GeV];Events/GeV", ROOT.RooArgList(self._x), HL)
-        RHLR = ROOT.RooHistPdf("HL_AbsReal_%d" % sl, "", ROOT.RooArgSet(self._x), RHL)
-        RHH = ROOT.RooDataHist("HH_%d" % sl, ";Average Dijet Mass [GeV];Events/GeV", ROOT.RooArgList(self._x), HH)
-        RHHR = ROOT.RooHistPdf("HH_AbsReal_%d" % sl, "", ROOT.RooArgSet(self._x), RHH)
+        RHL = ROOT.RooDataHist("HL_%d" % M, ";Average Dijet Mass [GeV];Events/GeV", ROOT.RooArgList(self._x), HL)
+        RHLR = ROOT.RooHistPdf("HL_AbsReal_%d" % M, "", ROOT.RooArgSet(self._x), RHL)
+        RHH = ROOT.RooDataHist("HH_%d" % M, ";Average Dijet Mass [GeV];Events/GeV", ROOT.RooArgList(self._x), HH)
+        RHHR = ROOT.RooHistPdf("HH_AbsReal_%d" % M, "", ROOT.RooArgSet(self._x), RHH)
         
-        RHIM = ROOT.RooIntegralMorph("Hmorph_%d" % sl, "", RHHR, RHLR, self._x, rmass)
-        self.xframe = self._x.frame(ROOT.RooFit.Title(";Average Dijet Mass [GeV];Events/GeV"), ROOT.RooFit.Range(400, 2000))
-        RHI = RHIM.createHistogram("Hinterpo_%d" % sl, self._x)
-        if normalize: RHI.Scale(integralInterpo(self._massArr, self._histInts, M)/RHI.Integral())
-        return RHI
+        RHIM = ROOT.RooIntegralMorph("Hmorph_%d" % M, "", RHHR, RHLR, self._x, rmass)
+        self.xframe = self._x.frame(ROOT.RooFit.Title(";Average Dijet Mass [GeV];Events/GeV"), ROOT.RooFit.Range(0, 14000))
+        RHI = RHIM.createHistogram("Hinterpo_%d" % M, self._x)
+        if scaled: RHI.Scale(integralInterpo(self._massArr, self._histInts, M)/RHI.Integral())
+        return RHI.Clone(N)
 
 def signalmaker(o):
     INPUTM = [500,600,700,800,900,1000,1250,1500,1750,2000,2500,3000]
@@ -124,33 +124,36 @@ def signalmaker(o):
         
         if m in INPUTM:
             for sl in range(len(ALPHS)):
-                cuts = "evt_Masym < 0.1 && evt_Deta < 1.1 && dj1_dR < 2.0 && dj2_dR < 2.0 " + ("" if o.NOFJ else "&& evt_4JetM > 1607. ") + " && evt_alpha >= " + str(ALPHA[sl][1]) + "&& evt_alpha < " + str(ALPHA[sl][2])
-                print("|===> Working on: slice %d for rpv_M%d" % (sl+1, int(m)))
+                cuts = "evt_Masym < 0.1 && evt_Deta < 1.1 && dj1_dR < 2.0 && dj2_dR < 2.0 " + ("" if o.NOFJ else "&& evt_4JetM > 1607. ") + " && evt_alpha >= " + str(ALPHA[sl if o.ALPH is None else o.ALPH][1]) + "&& evt_alpha < " + str(ALPHA[sl if o.ALPH is None else o.ALPH][2])
+                print("|===> Working on: slice %d for rpv_M%d" % ((sl if o.ALPH is None else o.ALPH)+1, int(m)))
                 for tree in TREES:
                     print("|===> tree_%s" % tree)
                     D = PL.GetM2jA(dists["rpv_M%d" % int(m)], "tree_" + tree, "h_AveDijetMass_1GeV", sw_nom, cuts, BIN=bins if o.varbins else unibins["full"], divbin=False)
-                    F = ROOT.TFile("/users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/inputs/rpv_M%d_%s_asl%d" % (int(m), tree, sl) + ("_no4J" if o.NOFJ else "") + ".root", "recreate")
+                    F = ROOT.TFile("/users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/inputs/rpv_M%d_%s_asl%d" % (int(m), tree, sl if o.ALPH is None else o.ALPH) + ("_no4J" if o.NOFJ else "") + ".root", "recreate")
                     if o.norm: D.Scale(1./D.Integral())
+                    
+                    print("|===> Saving template at: %s" % ("/users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/inputs/rpv_M%d_%s_asl%d" % (int(m), tree, sl if o.ALPH is None else o.ALPH) + ("_no4J" if o.NOFJ else "") + ".root"))
                     F.cd()
                     D.Write()
                     F.Close()
         else:
             for sl in range(len(ALPHS)):
-                cuts = "evt_Masym < 0.1 && evt_Deta < 1.1 && dj1_dR < 2.0 && dj2_dR < 2.0 " + ("" if o.NOFJ else "&& evt_4JetM > 1607. ") + " && evt_alpha >= " + str(ALPHA[sl][1]) + "&& evt_alpha < " + str(ALPHA[sl][2])
-                print("|===> Working on: slice %d for rpv_M%d" % (sl+1, int(m)))
+                cuts = "evt_Masym < 0.1 && evt_Deta < 1.1 && dj1_dR < 2.0 && dj2_dR < 2.0 " + ("" if o.NOFJ else "&& evt_4JetM > 1607. ") + " && evt_alpha >= " + str(ALPHA[sl if o.ALPH is None else o.ALPH][1]) + "&& evt_alpha < " + str(ALPHA[sl if o.ALPH is None else o.ALPH][2])
+                print("|===> Working on: slice %d for rpv_M%d" % ((sl if o.ALPH is None else o.ALPH)+1, int(m)))
                 print("|===> Interpolating...")
                 for tree in TREES:
                     print("|===> tree_%s" % tree)
-                    F = ROOT.TFile("/users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/inputs/rpv_M%d_%s_asl%d" % (int(m), tree, sl) + ("_no4J" if o.NOFJ else "") + ".root", "recreate")
-                    INPUTH = [PL.GetM2jA(dists["rpv_M%d" % INPUTM[j]], "tree_" + tree, "RPVH_%d_%d" % (INPUTM[j], sl), sw_nom, cuts, BIN=unibins["full"]) for j in range(len(INPUTM))]
-                    mp = HC(INPUTH, INPUTM, ALPHA)
-                    D = mp.morph(m, sl)
-                    D.SetName("h_AveDijetMass_1GeV")
-                    D.SetStats(0)
-                    if o.norm: D.Scale(1./D.Integral())
-                    F.cd()
-                    D.Write()
-                    F.Close()
+                    G = ROOT.TFile("/users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/inputs/rpv_M%d_%s_asl%d" % (int(m), tree, sl if o.ALPH is None else o.ALPH) + ("_no4J" if o.NOFJ else "") + ".root", "recreate")
+                    INPUTH = [PL.GetM2jA(dists["rpv_M%d" % INPUTM[j]], "tree_" + tree, "RPVH_%d_%d_%s" % (INPUTM[j], sl if o.ALPH is None else o.ALPH, tree), sw_nom, cuts, BIN=unibins["full"]) for j in range(len(INPUTM))]
+                    
+                    mp = HC(INPUTH, INPUTM)
+                    E = mp.morph(m, "h_AveDijetMass_1GeV")
+                    if o.norm: E.Scale(1./E.Integral())
+                    
+                    print("|===> Saving template at: %s" % ("/users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/inputs/rpv_M%d_%s_asl%d" % (int(m), tree, sl if o.ALPH is None else o.ALPH) + ("_no4J" if o.NOFJ else "") + ".root"))
+                    G.cd()
+                    E.Write()
+                    G.Close()
 
 if __name__ == "__main__":
     from argparse import ArgumentParser
