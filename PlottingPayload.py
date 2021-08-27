@@ -6,6 +6,40 @@ import math
 RDF = ROOT.RDataFrame.RDataFrame
 colors = [ROOT.kMagenta, ROOT.kAzure-2, ROOT.kOrange-3, ROOT.kRed, ROOT.kCyan+4, ROOT.kViolet+5, ROOT.kYellow-6, ROOT.kTeal-7]
 
+def PlotTheoryStop():
+    f = open("inputs/GetRPVSTOP.txt", "r")
+    X = []
+    Y = []
+    Yp = []
+    Ym = []
+    for x in f:
+        m = float(x.split("_")[0])
+        y = float(x.split("_")[2])
+        e = float(x.split("_")[4])
+        yp = y * (100. + e)/100.
+        ym = y * (100. - e)/100.
+        X.append(m)
+        Y.append(y)
+        Yp.append(yp)
+        Ym.append(ym)
+    G = ROOT.TGraph(len(X), numpy.array(X), numpy.array(Y))
+    G.SetLineColor(ROOT.kBlack)
+    G.SetLineWidth(2)
+    G.SetLineStyle(10)
+    Gu = ROOT.TGraph(len(X), numpy.array(X), numpy.array(Yp))
+    Gd = ROOT.TGraph(len(X), numpy.array(X), numpy.array(Ym))
+    for g in [Gu,Gd]:
+        g.SetLineColor(ROOT.kBlack)
+        g.SetLineStyle(3)
+    return G, Gu, Gd
+
+def Template_Replace(F, O, R):
+	with open(F, 'r') as file :
+		filedata = file.read()
+	filedata = filedata.replace(O, R)
+	with open(F, 'w') as file:
+		file.write(filedata)
+
 def RDFDeltaR(rdf, name, jet1, jet2):
     # ROOT.gInterpreter.ProcessLine("auto Use_Fit_"+newname+" = "+fit+";")
     usefit_code = 	'''
@@ -31,7 +65,7 @@ def MakeNBinsFromMinToMax(N,Min,Max):
 
 def GoodPlotFormat(H, *args): # Handy little script for color/line/fill/point/etc...
 	try: H.SetStats(0)
-	except: print(" ------------ [  No stats box found!  ]")
+	except: print " ------------ [  No stats box found!  ]"
 	if args[0] == 'thickline':
 		H.SetLineColor(args[1])
 		H.SetLineWidth(2)
