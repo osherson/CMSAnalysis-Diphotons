@@ -47,16 +47,12 @@ def PlotLimits(o):
 	p2 = []
 	m2 = []
 
-	o.f = o.f
-
 	funcName = ""
 	if o.f is "atlas": funcName = "Atlas 3-par"
 	elif o.f is "dijet": funcName = "Dijet 3-par"
 	elif o.f is "moddijet": funcName = "Modified Dijet 3-par"
 	elif o.f is "envelope": funcName = "Envelope Method"
 
-	os.chdir("/users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer")
-	# for m in [500,600,700,800,900,1000,1250,1500,1750,2000,2500,3000]:
 	STEPARR = []
 	if o.massrange != None:
 		MIN, MAX, STEP = o.massrange
@@ -65,9 +61,7 @@ def PlotLimits(o):
 
 	for m in STEPARR:
 		print "\n\n\n  " + str(m)
-		# os.system("combine output/dijet_combine_gg_gg_"+str(m)+"_750_lumi-137.500_PFJetHT_RunII_asl0.txt -M AsymptoticLimits -n _" + o.f + "_M"+str(m))
 		os.system("combine output/Full_" + o.f + "_M"+str(m)+".txt -M AsymptoticLimits -n _" + o.f + "_M"+str(m))
-		# os.system("combine output/Full_" + o.f + "_M"+str(m)+".txt -M AsymptoticLimits -n _" + o.f + "_M"+str(m) + " --setParameterRanges r=0,0.2 --saveWorkspace --cminDefaultMinimizerTolerance 0.00100 --cminDefaultMinimizerStrategy 2 --strictBounds")
 		F_output = "higgsCombine_" + o.f + "_M"+str(m)+".AsymptoticLimits.mH120.root"
 		F = TFile(F_output)
 		T = F.Get("limit")
@@ -91,7 +85,7 @@ def PlotLimits(o):
 	THEMIN = 0.75 * min(obs + m2)
 	LimitPlot = TH2F("LP", ";Dijet Resonance Mass (GeV);(pp #rightarrow #tilde{t}#tilde{t}, #tilde{t}#rightarrow qq) #sigma #times B (pb)", 100, 0, 3500, 100, THEMIN, THEMAX)
 	LimitPlot.SetStats(0)
-			
+
 	Obs = TGraph(len(x), numpy.array(x), numpy.array(obs))
 	Exp = TGraph(len(x), numpy.array(x), numpy.array(exp))
 	Exp.SetLineStyle(2)
@@ -122,8 +116,8 @@ def PlotLimits(o):
 	Thd.Draw("Csame")
 	L.Draw("same")
 	PL.AddCMSLumi(gPad, 137.5, "Preliminary")
-	C.Print("/users/h2/th544/CMSSW_11_0_0_pre2/src/PairedPairs2D/data_analysis/combineHelper/limits/" + o.f + "_LimitPlot.png")
-	C.Print("/users/h2/th544/CMSSW_11_0_0_pre2/src/PairedPairs2D/data_analysis/combineHelper/limits/" + o.f + "_LimitPlot.root")
+	C.Print("output/Limits/" + o.f + "_Asymptotic_LimitPlot.png")
+	C.Print("output/Limits/" + o.f + "_Asymptotic_LimitPlot.root")
 
 if __name__ == "__main__":
     from argparse import ArgumentParser
