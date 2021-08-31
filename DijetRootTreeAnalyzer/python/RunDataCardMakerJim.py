@@ -12,8 +12,9 @@ def computeBoundingIndices(M, anchors):
             if anchors[n] < M and anchors[n+1] > M: lowI, hiI = n, n+1
     return lowI, hiI
 
-def simpleInterpo(XIN, INTS, M, log=False):
+def simpleInterpo(XIN, YIN, M, log=False):
     MSS = [float(k) for k in XIN]
+    INTS = [float(k) for k in YIN]
     PRED = 0
     if log:
         IL, IH = computeBoundingIndices(M, MSS)
@@ -61,30 +62,39 @@ def RunDataCardMaker(o):
     STEPARR = []
     if o.massrange != None:
         MIN, MAX, STEP = o.massrange
-        STEPARR = range(MIN, MAX + STEP, STEP) 
+        STEPARR = range(MIN, MAX + STEP, STEP)
+    elif o.massvarbins:
+        BinEdges = [526., 565., 606., 649., 693., 740., 788., 838., 890., 944., 1000., 1058., 1118., 1181., 1246., 1313., 1383., 1455., 1530., 1607., 1687., 1770., 1856., 1945., 2037., 2132., 2231., 2332., 2438., 2546., 2659., 2775., 2895.]
+        TempH = ROOT.TH1F("binedge_temp_H", ";Average Dijet Mass [GeV];Events", len(BinEdges)-1, numpy.array(BinEdges))
+        STEPARR = [TempH.GetBinCenter(n) for n in range(1, TempH.GetNbinsX()+1)]
+        STEPARR.extend(INPUTM)
+        STEPARR = sorted(STEPARR)
     else: STEPARR = o.mass
-    
-    for M in STEPARR:
-        print("|===> M%d" % M)
+
+    print(STEPARR)
+
+    for m in STEPARR:
+        if type(m)==float and m.is_integer(): m = int(m)
+        print("|===> M" + str(m))
         for SL in [0, 1, 2]:
             config = " -c /users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/config/fourjet_envelope_RunII_alpha%d" % SL + ("_no4J" if o.NOFJ else "") + ".config"
-            mass = " --mass %d" % M
+            mass = " --mass " + str(m)
             box = " -b PFJetHT_RunII_asl%d" % SL
             output = " -d /users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/output"
             inputs = " -i /users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/output/DijetFitResults_PFJetHT_RunII_asl%d.root" % SL
             inputs += " /users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/inputs/PFJetHT_RunII_asl%d" % SL + ("_no4J" if o.NOFJ else "") + ".root"
-            inputs += " /users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/inputs/rpv_M%d_nominal_asl%d" % (M, SL) + ("_no4J" if o.NOFJ else "") + ".root"
+            inputs += " /users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/inputs/rpv_M" + str(m).replace(".", "_") + "_nominal_asl%d" % SL + ("_no4J" if o.NOFJ else "") + ".root"
             
-            jesup = " --jesUp /users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/inputs/rpv_M%d_jesCorr_up_asl%d" % (M, SL) + ("_no4J" if o.NOFJ else "") + ".root"
-            jesdown = " --jesDown /users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/inputs/rpv_M%d_jesCorr_down_asl%d" % (M, SL) + ("_no4J" if o.NOFJ else "") + ".root"
-            jerup = " --jerUp /users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/inputs/rpv_M%d_jer_up_asl%d" % (M, SL) + ("_no4J" if o.NOFJ else "") + ".root"
-            jerdown = " --jerDown /users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/inputs/rpv_M%d_jer_down_asl%d" % (M, SL) + ("_no4J" if o.NOFJ else "") + ".root"
+            jesup = " --jesUp /users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/inputs/rpv_M" + str(m).replace(".", "_") + "_jesCorr_up_asl%d" % SL + ("_no4J" if o.NOFJ else "") + ".root"
+            jesdown = " --jesDown /users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/inputs/rpv_M" + str(m).replace(".", "_") + "_jesCorr_down_asl%d" % SL + ("_no4J" if o.NOFJ else "") + ".root"
+            jerup = " --jerUp /users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/inputs/rpv_M" + str(m).replace(".", "_") + "_jer_up_asl%d" % SL + ("_no4J" if o.NOFJ else "") + ".root"
+            jerdown = " --jerDown /users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/inputs/rpv_M" + str(m).replace(".", "_") + "_jer_down_asl%d" % SL + ("_no4J" if o.NOFJ else "") + ".root"
             xs = ""
-            if M in INPUTM:
-                xs += " --xsec %f" % XS[M][SL]
+            if m in INPUTM:
+                xs += " --xsec %f" % XS[m][SL]
             else: 
                 xsinput = [XS[j][SL] for j in INPUTM]
-                xs += " --xsec %f" % simpleInterpo(INPUTM, xsinput, M)
+                xs += " --xsec %f" % simpleInterpo(INPUTM, xsinput, m)
             lumi = " --lumi 137500"
             
             dcstring = "python python/WriteDataCard_4J_envelope_Jim.py" + config + mass + box + output + inputs + jesup + jesdown + jerup + jerdown + xs + lumi + " --multi"
@@ -92,16 +102,17 @@ def RunDataCardMaker(o):
             os.system(dcstring)
             
         os.chdir("/users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/output")
-        os.system("combineCards.py dijet_combine_gg_gg_%d_750_lumi-137.500_PFJetHT_RunII_asl0.txt dijet_combine_gg_gg_%d_750_lumi-137.500_PFJetHT_RunII_asl1.txt dijet_combine_gg_gg_%d_750_lumi-137.500_PFJetHT_RunII_asl2.txt > Full_envelope_M%d.txt" % (M, M, M, M))
+        os.system("combineCards.py dijet_combine_gg_gg_%s_750_lumi-137.500_PFJetHT_RunII_asl0.txt dijet_combine_gg_gg_%s_750_lumi-137.500_PFJetHT_RunII_asl1.txt dijet_combine_gg_gg_%s_750_lumi-137.500_PFJetHT_RunII_asl2.txt > Full_envelope_M%s.txt" % (str(m).replace(".", "_"), str(m).replace(".", "_"), str(m).replace(".", "_"), str(m).replace(".", "_")))
         os.chdir("..")
 if __name__ == "__main__":
     from argparse import ArgumentParser
     parser = ArgumentParser()
-    
+
     mass_parse = parser.add_mutually_exclusive_group(required=True)
     mass_parse.add_argument("--mass", type=int, nargs = '*', default = 1000, help="Mass can be specified as a single value or a whitespace separated list (default: %(default)s)" )
     mass_parse.add_argument("--massrange", type=int, nargs = 3, help="Define a range of masses to be produced. Format: min max step", metavar = ('MIN', 'MAX', 'STEP') )
-    
+    mass_parse.add_argument("--massvarbins", action="store_true", help="Compute limits for` RPV signals with masses equal to the bin centers of the dijet binning.")
+
     parser.add_argument("--no4J", action="store_true", dest="NOFJ", help="remove four-jet mass cut and advance fit start")
     o = parser.parse_args()
     RunDataCardMaker(o)

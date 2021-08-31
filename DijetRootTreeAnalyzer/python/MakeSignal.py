@@ -92,7 +92,7 @@ class HC:
         HL = self._histArr[self._lowI].Clone("tempHL_%d" % M)
         HH = self._histArr[self._hiI].Clone("tempHH_%d" % M)
         
-        alpha = (M - self._massArr[self._lowI])/(self._massArr[self._hiI] - self._massArr[self._lowI])
+        alpha = (float(M) - float(self._massArr[self._lowI]))/(float(self._massArr[self._hiI]) - float(self._massArr[self._lowI]))
         rmass = ROOT.RooRealVar("rm_%d" % M, "rmass", alpha, 0., 1.)
 
         RHL = ROOT.RooDataHist("HL_%d" % M, ";Average Dijet Mass [GeV];Events/GeV", ROOT.RooArgList(self._x), HL)
@@ -112,8 +112,15 @@ def signalmaker(o):
     if o.massrange != None:
         MIN, MAX, STEP = o.massrange
         STEPARR = range(MIN, MAX + STEP, STEP) 
+    elif o.massvarbins:
+        BinEdges = [526., 565., 606., 649., 693., 740., 788., 838., 890., 944., 1000., 1058., 1118., 1181., 1246., 1313., 1383., 1455., 1530., 1607., 1687., 1770., 1856., 1945., 2037., 2132., 2231., 2332., 2438., 2546., 2659., 2775., 2895.]
+        TempH = ROOT.TH1F("binedge_temp_H", ";Average Dijet Mass [GeV];Events", len(BinEdges)-1, numpy.array(BinEdges))
+        STEPARR = [TempH.GetBinCenter(n) for n in range(1, TempH.GetNbinsX()+1)]
+        STEPARR.extend(INPUTM)
+        STEPARR = sorted(STEPARR)
     else: STEPARR = o.mass
     
+    print(STEPARR)
     for m in STEPARR:
         sw_nom = "1."
         TREES = ["nominal", "jer_up", "jer_down", "jesCorr_up", "jesCorr_down"] if o.TREE is None else [str(o.TREE)]
@@ -122,38 +129,46 @@ def signalmaker(o):
         print("||      RPV M%d      ||" % int(m))
         print("#=======================#\n")
         
-        if m in INPUTM:
+        interpoBool = True
+        if m in INPUTM and not o.finterpo: interpoBool = False
+        if m==INPUTM[0] or m==INPUTM[-1]: interpoBool = False
+        
+        if not interpoBool:
             for sl in range(len(ALPHS)):
                 cuts = "evt_Masym < 0.1 && evt_Deta < 1.1 && dj1_dR < 2.0 && dj2_dR < 2.0 " + ("" if o.NOFJ else "&& evt_4JetM > 1607. ") + " && evt_alpha >= " + str(ALPHA[sl if o.ALPH is None else o.ALPH][1]) + "&& evt_alpha < " + str(ALPHA[sl if o.ALPH is None else o.ALPH][2])
                 print("|===> Working on: slice %d for rpv_M%d" % ((sl if o.ALPH is None else o.ALPH)+1, int(m)))
                 for tree in TREES:
                     print("|===> tree_%s" % tree)
+                    file = ROOT.TFile("/users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/inputs/rpv_M%d_%s_asl%d" % (int(m), tree, sl if o.ALPH is None else o.ALPH) + ("_no4J" if o.NOFJ else "") + ".root", "recreate")
                     D = PL.GetM2jA(dists["rpv_M%d" % int(m)], "tree_" + tree, "h_AveDijetMass_1GeV", sw_nom, cuts, BIN=bins if o.varbins else unibins["full"], divbin=False)
-                    F = ROOT.TFile("inputs/rpv_M%d_%s_asl%d" % (int(m), tree, sl if o.ALPH is None else o.ALPH) + ("_no4J" if o.NOFJ else "") + ".root", "recreate")
                     if o.norm: D.Scale(1./D.Integral())
                     
-                    print("|===> Saving template at: %s" % ("inputs/rpv_M%d_%s_asl%d" % (int(m), tree, sl if o.ALPH is None else o.ALPH) + ("_no4J" if o.NOFJ else "") + ".root"))
-                    F.cd()
+                    print("|===> Saving template at: %s" % ("/users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/inputs/rpv_M%d_%s_asl%d" % (int(m), tree, sl if o.ALPH is None else o.ALPH) + ("_no4J" if o.NOFJ else "") + ".root"))
+                    file.cd()
                     D.Write()
-                    F.Close()
+                    file.Close()
+                    
         else:
+            m = float(m)
+            if m.is_integer(): m = int(m)
             for sl in range(len(ALPHS)):
                 cuts = "evt_Masym < 0.1 && evt_Deta < 1.1 && dj1_dR < 2.0 && dj2_dR < 2.0 " + ("" if o.NOFJ else "&& evt_4JetM > 1607. ") + " && evt_alpha >= " + str(ALPHA[sl if o.ALPH is None else o.ALPH][1]) + "&& evt_alpha < " + str(ALPHA[sl if o.ALPH is None else o.ALPH][2])
-                print("|===> Working on: slice %d for rpv_M%d" % ((sl if o.ALPH is None else o.ALPH)+1, int(m)))
+                
+                print("|===> Working on: slice %d for rpv_M" % ((sl if o.ALPH is None else o.ALPH)+1) + str(m).replace(".", "_"))
                 print("|===> Interpolating...")
                 for tree in TREES:
                     print("|===> tree_%s" % tree)
-                    G = ROOT.TFile("inputs/rpv_M%d_%s_asl%d" % (int(m), tree, sl if o.ALPH is None else o.ALPH) + ("_no4J" if o.NOFJ else "") + ".root", "recreate")
+                    file = ROOT.TFile("/users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/inputs/rpv_M" + str(m).replace(".", "_") + "_%s_asl%d" % (tree, sl if o.ALPH is None else o.ALPH) + ("_no4J" if o.NOFJ else "") + ".root", "recreate")
                     INPUTH = [PL.GetM2jA(dists["rpv_M%d" % INPUTM[j]], "tree_" + tree, "RPVH_%d_%d_%s" % (INPUTM[j], sl if o.ALPH is None else o.ALPH, tree), sw_nom, cuts, BIN=unibins["full"]) for j in range(len(INPUTM))]
-                    
+                
                     mp = HC(INPUTH, INPUTM)
                     E = mp.morph(m, "h_AveDijetMass_1GeV")
                     if o.norm: E.Scale(1./E.Integral())
                     
-                    print("|===> Saving template at: %s" % ("inputs/rpv_M%d_%s_asl%d" % (int(m), tree, sl if o.ALPH is None else o.ALPH) + ("_no4J" if o.NOFJ else "") + ".root"))
-                    G.cd()
+                    print("|===> Saving template at: %s" % ("/users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/inputs/rpv_M" + str(m).replace(".", "_") + "_%s_asl%d" % (tree, sl if o.ALPH is None else o.ALPH) + ("_no4J" if o.NOFJ else "") + ".root"))
+                    file.cd()
                     E.Write()
-                    G.Close()
+                    file.Close()
 
 if __name__ == "__main__":
     from argparse import ArgumentParser
@@ -162,12 +177,14 @@ if __name__ == "__main__":
     mass_parse = parser.add_mutually_exclusive_group(required=True)
     mass_parse.add_argument("--mass", type=int, nargs = '*', default = 1000, help="Mass can be specified as a single value or a whitespace separated list (default: %(default)s)" )
     mass_parse.add_argument("--massrange", type=int, nargs = 3, help="Define a range of masses to be produced. Format: min max step", metavar = ('MIN', 'MAX', 'STEP') )
+    mass_parse.add_argument("--massvarbins", action="store_true", help="Generate RPV signals with masses equal to the bin centers of the dijet binning.")
     
-    parser.add_argument("-a", type=int, dest="ALPH", default=None, help="alpha slice")
-    parser.add_argument("-t", type=str, dest="TREE", default=None, help="tree_nominal, JES, or JER subtrees")
-    parser.add_argument("--varbins", action="store_true", dest="varbins", help="binning in variable bins?")
-    parser.add_argument("--normalize", action="store_true", dest="norm", help="normalized to unity?")
-    parser.add_argument("--no4J", action="store_true", dest="NOFJ", help="remove four-jet mass cut and advance fit start")
+    parser.add_argument("-a", type=int, dest="ALPH", default=None, help="Index of alpha slice. By default runs all alpha slices.")
+    parser.add_argument("-t", type=str, dest="TREE", default=None, help="Indicate tree_nominal, JES, or JER subtrees. By default, runs all trees.")
+    parser.add_argument("--varbins", action="store_true", dest="varbins", help="Use variable-binning.")
+    parser.add_argument("--normalize", action="store_true", dest="norm", help="Normalize shapes to unity.")
+    parser.add_argument("--no4J", action="store_true", dest="NOFJ", help="Remove four-jet mass cut and advance fit start.")
+    parser.add_argument("--forceinterpo", action="store_true", dest="finterpo", help="Force interpolation of intermediate mass points which are given.")
     args = parser.parse_args()
     
     signalmaker(args)
