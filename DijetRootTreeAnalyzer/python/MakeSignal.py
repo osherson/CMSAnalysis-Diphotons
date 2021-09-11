@@ -8,7 +8,7 @@ import PlottingPayload as PL
 
 ROOT.gROOT.SetBatch()
 
-### script to make 1 GeV binned signal for the DijetRootTreeAnalyzer code by Dimitris and Ilias ###
+### PICOTREE DIRECTORIES ###
 
 dists = {}
 dists["Diquark_chi500suu2000"] = "/cms/xaastorage-2/PicoTrees/4JETS/2016/v6/Diquark_S2000_chi500_2016.root"

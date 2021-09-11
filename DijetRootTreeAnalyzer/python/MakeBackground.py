@@ -6,7 +6,7 @@ import sys
 sys.path.append('/users/h2/th544/CMSSW_11_0_0_pre2/src/PairedPairs2D/data_analysis/')
 import PlottingPayload as PL
 
-### script to make 1 GeV binned background for the DijetRootTreeAnalyzer code by Dimitris and Ilias ###
+### PICOTREE DIRECTORIES ###
 
 dists = {}
 dists["QCD_2016"] = "/cms/xaastorage-2/PicoTrees/4JETS/2016/v6_v0/QCD_HT_all_2016.root"
@@ -46,10 +46,10 @@ def bkgmaker(o):
 if __name__ == "__main__":
     from optparse import OptionParser
     parser = OptionParser()
-    parser.add_option("-y", dest="YEAR", help="year of dataset")
-    parser.add_option("-a", type=int, dest="ALPH", default=None, help="alpha slice")
+    parser.add_option("-y", dest="YEAR", help="Dataset to run on. Acceptable arguments are '2016', '2017', '2018', and 'II' for full Run II.")
+    parser.add_option("-a", type=int, dest="ALPH", default=None, help="Index of alpha slice. By default runs all alpha slices.")
     #parser.add_option("-t", type=str, dest="TREE", default=None, help="tree_nominal, JES, or JER subtrees")
-    parser.add_option("--varbins", action="store_true", dest="varbins", help="binning in variable bins?")
-    parser.add_option("--no4J", action="store_true", dest="NOFJ", help="remove four-jet cut and advance fit start")
+    parser.add_option("--varbins", action="store_true", dest="varbins", help="Binning in variable bins?")
+    parser.add_option("--no4J", action="store_true", dest="NOFJ", help="Remove four-jet cut and advance fit start")
     (o, args) = parser.parse_args()
     bkgmaker(o)

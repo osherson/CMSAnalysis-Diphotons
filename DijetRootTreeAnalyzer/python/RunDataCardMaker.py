@@ -58,7 +58,7 @@ def RunDataCardMaker(o):
 if __name__ == "__main__":
     from optparse import OptionParser
     parser = OptionParser()
-    parser.add_option("-f", "--fit", dest="FIT", help="name of fit function", metavar="FITFUNC")
+    parser.add_option("-f", "--fit", dest="FIT", help="Name of fit function. Valid choices are 'atlas', 'dijet', and 'moddijet'.", metavar="FITFUNC")
     parser.add_option("--no4J", action="store_true", dest="NOFJ", help="remove four-jet mass cut and advance fit start")
     (o, args) = parser.parse_args()
     RunDataCardMaker(o)

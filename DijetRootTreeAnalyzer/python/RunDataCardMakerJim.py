@@ -113,6 +113,6 @@ if __name__ == "__main__":
     mass_parse.add_argument("--massrange", type=int, nargs = 3, help="Define a range of masses to be produced. Format: min max step", metavar = ('MIN', 'MAX', 'STEP') )
     mass_parse.add_argument("--massvarbins", action="store_true", help="Compute limits for` RPV signals with masses equal to the bin centers of the dijet binning.")
 
-    parser.add_argument("--no4J", action="store_true", dest="NOFJ", help="remove four-jet mass cut and advance fit start")
+    parser.add_argument("--no4J", action="store_true", dest="NOFJ", help="Remove four-jet mass cut and advance fit start")
     o = parser.parse_args()
     RunDataCardMaker(o)
