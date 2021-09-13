@@ -21,16 +21,6 @@ git checkout v8.2.0
 scramv1 b clean; scramv1 b
 ```
 
-# Setup CombineHarvester (needed for Grid submissions)
-
-To setup CombineHarvester, do:
-
-```
-cd $CMSSW_BASE/src
-git clone https://github.com/cms-analysis/CombineHarvester.git CombineHarvester
-scram b
-```
-
 Now setup the RooParametricShapeBinPdfs needed for the analysis:
 
 ```
@@ -66,6 +56,16 @@ Now run
 ```
 cd $CMSSW_BASE/src/HiggsAnalysis/CombinedLimit 
 scramv1 b clean; scramv1 b
+```
+
+# Setup CombineHarvester (needed for Grid submissions)
+
+To setup CombineHarvester, do:
+
+```
+cd $CMSSW_BASE/src
+git clone https://github.com/cms-analysis/CombineHarvester.git CombineHarvester
+scram b
 ```
 
 # Setup File Dependencies
