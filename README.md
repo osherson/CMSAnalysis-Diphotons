@@ -16,8 +16,6 @@ git clone -b dijetpdf_102X https://github.com/RazorCMS/HiggsAnalysis-CombinedLim
 cd HiggsAnalysis/CombinedLimit
 
 cd $CMSSW_BASE/src/HiggsAnalysis/CombinedLimit
-git fetch origin
-git checkout v8.2.0
 scramv1 b clean; scramv1 b
 ```
 
