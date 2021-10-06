@@ -77,18 +77,18 @@ def RunDataCardMaker(o):
         if type(m)==float and m.is_integer(): m = int(m)
         print("|===> M" + str(m))
         for SL in [0, 1, 2]:
-            config = " -c /users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/config/fourjet_envelope_RunII_alpha%d" % SL + ("_no4J" if o.NOFJ else "") + ".config"
+            config = " -c config/fourjet_envelope_RunII_alpha%d" % SL + ("_no4J" if o.NOFJ else "") + ".config"
             mass = " --mass " + str(m)
             box = " -b PFJetHT_RunII_asl%d" % SL
-            output = " -d /users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/output"
-            inputs = " -i /users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/output/DijetFitResults_PFJetHT_RunII_asl%d.root" % SL
-            inputs += " /users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/inputs/PFJetHT_RunII_asl%d" % SL + ("_no4J" if o.NOFJ else "") + ".root"
-            inputs += " /users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/inputs/rpv_M" + str(m).replace(".", "_") + "_nominal_asl%d" % SL + ("_no4J" if o.NOFJ else "") + ".root"
+            output = " -d output"
+            inputs = " -i output/DijetFitResults_PFJetHT_RunII_asl%d.root" % SL
+            inputs += " inputs/PFJetHT_RunII_asl%d" % SL + ("_no4J" if o.NOFJ else "") + ".root"
+            inputs += " inputs/rpv_M" + str(m).replace(".", "_") + "_nominal_asl%d" % SL + ("_no4J" if o.NOFJ else "") + ".root"
             
-            jesup = " --jesUp /users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/inputs/rpv_M" + str(m).replace(".", "_") + "_jesCorr_up_asl%d" % SL + ("_no4J" if o.NOFJ else "") + ".root"
-            jesdown = " --jesDown /users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/inputs/rpv_M" + str(m).replace(".", "_") + "_jesCorr_down_asl%d" % SL + ("_no4J" if o.NOFJ else "") + ".root"
-            jerup = " --jerUp /users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/inputs/rpv_M" + str(m).replace(".", "_") + "_jer_up_asl%d" % SL + ("_no4J" if o.NOFJ else "") + ".root"
-            jerdown = " --jerDown /users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/inputs/rpv_M" + str(m).replace(".", "_") + "_jer_down_asl%d" % SL + ("_no4J" if o.NOFJ else "") + ".root"
+            jesup = " --jesUp inputs/rpv_M" + str(m).replace(".", "_") + "_jesCorr_up_asl%d" % SL + ("_no4J" if o.NOFJ else "") + ".root"
+            jesdown = " --jesDown inputs/rpv_M" + str(m).replace(".", "_") + "_jesCorr_down_asl%d" % SL + ("_no4J" if o.NOFJ else "") + ".root"
+            jerup = " --jerUp inputs/rpv_M" + str(m).replace(".", "_") + "_jer_up_asl%d" % SL + ("_no4J" if o.NOFJ else "") + ".root"
+            jerdown = " --jerDown inputs/rpv_M" + str(m).replace(".", "_") + "_jer_down_asl%d" % SL + ("_no4J" if o.NOFJ else "") + ".root"
             xs = ""
             if m in INPUTM:
                 xs += " --xsec %f" % XS[m][SL]
@@ -101,7 +101,7 @@ def RunDataCardMaker(o):
             print(dcstring)
             os.system(dcstring)
             
-        os.chdir("/users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/output")
+        os.chdir("output")
         os.system("combineCards.py dijet_combine_gg_gg_%s_750_lumi-137.500_PFJetHT_RunII_asl0.txt dijet_combine_gg_gg_%s_750_lumi-137.500_PFJetHT_RunII_asl1.txt dijet_combine_gg_gg_%s_750_lumi-137.500_PFJetHT_RunII_asl2.txt > Full_envelope_M%s.txt" % (str(m).replace(".", "_"), str(m).replace(".", "_"), str(m).replace(".", "_"), str(m).replace(".", "_")))
         os.chdir("..")
 if __name__ == "__main__":

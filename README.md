@@ -87,9 +87,9 @@ It is recommended that this step be done on Hexfarm where all the picotrees are 
 
 To produce RPV signals, do
 ```
-python python/MakeSignal.py --massrange 500 3000 25 --normalize --no4J
+python python/MakeSignal.py --massrange 500 3000 25 --normalize --no4J --trim
 ```
-The command above creates an RPV signal every 25 GeV from 500 GeV to 3000 GeV, binned in 1 GeV bins, and normalized. The script uses the vertical template morphing technique inplemented by ROOT's ```RooIntegralMorph``` to create interpolated templates at masses for which a picotree is unavailable. The option ```--no4J``` refers to the newest selection criteria without the four-jet mass cut. More options can be found by running:
+The command above creates an RPV signal every 25 GeV from 500 GeV to 3000 GeV, binned in 1 GeV bins, and normalized. The script uses the vertical template morphing technique inplemented by ROOT's ```RooIntegralMorph``` to create interpolated templates at masses for which a picotree is unavailable. The option ```--no4J``` refers to the newest selection criteria without the four-jet mass cut. The option ```--trim``` removes bins with one MC event before normalizing. More options can be found by running:
 ```
 python python/MakeSignal.py -h
 ```
@@ -110,7 +110,7 @@ To run a fit, do:
 ```
 python python/RunFitter.py -f atlas --no4J
 ```
-Other valid choices of parametrization are ```dijet``` and ```moddijet```. This step must be done prior to creating any datacard.
+Other valid choices of parametrization are ```dijet```, ```moddijet```, and ```combine```. In particular, this should be run with the option ```-f combine``` to generate datacards for the envelope method. This step must be done prior to generating any datacard.
 
 To create datacards for individual fits, do:
 ```

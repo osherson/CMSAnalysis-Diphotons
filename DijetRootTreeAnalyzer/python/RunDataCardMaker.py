@@ -33,17 +33,17 @@ def RunDataCardMaker(o):
     
     for M in [500,600,700,800,900,1000,1250,1500,1750,2000,2500,3000]:
         for SL in [0, 1, 2]:
-            config = " -c /users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/config/fourjet_%s_RunII_alpha%d" % (str(o.FIT), SL) + ("_no4J" if o.NOFJ else "") + ".config"
+            config = " -c config/fourjet_%s_RunII_alpha%d" % (str(o.FIT), SL) + ("_no4J" if o.NOFJ else "") + ".config"
             mass = " --mass %d" % M
             box = " -b PFJetHT_RunII_asl%d_%s" % (SL, str(o.FIT))
-            output = " -d /users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/output"
-            inputs = " -i /users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/output/DijetFitResults_PFJetHT_RunII_asl%d_%s.root" % (SL, str(o.FIT))
-            inputs += " /users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/inputs/PFJetHT_RunII_asl%d" % SL + ("_no4J" if o.NOFJ else "") + ".root"
-            inputs += " /users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/inputs/rpv_M%d_nominal_asl%d" % (M, SL) + ("_no4J" if o.NOFJ else "") + ".root"
-            jesup = " --jesUp /users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/inputs/rpv_M%d_jesCorr_up_asl%d" % (M, SL) + ("_no4J" if o.NOFJ else "") + ".root"
-            jesdown = " --jesDown /users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/inputs/rpv_M%d_jesCorr_down_asl%d" % (M, SL) + ("_no4J" if o.NOFJ else "") + ".root"
-            jerup = " --jerUp /users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/inputs/rpv_M%d_jer_up_asl%d" % (M, SL) + ("_no4J" if o.NOFJ else "") + ".root"
-            jerdown = " --jerDown /users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/inputs/rpv_M%d_jer_down_asl%d" % (M, SL) + ("_no4J" if o.NOFJ else "") + ".root"
+            output = " -d output"
+            inputs = " -i output/DijetFitResults_PFJetHT_RunII_asl%d_%s.root" % (SL, str(o.FIT))
+            inputs += " inputs/PFJetHT_RunII_asl%d" % SL + ("_no4J" if o.NOFJ else "") + ".root"
+            inputs += " inputs/rpv_M%d_nominal_asl%d" % (M, SL) + ("_no4J" if o.NOFJ else "") + ".root"
+            jesup = " --jesUp inputs/rpv_M%d_jesCorr_up_asl%d" % (M, SL) + ("_no4J" if o.NOFJ else "") + ".root"
+            jesdown = " --jesDown inputs/rpv_M%d_jesCorr_down_asl%d" % (M, SL) + ("_no4J" if o.NOFJ else "") + ".root"
+            jerup = " --jerUp inputs/rpv_M%d_jer_up_asl%d" % (M, SL) + ("_no4J" if o.NOFJ else "") + ".root"
+            jerdown = " --jerDown inputs/rpv_M%d_jer_down_asl%d" % (M, SL) + ("_no4J" if o.NOFJ else "") + ".root"
             xs = " --xsec %f" % XS[M][SL]
             lumi = " --lumi 137500"
             
