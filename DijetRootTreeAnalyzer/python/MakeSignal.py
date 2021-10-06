@@ -141,6 +141,9 @@ def signalmaker(o):
                     print("|===> tree_%s" % tree)
                     file = ROOT.TFile("/users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/inputs/rpv_M%d_%s_asl%d" % (int(m), tree, sl if o.ALPH is None else o.ALPH) + ("_no4J" if o.NOFJ else "") + ".root", "recreate")
                     D = PL.GetM2jA(dists["rpv_M%d" % int(m)], "tree_" + tree, "h_AveDijetMass_1GeV", sw_nom, cuts, BIN=bins if o.varbins else unibins["full"], divbin=False)
+                    if o.trim:
+                        for bin in range(1, D.GetNbinsX()+1):
+                            if D.GetBinContent(bin) <= 1.: D.SetBinContent(bin, 0.)
                     if o.norm: D.Scale(1./D.Integral())
                     
                     print("|===> Saving template at: %s" % ("/users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/inputs/rpv_M%d_%s_asl%d" % (int(m), tree, sl if o.ALPH is None else o.ALPH) + ("_no4J" if o.NOFJ else "") + ".root"))
@@ -159,8 +162,14 @@ def signalmaker(o):
                 for tree in TREES:
                     print("|===> tree_%s" % tree)
                     file = ROOT.TFile("/users/h2/th544/CMSSW_10_2_13/src/CMSDIJET/DijetRootTreeAnalyzer/inputs/rpv_M" + str(m).replace(".", "_") + "_%s_asl%d" % (tree, sl if o.ALPH is None else o.ALPH) + ("_no4J" if o.NOFJ else "") + ".root", "recreate")
-                    INPUTH = [PL.GetM2jA(dists["rpv_M%d" % INPUTM[j]], "tree_" + tree, "RPVH_%d_%d_%s" % (INPUTM[j], sl if o.ALPH is None else o.ALPH, tree), sw_nom, cuts, BIN=unibins["full"]) for j in range(len(INPUTM))]
-                
+                    INPUTH = []
+                    for j in range(len(INPUTM)):
+                        Hanch = PL.GetM2jA(dists["rpv_M%d" % INPUTM[j]], "tree_" + tree, "RPVH_%d_%d_%s" % (INPUTM[j], sl if o.ALPH is None else o.ALPH, tree), sw_nom, cuts, BIN=unibins["full"])
+                        if o.trim:
+                            for bin in range(1, Hanch.GetNbinsX()+1):
+                                if float(Hanch.GetBinContent(bin)) <= 1.: Hanch.SetBinContent(bin, 0.)
+                        INPUTH.append(Hanch)
+                    
                     mp = HC(INPUTH, INPUTM)
                     E = mp.morph(m, "h_AveDijetMass_1GeV")
                     if o.norm: E.Scale(1./E.Integral())
@@ -173,18 +182,19 @@ def signalmaker(o):
 if __name__ == "__main__":
     from argparse import ArgumentParser
     parser = ArgumentParser()
-    
+
     mass_parse = parser.add_mutually_exclusive_group(required=True)
     mass_parse.add_argument("--mass", type=int, nargs = '*', default = 1000, help="Mass can be specified as a single value or a whitespace separated list (default: %(default)s)" )
     mass_parse.add_argument("--massrange", type=int, nargs = 3, help="Define a range of masses to be produced. Format: min max step", metavar = ('MIN', 'MAX', 'STEP') )
     mass_parse.add_argument("--massvarbins", action="store_true", help="Generate RPV signals with masses equal to the bin centers of the dijet binning.")
-    
+
     parser.add_argument("-a", type=int, dest="ALPH", default=None, help="Index of alpha slice. By default runs all alpha slices.")
     parser.add_argument("-t", type=str, dest="TREE", default=None, help="Indicate tree_nominal, JES, or JER subtrees. By default, runs all trees.")
     parser.add_argument("--varbins", action="store_true", dest="varbins", help="Use variable-binning.")
     parser.add_argument("--normalize", action="store_true", dest="norm", help="Normalize shapes to unity.")
     parser.add_argument("--no4J", action="store_true", dest="NOFJ", help="Remove four-jet mass cut and advance fit start.")
     parser.add_argument("--forceinterpo", action="store_true", dest="finterpo", help="Force interpolation of intermediate mass points which are given.")
+    parser.add_argument("--trim", action="store_true", help="Trim tails of signals by removing bins with less than one event.")
     args = parser.parse_args()
     
     signalmaker(args)
