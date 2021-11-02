@@ -114,12 +114,12 @@ Other valid choices of parametrization are ```dijet```, ```moddijet```, and ```c
 
 To create datacards for individual fits, do:
 ```
-python python/RunDataCardMaker.py -f atlas --no4J
+python python/RunDataCardMaker.py -f atlas --no4J --massrange 500 3000 25
 ```
 
 To create datacards for the envelope method, do:
 ```
-python python/RunDataCardMakerJim.py --no4J
+python python/RunDataCardMakerJim.py --no4J --massrange 500 3000 25
 ```
 Note that the Asymptotic and Hybrid New CLs computations share the same datacards.
 

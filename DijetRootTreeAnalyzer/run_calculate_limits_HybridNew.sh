@@ -20,8 +20,7 @@ combine output/Full_envelope_M$1.txt -M HybridNew --LHCmode LHC-limits --readHyb
 
 combine output/Full_envelope_M$1.txt -M HybridNew --LHCmode LHC-limits --readHybridResults --grid=HybridNew_RPV/crab_final_hybridNew_limits_3_slices_Envelope_3_func_M$1/results/limits_3_slices_Envelope_3_func_M$1_merged.root -m 125 --cminDefaultMinimizerStrategy=0 --plot=limit_scan_M$1_expected_plus_two_sigma.png --expectedFromGrid 0.975 -n limits_M$1 --rAbsAcc 0.00001 
 
-
 hadd -f higgsCombine_M$1.HybridNew.mH120.root higgsCombinelimits_M$1.HybridNew.mH125.quant0.025.root higgsCombinelimits_M$1.HybridNew.mH125.quant0.160.root higgsCombinelimits_M$1.HybridNew.mH125.quant0.500.root higgsCombinelimits_M$1.HybridNew.mH125.quant0.840.root higgsCombinelimits_M$1.HybridNew.mH125.quant0.975.root higgsCombinelimits_M$1.HybridNew.mH125.root
-  
+
 # done
 
