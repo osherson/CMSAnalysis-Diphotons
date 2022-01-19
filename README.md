@@ -1,5 +1,5 @@
-# CMSAnalysis
-Scripts used for the CMS EXO-21-010 analysis. Supports the both Asymptotic and Hybrid New CLs computations. Native to CMSSW_11_0_0_pre2 (for RDF functionality).
+# CMSAnalysis-Diphotons
+Supports the both Asymptotic and Hybrid New CLs computations. Native to CMSSW_11_0_0_pre2 (for RDF functionality).
 
 
 # Setup Scripts and Combine
@@ -8,10 +8,10 @@ cd to where you want to setup your CMSSW, then do the following
 
 ```
 export SCRAM_ARCH=slc7_amd64_gcc700
-cmsrel CMSSW_11_0_0_pre2
-cd CMSSW_11_0_0_pre2/src
+cmsrel CMSSW_11_1_0_pre7
+cd CMSSW_11_1_0_pre7/src
 cmsenv
-git clone https://github.com/tw-hu/CMSAnalysis CMSAnalysis
+git clone https://github.com/osherson/CMSAnalysis-Diphotons.git
 git clone -b dijetpdf_102X https://github.com/RazorCMS/HiggsAnalysis-CombinedLimit HiggsAnalysis/CombinedLimit
 cd HiggsAnalysis/CombinedLimit
 

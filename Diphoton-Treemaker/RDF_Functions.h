@@ -151,9 +151,6 @@ float get_XM(unsigned int I1, unsigned int I2, rvec_f moe, rvec_f E, rvec_f eta,
 			ROOT::Math::PtEtaPhiMVector v1(pt1,eta[I1],phi[I1],m1);
 			ROOT::Math::PtEtaPhiMVector v2(pt2,eta[I2],phi[I2],m2);
 
-      v1 = sf*v1;
-      v2 = sf*v2;
-
 			return (v1+v2).M();
 		}
 		else return -1.0;
@@ -180,7 +177,7 @@ RVec<float> get_match_DR(rvec_f base_pt, rvec_f base_eta, rvec_f base_phi, rvec_
           minDr = base.DeltaR(match);
         }
       }
-    DRs.push_back(minDr);
+    DRs.push_back(std::forward<float>(minDr));
   }
   return DRs;
 }
@@ -207,7 +204,7 @@ RVec<int> get_match_index(rvec_f base_pt, rvec_f base_eta, rvec_f base_phi, rvec
           closestIdx = pp;
         }
       }
-    indexes.push_back(closestIdx);
+    indexes.push_back(std::forward<int>(closestIdx));
   }
   return indexes;
 }
@@ -234,7 +231,8 @@ RVec<float> get_match_param(rvec_f param, rvec_f base_pt, rvec_f base_eta, rvec_
           closestIdx = pp;
         }
       }
-    params.push_back( param.at(closestIdx) );
+	float P = param.at(closestIdx);
+    params.push_back(std::forward<float>(P));
   }
   return params;
 }
@@ -245,7 +243,8 @@ RVec<float> get_param(rvec_f idxs, rvec_f param)
 
   //Loop through Clusters
   for(unsigned int cc=0; cc<idxs.size(); cc++){ 
-    params.push_back( param.at( idxs.at(cc) ) );
+	float P = param.at(idxs.at(cc));
+    params.push_back( std::forward<float>(P));
   }
   return params;
 }
@@ -255,8 +254,14 @@ RVec<float> get_JetE(rvec_f idxs, rvec_f DR, rvec_f jetE, rvec_f rucluE)
   RVec<float> params;
   for(unsigned int cc=0; cc<idxs.size(); cc++){ 
     //if(idxs.at(cc)<0){ params.push_back(rucluE.at(cc)); } //No jet, get Ruclu energy
-    if(DR.at(cc)>0.15){ params.push_back(rucluE.at(cc)); } //Not near a jet, get ruclu e
-    else{params.push_back( jetE.at( idxs.at(cc) ) );} //Near jet, get the actual jet Energy
+    if(DR.at(cc)>0.15){
+		float P = rucluE.at(cc);
+		params.push_back(std::forward<float>(P));
+		} //Not near a jet, get ruclu e
+    else{
+		float P = jetE.at( idxs.at(cc) );
+		params.push_back( std::forward<float>(P) );
+		} //Near jet, get the actual jet Energy
   }
   return params;
 }

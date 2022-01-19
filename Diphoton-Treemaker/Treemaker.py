@@ -27,7 +27,7 @@ def Treemaker(folder, Dataset, isData, year):
 
   Helper.MakeFolder("TREES")
   Name = Dataset+"_"+year
-  oF = TFile("TREES/"+Name "recreate")
+  oF = TFile("TREES/"+Name+".root", "recreate")
 
   Rdf = RDF(Chain)
   c = Rdf.Count()
