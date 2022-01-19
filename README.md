@@ -24,14 +24,14 @@ Now setup the RooParametricShapeBinPdfs needed for the analysis:
 ```
 cd $CMSSW_BASE/src
 cmsenv
-cp /afs/cern.ch/user/d/dntounis/public/RooParametricShapeBinPdf_classes/February_2021/classes/cc_files/RooDijet5ParamBinPdf.cc HiggsAnalysis/CombinedLimit/src
-cp /afs/cern.ch/user/d/dntounis/public/RooParametricShapeBinPdf_classes/February_2021/classes/cc_files/RooModDijet5ParamBinPdf.cc HiggsAnalysis/CombinedLimit/src
+cp CMSAnalysis/FunctionDefs/RooDijet5ParamBinPdf.cc HiggsAnalysis/CombinedLimit/src
+cp CMSAnalysis/FunctionDefs/RooModDijet5ParamBinPdf.cc HiggsAnalysis/CombinedLimit/src
 
-cp /afs/cern.ch/user/d/dntounis/public/RooParametricShapeBinPdf_classes/February_2021/classes/h_files/RooDijet5ParamBinPdf.h HiggsAnalysis/CombinedLimit/interface
-cp /afs/cern.ch/user/d/dntounis/public/RooParametricShapeBinPdf_classes/February_2021/classes/h_files/RooModDijet5ParamBinPdf.h HiggsAnalysis/CombinedLimit/interface
+cp CMSAnalysis/FunctionDefs/RooDijet5ParamBinPdf.h HiggsAnalysis/CombinedLimit/interface
+cp CMSAnalysis/FunctionDefs/RooModDijet5ParamBinPdf.h HiggsAnalysis/CombinedLimit/interface
 
-cp /afs/cern.ch/user/d/dntounis/public/RooParametricShapeBinPdf_classes/February_2021/classes/cc_files/RooAtlas5ParamBinPdf.cc HiggsAnalysis/CombinedLimit/src
-cp /afs/cern.ch/user/d/dntounis/public/RooParametricShapeBinPdf_classes/February_2021/classes/h_files/RooAtlas5ParamBinPdf.h HiggsAnalysis/CombinedLimit/interface
+cp CMSAnalysis/FunctionDefs/RooAtlas5ParamBinPdf.cc HiggsAnalysis/CombinedLimit/src
+cp CMSAnalysis/FunctionDefs/RooAtlas5ParamBinPdf.h HiggsAnalysis/CombinedLimit/interface
 
 cd HiggsAnalysis/CombinedLimit/src
 ```
