@@ -57,7 +57,7 @@ scramv1 b clean; scramv1 b
 
 # Setup CombineHarvester (needed for Grid submissions)
 
-To setup CombineHarvester, do:
+To setup CombineHarvester (will only work on lxplus, so don't bother on hexfarm), do:
 
 ```
 cd $CMSSW_BASE/src
