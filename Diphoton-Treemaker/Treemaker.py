@@ -28,9 +28,6 @@ def Treemaker(folder, Dataset, isData, year):
             print os.path.join(path, name)
             Chain.Add(File)
 
-  Rdf = RDF(Chain)
-  c = Rdf.Count()
-
   # File dependent setup:
   if isData:
       dpindex, eleindex = Helper.getTrigIndex(year, run)
@@ -51,6 +48,8 @@ def Treemaker(folder, Dataset, isData, year):
       ]
 
   for b in Branches:
+    
+    Rdf = RDF(Chain)
     # Core part of the treemaker: all computations, branches, etc:
     ############
     Rdf = Rdf.Filter("rdfentry_ % "+str(b[1])+" == 0")
