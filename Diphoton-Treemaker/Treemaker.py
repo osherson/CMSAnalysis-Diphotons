@@ -14,7 +14,10 @@ gInterpreter.Declare('#include "RDF_Functions.h"')
 RDF = ROOT.ROOT.RDataFrame
 
 def Treemaker(folder, Dataset, isData, year):
-
+  Name = Dataset+"_"+year
+  oF = TFile(Name+".root", "recreate")
+  oF.Write()
+  oF.Close()
   tree = "flattener/tree"
   Chain = TChain(tree)
   for path, subdirs, files in os.walk(folder):
@@ -24,10 +27,6 @@ def Treemaker(folder, Dataset, isData, year):
         if(os.path.getsize(File) > 100):
             print os.path.join(path, name)
             Chain.Add(File)
-
-  Helper.MakeFolder("TREES")
-  Name = Dataset+"_"+year
-  oF = TFile("TREES/"+Name+".root", "recreate")
 
   Rdf = RDF(Chain)
   c = Rdf.Count()
@@ -55,8 +54,8 @@ def Treemaker(folder, Dataset, isData, year):
     # Core part of the treemaker: all computations, branches, etc:
     ############
     Rdf = Rdf.Filter("rdfentry_ % "+str(b[1])+" == 0")
-    Rdf = Rdf.Define("sf", "return {};".format(b[2]))
-    Rdf = Rdf.Define("weight", "return {};".format(b[3]))
+    Rdf = Rdf.Define("sf", "return " + str(b[2]) + ";")
+    Rdf = Rdf.Define("weight", "return " + str(b[3]) + ";")
     #Get pT all clusters
     Rdf = Rdf.Define("ruclu_pt", "get_pT(moe, ruclu_energy, ruclu_eta, ruclu_phi, pvtx_z, sf)")
     #Get index of two leading clusters in pT
@@ -102,7 +101,7 @@ def Treemaker(folder, Dataset, isData, year):
     ############
     # Save to the file we created earlier:
     branchList = ROOT.std.vector('std::string')()
-    for k in keeplist: branchList.push_back(k)
+    for k in Helper.keeplist: branchList.push_back(k)
     snapshotOptions = ROOT.RDF.RSnapshotOptions()
     snapshotOptions.fMode = "UPDATE" 
-    Rdf.Snapshot(b[0], oF, branchList, snapshotOptions)
+    Rdf.Snapshot(b[0], Name+".root", branchList, snapshotOptions)
