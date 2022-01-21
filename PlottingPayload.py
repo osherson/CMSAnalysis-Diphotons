@@ -34,15 +34,15 @@ def PlotTheoryStop():
     return G, Gu, Gd
 
 def Template_Replace(F, O, R):
-	with open(F, 'r') as file :
-		filedata = file.read()
-	filedata = filedata.replace(O, R)
-	with open(F, 'w') as file:
-		file.write(filedata)
+    with open(F, 'r') as file :
+        filedata = file.read()
+    filedata = filedata.replace(O, R)
+    with open(F, 'w') as file:
+        file.write(filedata)
 
 def RDFDeltaR(rdf, name, jet1, jet2):
     # ROOT.gInterpreter.ProcessLine("auto Use_Fit_"+newname+" = "+fit+";")
-    usefit_code = 	'''
+    usefit_code =     '''
                     #include <TROOT.h>
                     float myDeltaR(float pt1, float pt2, float eta1, float eta2, float phi1, float phi2, float m1, float m2)
                     {
@@ -64,37 +64,53 @@ def MakeNBinsFromMinToMax(N,Min,Max):
     return numpy.array(BINS)
 
 def GoodPlotFormat(H, *args): # Handy little script for color/line/fill/point/etc...
-	try: H.SetStats(0)
-	except: print " ------------ [  No stats box found!  ]"
-	if args[0] == 'thickline':
-		H.SetLineColor(args[1])
-		H.SetLineWidth(2)
-	if args[0] == 'thinline':
-		H.SetLineColor(args[1])
-		H.SetLineWidth(1)
-		H.SetLineStyle(args[2])
-	if args[0] == 'fill':
-		H.SetLineColor(args[1])
-		H.SetFillColor(args[1])
-		H.SetFillStyle(args[2])
-	if args[0] == 'markers':
-		H.SetLineColor(args[1])
-		H.SetMarkerColor(args[1])
-		H.SetMarkerStyle(args[2])
-	H.GetXaxis().SetTitleSize(0.04)
-	
+    try: H.SetStats(0)
+    except: print " ------------ [  No stats box found!  ]"
+    if args[0] == 'thickline':
+        H.SetLineColor(args[1])
+        H.SetLineWidth(2)
+    if args[0] == 'thinline':
+        H.SetLineColor(args[1])
+        H.SetLineWidth(1)
+        H.SetLineStyle(args[2])
+    if args[0] == 'fill':
+        H.SetLineColor(args[1])
+        H.SetFillColor(args[1])
+        H.SetFillStyle(args[2])
+    if args[0] == 'markers':
+        H.SetLineColor(args[1])
+        H.SetMarkerColor(args[1])
+        H.SetMarkerStyle(args[2])
+    H.GetXaxis().SetTitleSize(0.04)
+    
 def FindAndSetMax(*args):
-	if len(args) == 1: args = args[0]
-	maximum = 0.0
-	for i in args:
-		i.SetStats(0)
-		t = i.GetMaximum()
-		if t > maximum:
-			maximum = t
-	for j in args:
-		j.GetYaxis().SetRangeUser(0,maximum*1.35)#should be 1.35 (below as well)
-		j.SetLineWidth(2)
-	return maximum*1.35
+    if len(args) == 1: args = args[0]
+    maximum = 0.0
+    for i in args:
+        i.SetStats(0)
+        t = i.GetMaximum()
+        if t > maximum:
+            maximum = t
+    for j in args:
+        j.GetYaxis().SetRangeUser(0,maximum*1.35)#should be 1.35 (below as well)
+    return maximum*1.35
+
+
+def FindAndSetLogMax(*args):
+    if len(args) == 1: args = args[0]
+    maximum = 0.0
+    minimum = 0.9
+    for i in args:
+        i.SetStats(0)
+        t1 = i.GetMaximum()
+        t2 = i.GetBinContent(i.FindFirstBinAbove(0.01*i.GetMaximum(),1))
+        if t1 > maximum:
+            maximum = t1
+        if t2 < minimum:
+            minimum = t2
+    for j in args:
+        j.GetYaxis().SetRangeUser(minimum,maximum*5.)#should be 1.35 (below as well)
+    return maximum*5.
 
 def GetM2jA(F, T, N, W, C, BR="evt_2JetM", BIN=MakeNBinsFromMinToMax(160, 0.0, 4000.0), XT="Average Dijet Mass [GeV]", YT="Events/GeV", divbin=True):
     if BR is None: BR="evt_2JetM"
@@ -145,11 +161,11 @@ def AddCMSLumi(pad, fb=None, extra=None):
     latex = ROOT.TLatex()
     latex.SetNDC()
     latex.SetTextAngle(0)
-    latex.SetTextColor(ROOT.kBlack)	
+    latex.SetTextColor(ROOT.kBlack)    
     extraTextSize = 0.76*cmsTextSize
     latex.SetTextFont(42)
     latex.SetTextAlign(31) 
-    latex.SetTextSize(lumiTextSize*t)	
+    latex.SetTextSize(lumiTextSize*t)    
     latex.DrawLatex(1-r,1-t+lumiTextOffset*t,lumiText)
     pad.cd()
     latex.SetTextFont(cmsTextFont)
@@ -407,11 +423,11 @@ def stylePull(Hin, Ein, name, fitResult=None, signals=None, title=None, xTitle=N
 XB = [100.0, 103.0, 106.0, 109.0, 112.0, 115.0, 118.0, 121.0, 124.0, 127.0, 130.0, 133.0, 136.0, 139.0, 142.0, 145.0, 148.0, 151.0, 155.0, 159.0, 163.0, 167.0, 171.0, 175.0, 179.0, 183.0, 187.0, 191.0, 195.0, 199.0, 204.0, 209.0, 214.0, 219.0, 224.0, 229.0, 234.0, 239.0, 244.0, 249.0, 255.0, 261.0, 267.0, 273.0, 279.0, 285.0, 291.0, 297.0, 303.0, 310.0, 317.0, 324.0, 331.0, 338.0, 345.0, 352.0, 360.0, 368.0, 376.0, 384.0, 392.0, 400.0, 409.0, 418.0, 427.0, 436.0, 445.0, 454.0, 464.0, 474.0, 484.0, 494.0, 504.0, 515.0, 526.0, 537.0, 548.0, 560.0, 572.0, 584.0, 596.0, 609.0, 622.0, 635.0, 648.0, 662.0, 676.0, 690.0, 704.0, 719.0, 734.0, 749.0, 765.0, 781.0, 797.0, 814.0, 831.0, 848.0, 866.0, 884.0, 902.0, 921.0, 940.0, 959.0, 979.0, 999.0, 1020.0, 1041.0, 1063.0, 1085.0, 1107.0, 1130.0, 1153.0, 1177.0, 1201.0, 1226.0, 1251.0, 1277.0, 1303.0, 1330.0, 1357.0, 1385.0, 1413.0, 1442.0, 1472.0, 1502.0, 1533.0, 1564.0, 1596.0, 1629.0, 1662.0, 1696.0, 1731.0, 1766.0, 1802.0, 1839.0, 1877.0, 1915.0, 1954.0, 1994.0, 2035.0, 2077.0, 2119.0, 2162.0, 2206.0, 2251.0, 2297.0, 2344.0, 2392.0, 2441.0, 2491.0, 2542.0, 2594.0, 2647.0, 2701.0, 2756.0, 2812.0, 2869.0, 2927.0, 2987.0, 3048.0, 3110.0]
 X1B = MakeNBinsFromMinToMax(3010, 100., 3110.)
 AB = [0.0, 0.001, 0.002, 0.003, 0.004, 0.005, 0.006, 0.007, 0.008, 0.009, 0.01, 0.011, 0.012, 0.013, 0.014, 0.015, 0.016, 0.017, 0.018, 0.019, 0.02, 0.021, 0.022, 0.023, 0.024, 0.025, 0.027, 0.029, 0.031, 0.033, 0.035]
-def GetDiphoShapeAnalysis(F, T, N, masym, deta, dipho, iso, alpha, trigger):
+def GetDiphoShapeAnalysis(F, T, N, masym, deta, dipho, iso, alpha, trigger, scale):
     # Load files:
     Chain = ROOT.TChain(T)
     for f in F:
-        Chain.Add(F)
+        Chain.Add(f)
     Rdf         =   RDF(Chain)
     # Make cuts:
     Rdf         =   Rdf.Filter(trigger+" > 0.")
@@ -431,6 +447,7 @@ def GetDiphoShapeAnalysis(F, T, N, masym, deta, dipho, iso, alpha, trigger):
         h.SetFillColor(2)
         h.SetFillColor(2)
         h.SetFillStyle(3001)
+        if scale != 1: h.Scale(scale)
     XMvA = c_XMvA.Clone(N+"_"+c_XMvA.GetName())
     # Return plots:
     return (XM, X1M, XMvA)
