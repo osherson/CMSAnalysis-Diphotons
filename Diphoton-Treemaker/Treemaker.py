@@ -8,12 +8,17 @@ import os
 import random
 import Helper
 #gROOT.SetBatch(kTRUE)
-gInterpreter.Declare('#include "RDF_Functions.h"')
+
+dir_path = os.path.dirname(os.path.realpath(__file__)) #Get directory where this Treemaker.py is located
+gInterpreter.Declare('#include "{}/RDF_Functions.h"'.format(dir_path))
+
+saveTreeFolder = "/cms/xaastorage-2/DiPhotonsTrees/" 
 
 #ROOT.ROOT.EnableImplicitMT()
 RDF = ROOT.ROOT.RDataFrame
 
 def Treemaker(folder, Dataset, isData, year):
+  global saveTreeFolder
   Name = Dataset+"_"+year
   oF = TFile(Name+".root", "recreate")
   oF.Write()
@@ -103,4 +108,4 @@ def Treemaker(folder, Dataset, isData, year):
     for k in Helper.keeplist: branchList.push_back(k)
     snapshotOptions = ROOT.RDF.RSnapshotOptions()
     snapshotOptions.fMode = "UPDATE" 
-    Rdf.Snapshot(b[0], Name+".root", branchList, snapshotOptions)
+    Rdf.Snapshot(b[0], saveTreeFolder+Name+".root", branchList, snapshotOptions)
