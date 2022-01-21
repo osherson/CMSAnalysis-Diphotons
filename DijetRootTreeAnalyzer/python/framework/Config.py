@@ -33,8 +33,8 @@ class Config(object):
     
     def getVariablesRange(self, box, lineTag, workspace):
         #first define the variables
-        workspace.defineSet(lineTag,'')
         vars = self.getVariables(box, lineTag)
+        workspace.defineSet(lineTag,' ')
         for v in vars:
             r = workspace.factory(v)
             workspace.extendSet(lineTag,r.GetName())
