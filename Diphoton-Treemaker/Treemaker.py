@@ -30,7 +30,7 @@ def Treemaker(folder, Dataset, isData, year):
 
   # File dependent setup:
   if isData:
-      dpindex, eleindex = Helper.getTrigIndex(year, run)
+      dpindex, eleindex = Helper.getTrigIndex(year, Dataset)
       Branches = [
           ["pico_skim", 10, 1., 1.],
           ["pico_full", 1, 1., 1.]

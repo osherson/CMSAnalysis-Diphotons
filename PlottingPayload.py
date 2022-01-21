@@ -410,7 +410,8 @@ AB = [0.0, 0.001, 0.002, 0.003, 0.004, 0.005, 0.006, 0.007, 0.008, 0.009, 0.01, 
 def GetDiphoShapeAnalysis(F, T, N, masym, deta, dipho, iso, alpha, trigger):
     # Load files:
     Chain = ROOT.TChain(T)
-    Chain.Add(F)
+    for f in F:
+        Chain.Add(F)
     Rdf         =   RDF(Chain)
     # Make cuts:
     Rdf         =   Rdf.Filter(trigger+" > 0.")
