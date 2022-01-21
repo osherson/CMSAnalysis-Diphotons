@@ -1,0 +1,6 @@
+*.condor
+*.stderr
+*.stdout
+*.pyc
+*.root
+
