@@ -1,11 +1,13 @@
+import os
+dir_path = os.path.dirname(os.path.realpath(__file__)) #Get directory where this Treemaker.py is located
 
 def getNEvents(year, xamass):
   xmass = xamass[ xamass.find("X")+1 : xamass.find("A")]
   amass = xamass[ xamass.find("A")+1 : ].replace("p",".")
 
-  if("16" in year): fname="HelperFiles/Signal_NEvents_2016.csv"
-  if("17" in year): fname="HelperFiles/Signal_NEvents_2017.csv"
-  if("18" in year): fname="HelperFiles/Signal_NEvents_2018.csv"
+  if("16" in year): fname="{}/HelperFiles/Signal_NEvents_2016.csv".format(dir_path)
+  if("17" in year): fname="{}/HelperFiles/Signal_NEvents_2017.csv".format(dir_path)
+  if("18" in year): fname="{}/HelperFiles/Signal_NEvents_2018.csv".format(dir_path)
 
   myFile = open(fname, "r")
   Lines = myFile.readlines()
@@ -18,7 +20,7 @@ def getNEvents(year, xamass):
   return nevt
 
 def getTrigIndex(year, run):
-  myFile = open("HelperFiles/TriggerIndices_forPico.csv","r")
+  myFile = open("{}/HelperFiles/TriggerIndices_forPico.csv".format(dir_path),"r")
   Lines = myFile.readlines()
   for line in Lines:
     params = line.split(",")
@@ -29,6 +31,7 @@ def getTrigIndex(year, run):
 
 keeplist = ['lumiSec','run','id', 
             "weight",
+            "pvtx_size",
             "HLT_DoublePhoton", "HLT_EleTrig",
             "clu1_pt",
             "clu1_eta",
