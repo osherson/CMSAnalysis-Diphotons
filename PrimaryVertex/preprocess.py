@@ -31,4 +31,7 @@ def preprocess(Inputs, OutputFolder, Year):
     p = PostProcessor(OutputFolder, [Inputs], preproc_cuts, modules=useModules, provenance=False)#, outputbranchsel="keepfile.txt", jsonInput=JSON)
     p.run()
 
-preprocess(sys.argv[1], sys.argv[2], sys.argv[3])
+inputs = sys.argv[1]
+outputs=sys.argv[2]
+year = inputs[inputs.find("_20")+1 : inputs.find("_20")+5]
+preprocess(inputs, outputs, year)
