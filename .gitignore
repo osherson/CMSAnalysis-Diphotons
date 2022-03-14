@@ -3,4 +3,7 @@
 *.stdout
 *.pyc
 *.root
+*.png
+*.pdf
+*.jpeg
 
