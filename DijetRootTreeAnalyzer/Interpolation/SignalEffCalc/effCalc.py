@@ -39,6 +39,9 @@ for path, subdirs, files in os.walk(pico_dir):
 eventsCount = []
 ct = 0
 
+eventsFile = "../../../Diphoton-Treemaker/HelperFiles/Signal_NEvents_{}.csv".format(year)
+edf = pandas.read_csv(eventsFile)
+
 for xphi,F in dists.items():
   #if ct > 2: break
 
@@ -47,11 +50,14 @@ for xphi,F in dists.items():
   if this_phim.is_integer(): this_phim = int(this_phim)
   myalpha = float(this_phim) / float(this_xm)
 
+  nevents_gen = edf.loc[(edf["X Mass"]==this_xm) & (edf["Phi Mass"] == this_phim)]["N Events"].tolist()
+
   Chain=ROOT.TChain("pico_nom")
   Chain.Add(F)
 
   rdf = ROOT.RDataFrame.RDataFrame(Chain)
-  oEvents = int(rdf.Count().GetValue())
+  #oEvents = int(rdf.Count().GetValue())
+  oEvents = nevents_gen[0]
   cutString = "masym < 0.25 && clu1_dipho > 0.9 && clu2_dipho > 0.9 && clu1_iso > 0.8 && clu2_iso > 0.8 && clu1_pt > 70 && clu2_pt > 70"
   rdf = rdf.Filter(cutString, "Analysis Cuts")
   hist = rdf.Histo1D( ("alpha","alpha",4000,0,4000), "alpha")
