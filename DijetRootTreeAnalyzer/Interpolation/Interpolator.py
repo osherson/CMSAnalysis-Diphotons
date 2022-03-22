@@ -5,11 +5,6 @@ import math
 import sys
 import pandas
 sys.path.append("../.")
-#import PlottingPayload as PL
-
-#ROOT.ROOT.EnableImplicitMT()
-
-#ROOT.gROOT.SetBatch()
 
 LUMI = {}
 LUMI["2016"] = 36.050
@@ -19,6 +14,7 @@ LUMI["2018"] = 59.320
 XS = 100 #fb^-1
 
 maxvv = 2000
+nxbins = maxvv
 
 def computeBoundingIndices(M, anchors):
   lowI, highI = 0,0
@@ -111,7 +107,7 @@ class HC:
     if scaled: RHI.Scale(integralInterpo(self._massArr, self._histInts, MM)/RHI.Integral())
     return RHI.Clone(un+N), inxhists
 
-def getAlphaHists(xs, alpha, dists, nxbins):
+def getAlphaHists(xs, alpha, dists):
   histos = []
   effs = []
   denoms = []
@@ -140,8 +136,41 @@ def getAlphaHists(xs, alpha, dists, nxbins):
 
   return histos, effs, denoms
 
+def getPhiHists(xm, alpha, alphas, dists):
+  gphis = []
+  histos = []
+  effs = []
+  denoms = []
 
-def InterpolateHists(input_x, input_phi, allxmasses, lm, him, usehists, usemasses, useeffs, denoms, outFName):
+  for t_alpha in alphas:
+    for xphi,F in dists.items():
+      dx = int(xphi[1:xphi.find("A")])
+      if(dx != xm): continue
+      dphi = float(xphi[xphi.find("A")+1 :].replace("p","."))
+      dalpha = dphi / dx
+      if(dalpha == t_alpha):
+        print(xphi)
+        gphis.append(dphi)
+        Chain=ROOT.TChain("pico_nom")
+        Chain.Add(F)
+        rdf = ROOT.RDataFrame.RDataFrame(Chain)
+        xhist_nocut = rdf.Histo1D(("xhist_{}_{}".format(xm, dphi),"xmass", nxbins, 0, max(int(xm)*2, maxvv)), "XM")
+        cutString = "masym < 0.25 && clu1_dipho > 0.9 && clu2_dipho > 0.9 && clu1_iso > 0.8 && clu2_iso > 0.8 && clu1_pt > 70 && clu2_pt > 70"
+        rdf = rdf.Filter(cutString)
+        hist = rdf.Histo1D( ("alpha","alpha",4000,0,4000), "alpha")
+        alphastd = hist.GetStdDev()
+        rdf = rdf.Filter("alpha > {} && alpha < {}".format(t_alpha - alphastd*3, t_alpha + alphastd*3), "alpha Window")
+        num = float(rdf.Count().GetValue())
+        rdf = rdf.Filter("XM > {} && XM < 2000".format(float(xm)*0.85))
+        xhist = rdf.Histo1D(("xhist_{}_{}".format(xm, dphi),"xmass", nxbins, 0, max(int(xm)*2, maxvv)), "XM")
+        effs.append(num / getDenom(int(xm), float(dphi)))
+        denoms.append(getDenom(int(xm), float(dphi)))
+        histos.append(xhist.GetValue().Clone())
+
+  return gphis, histos, effs, denoms
+
+
+def InterpolateHists(input_x, input_phi, masslist, lm, him, usehists, usemasses, useeffs, denoms, outFName):
       myout = ROOT.TFile(outFName, "UPDATE")
       myout.cd()
       for h in usehists:
@@ -162,16 +191,22 @@ def InterpolateHists(input_x, input_phi, allxmasses, lm, him, usehists, usemasse
 
       mp = HC(scalehists, usemasses)
 
-      x1,phi1,eff1,d1 = allxmasses[lm], input_phi, useeffs[0], denoms[0]
-      x2,phi2,eff2,d2 = allxmasses[him], input_phi, useeffs[1], denoms[1]
+      if(masslist.keys()[0]=='X'):
+        x1,phi1,eff1,d1 = masslist['X'][lm], input_phi, useeffs[0], denoms[0]
+        x2,phi2,eff2,d2 = masslist['X'][him], input_phi, useeffs[1], denoms[1]
+        neweff = linearInterpolate(input_x, x1, eff1, x2, eff2) #This is the final efficiency for new signal
+        newNevt = linearInterpolate(input_x, x1, d1, x2, d2) #This is the expected n events for new signal
 
-      neweff = linearInterpolate(input_x, x1, eff1, x2, eff2) #This is the final efficiency for new signal
-      newNevt = linearInterpolate(input_x, x1, d1, x2, d2) #This is the expected n events for new signal
-
-      E, newxhists = mp.morph(input_x, "{}_{}".format(input_x, input_phi), "newhist_{}_{}".format(input_x, input_phi), input_x)
+      elif(masslist.keys()[0]=='phi'):
+        x1,phi1,eff1,d1 = input_x, masslist['phi'][lm], useeffs[0], denoms[0]
+        x2,phi2,eff2,d2 = input_x, masslist['phi'][him], useeffs[1], denoms[1]
+        neweff = linearInterpolate(input_phi, phi1, eff1, phi2, eff2) #This is the final efficiency for new signal
+        newNevt = linearInterpolate(input_phi, phi1, d1, phi2, d2) #This is the expected n events for new signal
 
       print("Final Efficiency: ")
       print("X {}, phi {} : {:.4f}".format(input_x, input_phi, neweff))
+
+      E, newxhists = mp.morph(input_x, "{}_{}".format(input_x, input_phi), "newhist_{}_{}".format(input_x, input_phi), input_x)
 
       myout = ROOT.TFile(outFName, "UPDATE")
       myout.cd()
@@ -187,6 +222,7 @@ def InterpolateHists(input_x, input_phi, allxmasses, lm, him, usehists, usemasse
       E.Write()
       myout.Write()
       myout.Close()
+      return E, neweff, newNevt
 
 def interpoSignalMaker(o):
 
@@ -233,37 +269,63 @@ def interpoSignalMaker(o):
   have_phi = False
   have_alpha = False
 
-  print(in_alpha)
-
   if(in_x in xmasses): have_x = True
   if(in_phi in phimasses): have_phi=True
   if(have_x and have_phi): interpoBool=False
   if(in_alpha in alphas): have_alpha = True
   if o.force != None: interpoBool=True
 
-  savehists = []
-  nxbins = 2000
-
   if interpoBool: 
     myout = ROOT.TFile(outFileName, "RECREATE")
     myout.Close()
-    savehists = []
 
-    if(have_alpha == True): 
+    if(have_alpha == True and o.force==None): 
       print("Interpolating from known alpha signals")
       lowx, hix = computeBoundingIndices(in_x, xmasses)
 
       INPUTM = [xmasses[lowx], xmasses[hix]]
-      myhists, myeffs, mydenoms = getAlphaHists(INPUTM, in_alpha, dists, nxbins)
-      InterpolateHists(in_x, in_phi, xmasses, lowx, hix, myhists, INPUTM, myeffs, mydenoms, outFileName)
+      myhists, myeffs, mydenoms = getAlphaHists(INPUTM, in_alpha, dists)
+      use_masses = {}
+      use_masses["X"] = xmasses
+      InterpolateHists(in_x, in_phi, use_masses, lowx, hix, myhists, INPUTM, myeffs, mydenoms, outFileName)
 
+    elif( (have_x and not have_alpha) or o.force != None):
+      if(o.force != None): print("Forcing Interpolation for known signal")
+      else: print("Known X, Unknown alpha. Interpolating from same X mass, nearest phi mass signals")
 
-    elif(have_x and not have_alpha):
-      print("Known X, Unknown alpha. Interpolating from same X mass, nearest phi mass signals")
+      lowa, hia = computeBoundingIndices(in_alpha, alphas)
+
+      INPUTM = [alphas[lowa], alphas[hia]]
+      myphis, myhists, myeffs, mydenoms = getPhiHists(in_x, in_alpha, INPUTM, dists)
+      use_masses = {}
+      use_masses["phi"] = myphis
+      InterpolateHists(in_x, in_phi, use_masses, 0, 1, myhists, myphis, myeffs, mydenoms, outFileName)
 
     else:
-      if(o.force == None or not have_x or not have_phi): print("Unknown X and phi mass. Interpolating twice")
-      elif(o.force != None and have_x and have_phi): print("Forcing interpolation for known X and Phi Mass")
+      print("Unknown X and phi mass. Interpolating twice")
+      lowx, hix = computeBoundingIndices(in_x, xmasses) 
+      bxs = [xmasses[lowx], xmasses[hix]]
+      
+      inx_alphahists = []
+      myeffs = []
+      mydenoms = []
+      for dox in bxs:
+        lowa, hia = computeBoundingIndices(in_alpha, alphas)
+
+        INPUTM = [alphas[lowa], alphas[hia]]
+        myphis, myhists, myeffs, mydenoms = getPhiHists(dox, in_alpha, INPUTM, dists)
+        print(myphis)
+        use_masses = {}
+        use_masses["phi"] = myphis
+        newhist, neweff, newdenom = InterpolateHists(dox, in_phi, use_masses, 0, 1, myhists, myphis, myeffs, mydenoms, outFileName)
+        inx_alphahists.append(newhist)
+        myeffs.append(neweff)
+        mydenoms.append(newdenom)
+      #myhists, myeffs, mydenoms = getAlphaHists(INPUTM, in_alpha, dists)
+
+      use_masses = {}
+      use_masses["X"] = xmasses
+      InterpolateHists(in_x, in_phi, use_masses, lowx, hix, inx_alphahists, bxs, myeffs, mydenoms, outFileName)
 
 
   else: 
@@ -299,11 +361,6 @@ def interpoSignalMaker(o):
 
   print("Saving file: {}".format(outFileName))
 
-  for hh in savehists:
-    hh.Write()
-  myout.Write()
-  myout.Save()
-  myout.Close()
 
 if __name__ == "__main__":
   from argparse import ArgumentParser
