@@ -275,6 +275,15 @@ def interpoSignalMaker(o):
   if(in_alpha in alphas): have_alpha = True
   if o.force != None: interpoBool=True
 
+  ###
+  if(in_x < min(xmasses) or in_x > max(xmasses)): 
+    print("Input X = {} GeV out of X mass range. Doing nothing".format(in_x))
+    return
+  elif(in_alpha < min(alphas) or in_alpha > max(alphas)): 
+    print("Input alpha={} out of alpha mass range. Doing nothing".format(in_alpha))
+    return
+  ###
+
   if interpoBool: 
     myout = ROOT.TFile(outFileName, "RECREATE")
     myout.Close()
