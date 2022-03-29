@@ -273,7 +273,7 @@ def interpoSignalMaker(o):
   if(in_phi in phimasses): have_phi=True
   if(have_x and have_phi): interpoBool=False
   if(in_alpha in alphas): have_alpha = True
-  if o.force != None: interpoBool=True
+  if o.force : interpoBool=True
 
   ###
   if(in_x < min(xmasses) or in_x > max(xmasses)): 
@@ -288,7 +288,7 @@ def interpoSignalMaker(o):
     myout = ROOT.TFile(outFileName, "RECREATE")
     myout.Close()
 
-    if(have_alpha == True and o.force==None): 
+    if(have_alpha == True and not o.force): 
       print("Interpolating from known alpha signals")
       lowx, hix = computeBoundingIndices(in_x, xmasses)
 
@@ -298,8 +298,8 @@ def interpoSignalMaker(o):
       use_masses["X"] = xmasses
       InterpolateHists(in_x, in_phi, use_masses, lowx, hix, myhists, INPUTM, myeffs, mydenoms, outFileName)
 
-    elif( (have_x and not have_alpha) or o.force != None):
-      if(o.force != None): print("Forcing Interpolation for known signal")
+    elif( (have_x and not have_alpha) or o.force ):
+      if( o.force ): print("Forcing Interpolation for known signal")
       else: print("Known X, Unknown alpha. Interpolating from same X mass, nearest phi mass signals")
 
       lowa, hia = computeBoundingIndices(in_alpha, alphas)
@@ -377,7 +377,8 @@ if __name__ == "__main__":
   
   parser.add_argument("--year", required=True, default=2018, help='Run II Year' )
   parser.add_argument("--mass", required=True, default = "X623A17", help='X, Phi mass entered as X123A123' )
-  parser.add_argument("-f", "--force", required=False, help='Input anything in this arg to force interpolation for known signals' )
+  #parser.add_argument("-f", "--force", required=False, help='Input anything in this arg to force interpolation for known signals' )
+  parser.add_argument("--forceinterpo", action="store_true", dest="force", help="Force interpolation of intermediate mass points which are given.")
 
   args = parser.parse_args()
 
