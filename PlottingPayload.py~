@@ -448,6 +448,7 @@ def GetDiphoShapeAnalysis(F, T, N, masym, deta, dipho, iso, alpha, trigger, scal
         h.SetFillColor(2)
         h.SetLineColor(2)
         h.SetFillStyle(3001)
+        if scale != 1: h.Scale(scale)
     XMvA = c_XMvA.Clone(N+"_"+c_XMvA.GetName())
     # Return plots:
     return (XM, X1M, XMvA)

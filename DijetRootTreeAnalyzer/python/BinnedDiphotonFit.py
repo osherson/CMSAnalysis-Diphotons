@@ -278,6 +278,8 @@ if __name__ == '__main__':
                   help="multiple background pdfs")
     parser.add_option('--write-fit', dest="doWriteFit", default=False, action='store_true',
                   help="save fit as a 1 GeV-binned histogram")
+    parser.add_option('--words', dest="CUTSTRING", default=" ~~~~ ~~~~~ ", action='store_true',
+                  help="what to write on canvas")
 
     rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.FATAL)
     rt.gStyle.SetPaintTextFormat('+.2f')
@@ -815,11 +817,11 @@ if __name__ == '__main__':
         tdirectory.cd()
         d.Write()
 
-    
     background_pdf = w.pdf('%s_bkg_unbin'%box)
-    background= background_pdf.asTF(rt.RooArgList(w.var('mjj')),rt.RooArgList(w.var('p0_%s'%box)))
-    int_b = background.Integral(w.var('mjj').getMin(),w.var('mjj').getMax())
+    background= background_pdf.asTF(rt.RooArgList(w.var("mjj")),rt.RooArgList(w.var('p0_%s'%box)))
+    int_b = background.Integral(w.var("mjj").getMin(),w.var("mjj").getMax())
     # p0_b = w.var('Ntot_%s_bkg'%box).getVal()
+    print 'Ntot_%s_bkg'%box + " <<<<<<<<<"
     p0_b = w.var('Ntot_%s_bkg'%box).getVal() / (int_b * lumi)
     # print("|===> expected bkg integral: ", w.var('Ntot_%s_bkg'%box).getVal())
     background.SetParameter(0,p0_b)
@@ -1045,7 +1047,7 @@ if __name__ == '__main__':
                           list_chi2AndNdf_background[4], list_chi2AndNdf_background[5],
                           list_chi2AndNdf_background[4]/list_chi2AndNdf_background[5]))
     pave_sel.AddText("Prob. = {0:.2f}".format(rt.TMath.Prob(list_chi2AndNdf_background[4], list_chi2AndNdf_background[5])))
-    pave_sel.AddText("D_{#gamma#gamma} > 0.0, iso > 0.5, M_{asym}<0.25")
+    #pave_sel.AddText(options.CUTSTRING)
     pave_sel.Draw("SAME")
     
     list_parameter = [p0_b, p0_b*(w.var('Ntot_%s_bkg'%box).getErrorHi() - w.var('Ntot_%s_bkg'%box).getErrorLo())/(2.0*w.var('Ntot_%s_bkg'%box).getVal()),                      
