@@ -107,7 +107,7 @@ class HC:
     if scaled: RHI.Scale(integralInterpo(self._massArr, self._histInts, MM)/RHI.Integral())
     return RHI.Clone(un+N), inxhists
 
-def getAlphaHists(xs, alpha, dists):
+def getAlphaHists(xtreename, xs, alpha, dists):
   histos = []
   effs = []
   denoms = []
@@ -118,7 +118,7 @@ def getAlphaHists(xs, alpha, dists):
       dx = int(xphi[1:xphi.find("A")])
       dphi = float(xphi[xphi.find("A")+1 :].replace("p","."))
       if(dphi/dx == alpha and dx == xm):
-        Chain=ROOT.TChain("pico_nom")
+        Chain=ROOT.TChain(xtreename)
         Chain.Add(F)
         rdf = ROOT.RDataFrame.RDataFrame(Chain)
         xhist_nocut = rdf.Histo1D(("xhist_{}_{}".format(xm, phim),"xmass", nxbins, 0, max(int(xm)*2, maxvv)), "XM")
@@ -133,10 +133,11 @@ def getAlphaHists(xs, alpha, dists):
         effs.append(num / getDenom(int(xm), float(phim)))
         denoms.append(getDenom(int(xm), float(phim)))
         histos.append(xhist.GetValue().Clone())
+        del Chain, rdf
 
   return histos, effs, denoms
 
-def getPhiHists(xm, alpha, alphas, dists):
+def getPhiHists(xtreename, xm, alpha, alphas, dists):
   gphis = []
   histos = []
   effs = []
@@ -151,7 +152,7 @@ def getPhiHists(xm, alpha, alphas, dists):
       if(dalpha == t_alpha):
         print(xphi)
         gphis.append(dphi)
-        Chain=ROOT.TChain("pico_nom")
+        Chain=ROOT.TChain(xtreename)
         Chain.Add(F)
         rdf = ROOT.RDataFrame.RDataFrame(Chain)
         xhist_nocut = rdf.Histo1D(("xhist_{}_{}".format(xm, dphi),"xmass", nxbins, 0, max(int(xm)*2, maxvv)), "XM")
@@ -166,11 +167,12 @@ def getPhiHists(xm, alpha, alphas, dists):
         effs.append(num / getDenom(int(xm), float(dphi)))
         denoms.append(getDenom(int(xm), float(dphi)))
         histos.append(xhist.GetValue().Clone())
+        del Chain, rdf
 
   return gphis, histos, effs, denoms
 
 
-def InterpolateHists(input_x, input_phi, masslist, lm, him, usehists, usemasses, useeffs, denoms, outFName):
+def InterpolateHists(input_x, input_phi, xtreename, masslist, lm, him, usehists, usemasses, useeffs, denoms, outFName):
       myout = ROOT.TFile(outFName, "UPDATE")
       myout.cd()
       for h in usehists:
@@ -206,7 +208,7 @@ def InterpolateHists(input_x, input_phi, masslist, lm, him, usehists, usemasses,
       print("Final Efficiency: ")
       print("X {}, phi {} : {:.4f}".format(input_x, input_phi, neweff))
 
-      E, newxhists = mp.morph(input_x, "{}_{}".format(input_x, input_phi), "newhist_{}_{}".format(input_x, input_phi), input_x)
+      E, newxhists = mp.morph(input_x, "{}_{}_{}".format(input_x, input_phi, xtreename), "newhist_{}_{}_{}".format(input_x, input_phi, xtreename), input_x)
 
       myout = ROOT.TFile(outFName, "UPDATE")
       myout.cd()
@@ -224,7 +226,7 @@ def InterpolateHists(input_x, input_phi, masslist, lm, him, usehists, usemasses,
       myout.Close()
       return E, neweff, newNevt
 
-def interpoSignalMaker(o):
+def interpoSignalMaker(o, xtreename):
 
   global year
   year = o.year
@@ -234,6 +236,8 @@ def interpoSignalMaker(o):
   in_alpha = in_phi / in_x
   if(in_x.is_integer()): in_x = int(in_x)
   if(in_phi.is_integer()): in_phi = int(in_phi)
+
+  nom_updown = xtreename[xtreename.find("_")+1 :]
   
   print("\nGetting Dicluster Mass Shape for X {} Phi {} Signal".format(in_x, in_phi))
 
@@ -245,7 +249,7 @@ def interpoSignalMaker(o):
   alphas = []
   ##
 
-  outFileName = "OutFiles/{}/X{}phi{}.root".format(year,in_x,in_phi)
+  outFileName = "OutFiles/{}/X{}phi{}_{}.root".format(year,in_x,in_phi,nom_updown)
 
   for path, subdirs, files in os.walk(pico_dir):
     for name in files:
@@ -255,7 +259,6 @@ def interpoSignalMaker(o):
         xmass = int(xamass[1 : xamass.find("A")])
         phimass = float(xamass[xamass.find("A")+1 :].replace("p",".") )
   
-        #if (xmass == 200 and File.endswith(".root") and amass/xmass < alpha_high and "v_" not in name):
         if (File.endswith(".root") and year in name and "v_" not in File):
           if(os.path.getsize(File) > 100):
               dists[xamass]=File
@@ -296,7 +299,7 @@ def interpoSignalMaker(o):
       myhists, myeffs, mydenoms = getAlphaHists(INPUTM, in_alpha, dists)
       use_masses = {}
       use_masses["X"] = xmasses
-      InterpolateHists(in_x, in_phi, use_masses, lowx, hix, myhists, INPUTM, myeffs, mydenoms, outFileName)
+      InterpolateHists(in_x, in_phi, xtreename, use_masses, lowx, hix, myhists, INPUTM, myeffs, mydenoms, outFileName)
 
     elif( (have_x and not have_alpha) or o.force ):
       if( o.force ): print("Forcing Interpolation for known signal")
@@ -305,10 +308,10 @@ def interpoSignalMaker(o):
       lowa, hia = computeBoundingIndices(in_alpha, alphas)
 
       INPUTM = [alphas[lowa], alphas[hia]]
-      myphis, myhists, myeffs, mydenoms = getPhiHists(in_x, in_alpha, INPUTM, dists)
+      myphis, myhists, myeffs, mydenoms = getPhiHists(xtreename, in_x, in_alpha, INPUTM, dists)
       use_masses = {}
       use_masses["phi"] = myphis
-      InterpolateHists(in_x, in_phi, use_masses, 0, 1, myhists, myphis, myeffs, mydenoms, outFileName)
+      InterpolateHists(in_x, in_phi, xtreename, use_masses, 0, 1, myhists, myphis, myeffs, mydenoms, outFileName)
 
     else:
       print("Unknown X and phi mass. Interpolating twice")
@@ -322,11 +325,11 @@ def interpoSignalMaker(o):
         lowa, hia = computeBoundingIndices(in_alpha, alphas)
 
         INPUTM = [alphas[lowa], alphas[hia]]
-        myphis, myhists, myeffs, mydenoms = getPhiHists(dox, in_alpha, INPUTM, dists)
+        myphis, myhists, myeffs, mydenoms = getPhiHists(xtreename, dox, in_alpha, INPUTM, dists)
         print(myphis)
         use_masses = {}
         use_masses["phi"] = myphis
-        newhist, neweff, newdenom = InterpolateHists(dox, in_phi, use_masses, 0, 1, myhists, myphis, myeffs, mydenoms, outFileName)
+        newhist, neweff, newdenom = InterpolateHists(dox, in_phi, xtreename, use_masses, 0, 1, myhists, myphis, myeffs, mydenoms, outFileName)
         inx_alphahists.append(newhist)
         myeffs.append(neweff)
         mydenoms.append(newdenom)
@@ -334,7 +337,7 @@ def interpoSignalMaker(o):
 
       use_masses = {}
       use_masses["X"] = xmasses
-      InterpolateHists(in_x, in_phi, use_masses, lowx, hix, inx_alphahists, bxs, myeffs, mydenoms, outFileName)
+      InterpolateHists(in_x, in_phi, xtreename, use_masses, lowx, hix, inx_alphahists, bxs, myeffs, mydenoms, outFileName)
 
 
   else: 
@@ -345,7 +348,7 @@ def interpoSignalMaker(o):
       this_phim = xphi[xphi.find("A")+1 :].replace("p",".")
       alpha = float(this_phim) / float(this_xm)
       if(str(in_x) == this_xm and str(in_phi)==this_phim):   #Doing 1D for now, only get matching x mass
-        Chain=ROOT.TChain("pico_nom")
+        Chain=ROOT.TChain(xtreename)
         Chain.Add(F)
         rdf = ROOT.RDataFrame.RDataFrame(Chain)
         cutString = "masym < 0.25 && clu1_dipho > 0.9 && clu2_dipho > 0.9 && clu1_iso > 0.8 && clu2_iso > 0.8 && clu1_pt > 70 && clu2_pt > 70"
@@ -358,6 +361,7 @@ def interpoSignalMaker(o):
         xhist = rdf.Histo1D(("xhist_{}_{}".format(this_xm, this_phim),"xmass", nxbins, 0, max(int(this_xm)*2, maxvv)), "XM")
         rep=rdf.Report()
         rep.Print()
+        del Chain, rdf
 
     myout = ROOT.TFile(outFileName, "RECREATE")
     myout.cd()
@@ -370,16 +374,16 @@ def interpoSignalMaker(o):
 
   print("Saving file: {}".format(outFileName))
 
-
 if __name__ == "__main__":
   from argparse import ArgumentParser
   parser = ArgumentParser()
   
   parser.add_argument("--year", required=True, default=2018, help='Run II Year' )
   parser.add_argument("--mass", required=True, default = "X623A17", help='X, Phi mass entered as X123A123' )
-  #parser.add_argument("-f", "--force", required=False, help='Input anything in this arg to force interpolation for known signals' )
   parser.add_argument("--forceinterpo", action="store_true", dest="force", help="Force interpolation of intermediate mass points which are given.")
 
   args = parser.parse_args()
 
-  interpoSignalMaker(args)
+  interpoSignalMaker(args, "pico_nom")
+  interpoSignalMaker(args, "pico_scale_up")
+  interpoSignalMaker(args, "pico_scale_down")
