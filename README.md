@@ -95,7 +95,7 @@ and modify line 151 so that it now says:
 elif kn in ("LuminosityBlocks", "Runs", "pico_scale_up", "pico_scale_down"):
 ```
 
-Lastly, open . Modify line 164 so that it now says: 
+Lastly, open PhysicsTools/NanoAODTools/python/postprocessing/framework/postprocessor.py. Modify line 164 so that it now says: 
 ```
 inTree = inFile.Get("pico_nom")
 ```
