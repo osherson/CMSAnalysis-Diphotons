@@ -1,0 +1,102 @@
+void corrHist()
+{
+//=========Macro generated from canvas: c/c
+//=========  (Wed Oct  6 18:06:53 2021) by ROOT version 6.14/09
+   TCanvas *c = new TCanvas("c", "c",0,0,500,500);
+   gStyle->SetOptStat(0);
+   c->SetHighLightColor(2);
+   c->Range(-0.4,-0.375,3.6,3.375);
+   c->SetFillColor(0);
+   c->SetBorderMode(0);
+   c->SetBorderSize(2);
+   c->SetRightMargin(0.15);
+   c->SetFrameBorderMode(0);
+   c->SetFrameBorderMode(0);
+   
+   TH2D *correlation_matrix = new TH2D("correlation_matrix","correlation_matrix",3,0,3,3,0,3);
+   correlation_matrix->SetBinContent(7,-0.9896552);
+   correlation_matrix->SetBinContent(8,1);
+   correlation_matrix->SetBinContent(12,1);
+   correlation_matrix->SetBinContent(13,-0.9896552);
+   correlation_matrix->SetBinContent(16,1);
+   correlation_matrix->SetBinError(7,0.9896552);
+   correlation_matrix->SetBinError(8,1);
+   correlation_matrix->SetBinError(12,1);
+   correlation_matrix->SetBinError(13,0.9896552);
+   correlation_matrix->SetBinError(16,1);
+   correlation_matrix->SetMinimum(-1);
+   correlation_matrix->SetMaximum(1);
+   correlation_matrix->SetEntries(9);
+   correlation_matrix->SetStats(0);
+   correlation_matrix->SetContour(20);
+   correlation_matrix->SetContourLevel(0,-1);
+   correlation_matrix->SetContourLevel(1,-0.9);
+   correlation_matrix->SetContourLevel(2,-0.8);
+   correlation_matrix->SetContourLevel(3,-0.7);
+   correlation_matrix->SetContourLevel(4,-0.6);
+   correlation_matrix->SetContourLevel(5,-0.5);
+   correlation_matrix->SetContourLevel(6,-0.4);
+   correlation_matrix->SetContourLevel(7,-0.3);
+   correlation_matrix->SetContourLevel(8,-0.2);
+   correlation_matrix->SetContourLevel(9,-0.1);
+   correlation_matrix->SetContourLevel(10,0);
+   correlation_matrix->SetContourLevel(11,0.1);
+   correlation_matrix->SetContourLevel(12,0.2);
+   correlation_matrix->SetContourLevel(13,0.3);
+   correlation_matrix->SetContourLevel(14,0.4);
+   correlation_matrix->SetContourLevel(15,0.5);
+   correlation_matrix->SetContourLevel(16,0.6);
+   correlation_matrix->SetContourLevel(17,0.7);
+   correlation_matrix->SetContourLevel(18,0.8);
+   correlation_matrix->SetContourLevel(19,0.9);
+   
+   TPaletteAxis *palette = new TPaletteAxis(3.02,0,3.2,3,correlation_matrix);
+   palette->SetLabelColor(1);
+   palette->SetLabelFont(42);
+   palette->SetLabelOffset(0.005);
+   palette->SetLabelSize(0.035);
+   palette->SetTitleOffset(1);
+   palette->SetTitleSize(0.035);
+
+   Int_t ci;      // for color index setting
+   TColor *color; // for color definition with alpha
+   ci = TColor::GetColor("#f9f90e");
+   palette->SetFillColor(ci);
+   palette->SetFillStyle(1001);
+   correlation_matrix->GetListOfFunctions()->Add(palette,"br");
+
+   ci = TColor::GetColor("#000099");
+   correlation_matrix->SetLineColor(ci);
+   correlation_matrix->GetXaxis()->SetBinLabel(1,"Ntot_PFJetHT_RunII_asl2_bkg");
+   correlation_matrix->GetXaxis()->SetBinLabel(2,"p1_PFJetHT_RunII_asl2");
+   correlation_matrix->GetXaxis()->SetBinLabel(3,"p2_PFJetHT_RunII_asl2");
+   correlation_matrix->GetXaxis()->SetLabelFont(42);
+   correlation_matrix->GetXaxis()->SetLabelSize(0.035);
+   correlation_matrix->GetXaxis()->SetTitleSize(0.035);
+   correlation_matrix->GetXaxis()->SetTitleFont(42);
+   correlation_matrix->GetYaxis()->SetBinLabel(3,"Ntot_PFJetHT_RunII_asl2_bkg");
+   correlation_matrix->GetYaxis()->SetBinLabel(2,"p1_PFJetHT_RunII_asl2");
+   correlation_matrix->GetYaxis()->SetBinLabel(1,"p2_PFJetHT_RunII_asl2");
+   correlation_matrix->GetYaxis()->SetLabelFont(42);
+   correlation_matrix->GetYaxis()->SetLabelSize(0.035);
+   correlation_matrix->GetYaxis()->SetTitleSize(0.035);
+   correlation_matrix->GetYaxis()->SetTitleOffset(0);
+   correlation_matrix->GetYaxis()->SetTitleFont(42);
+   correlation_matrix->GetZaxis()->SetLabelFont(42);
+   correlation_matrix->GetZaxis()->SetLabelSize(0.035);
+   correlation_matrix->GetZaxis()->SetTitleSize(0.035);
+   correlation_matrix->GetZaxis()->SetTitleFont(42);
+   correlation_matrix->Draw("colztext");
+   
+   TPaveText *pt = new TPaveText(0.2793145,0.9365254,0.7206855,0.995,"blNDC");
+   pt->SetName("title");
+   pt->SetBorderSize(0);
+   pt->SetFillColor(0);
+   pt->SetFillStyle(0);
+   pt->SetTextFont(42);
+   TText *pt_LaTex = pt->AddText("correlation_matrix");
+   pt->Draw();
+   c->Modified();
+   c->cd();
+   c->SetSelected(c);
+}

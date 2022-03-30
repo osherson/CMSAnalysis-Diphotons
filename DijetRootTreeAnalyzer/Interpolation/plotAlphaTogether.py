@@ -27,9 +27,10 @@ for path, subdirs, files in os.walk(out_dir):
   for name in files:
     if(name[0] != "X"): continue
     if(".png" in name): continue
+    if("scale" in name): continue
     File = os.path.join(path, name)
     if("known" in name): 
-      xamass = name[:name.find("_known.root")]
+      xamass = name[:name.find("_nom_known.root")]
       xmass = int(xamass[1 : xamass.find("phi")])
       phimass = float(xamass[xamass.find("phi")+3 :].replace("p",".") )
       if(abs(phimass / xmass - alpha) < 0.00005):
@@ -38,7 +39,7 @@ for path, subdirs, files in os.walk(out_dir):
         kphimasses.append(phimass)
 
     else:
-      xamass = name[:name.find(".root")]
+      xamass = name[:name.find("_nom.root")]
       xmass = int(xamass[1 : xamass.find("phi")])
       phimass = float(xamass[xamass.find("phi")+3 :].replace("p",".") )
       if(abs(phimass / xmass - alpha) < 0.00005):
@@ -51,8 +52,13 @@ for xphi, kfile in kdists.items():
   #if xphi in dists:
     dists[xphi] = kfile
 
+maxes = []
+for xphi, F in dists.items():
+  tf = ROOT.TFile(F, "read")
+  hist = tf.Get(xphi)
+  maxes.append(hist.GetMaximum())
 top = 0.11
-top = 500
+top = max(maxes)*1.15
 linelist={}
 allxmasses = set(xmasses + kxmasses)
 for xM in allxmasses:
@@ -65,6 +71,7 @@ c1.cd()
 legend = ROOT.TLegend(0.70,0.50,0.90,0.90)
 
 ct = 0
+
 for xphi, F in dists.items():
   this_x = xphi[1:xphi.find("phi")]
   if int(this_x) > 1000: continue
@@ -99,8 +106,9 @@ for xphi, F in dists.items():
     hist.SetFillColor(ROOT.kRed)
     linelist[this_x].SetLineColor(15)
   hist.SetFillStyle(3001)
+  hist.GetXaxis().SetTitleSize(0.175/4)
   hist.GetXaxis().SetLabelSize(0.145/4)
-  hist.GetXaxis().SetTitleOffset(0.75)
+  hist.GetXaxis().SetTitleOffset(1)
   hist.GetYaxis().SetTitleSize(0.175/4)
   hist.GetYaxis().SetLabelSize(0.145/4)
   hist.GetYaxis().SetTitleOffset(1)

@@ -1,0 +1,24 @@
+imax 1 number of channels
+jmax 1 number of processes minus 1
+kmax * number of nuisance parameters
+------------------------------------------------------------
+observation	5189.000
+------------------------------------------------------------
+shapes * * output/dijet_combine_gg_gg_500_750_lumi-137.500_PFJetHT_RunII_asl2.root wPFJetHT_RunII_asl2:$PROCESS wPFJetHT_RunII_asl2:$PROCESS_$SYSTEMATIC
+------------------------------------------------------------
+bin	PFJetHT_RunII_asl2	PFJetHT_RunII_asl2
+process	PFJetHT_RunII_asl2_gg	PFJetHT_RunII_asl2_multi
+process	0	1
+rate	2.339	5189.000
+------------------------------------------------------------
+lumi	lnN	1.016	1.000
+jes	shape		1.0	-
+jer	shape		1.0	-
+p1_PFJetHT_RunII_asl2	flatParam
+p2_PFJetHT_RunII_asl2	flatParam
+pa1_PFJetHT_RunII_asl2	flatParam
+pa2_PFJetHT_RunII_asl2	flatParam
+pmd1_PFJetHT_RunII_asl2	flatParam
+pmd2_PFJetHT_RunII_asl2	flatParam
+PFJetHT_RunII_asl2_multi_norm	flatParam
+pdf_index_PFJetHT_RunII_asl2	discrete
