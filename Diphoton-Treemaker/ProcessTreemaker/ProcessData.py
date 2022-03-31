@@ -40,3 +40,4 @@ elif("18" in year):
 
 for run in RunList:
   Treemaker.Treemaker("/cms/sclark-2/RUCLU_Outputs/{}/{}/{}/".format(dname,year,run), run, True, year)
+  os.remove("./{}_{}.root".format(run, year))
