@@ -2,7 +2,10 @@ import os
 import sys
 
 sys.path.append("../")
+
 import Treemaker
+import ProcessPileup
+import CopyPileup
 
 year = sys.argv[1]
 
@@ -111,3 +114,6 @@ SignalList = [
 
 for sig in SignalList:
   Treemaker.Treemaker("/cms/sclark-2/RUCLU_Outputs/Signal/{}/{}/".format(year,sig), sig, False, year)
+  os.remove("{}_{}.root".format(sig,year))
+  ProcessPileup.ProcessPileup("/cms/xaastorage-2/DiPhotonsTrees/{}_{}.root".format(sig,year))
+  CopyPileup.CopyPileup("/cms/xaastorage-2/DiPhotonsTrees/{}_{}.root".format(sig,year))
