@@ -4,7 +4,9 @@ import os
 import math
 import sys
 import pandas
-sys.path.append("../.")
+
+sys.path.append("../../.")
+import PlottingPayload as PL
 
 LUMI = {}
 LUMI["2016"] = 36.050
@@ -279,7 +281,8 @@ def interpoSignalMaker(o, xtreename):
 
 
   nud = xtreename[xtreename.find("_")+1 :]
-  outFileName = "../inputs/Interpolations/{}/X{}phi{}_{}.root".format(year,in_x,in_phi,nud)
+  PL.MakeFolder("../inputs/Interpolations/{}/X{}A{}".format(year,in_x,in_phi))
+  outFileName = "../inputs/Interpolations/{}/X{}A{}/X{}phi{}_{}.root".format(year,in_x,in_phi,in_x,in_phi,nud)
 
   ###
 
