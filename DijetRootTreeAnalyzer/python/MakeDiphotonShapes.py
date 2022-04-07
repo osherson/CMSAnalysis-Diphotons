@@ -284,7 +284,7 @@ def interpoSignalMaker(o, xtreename, wgt):
   XS = float(o.xs) #fb^-1
 
   X1B = PL.MakeNBinsFromMinToMax(2860, 250., 3110.)
-  A1B = PL.MakeNBinsFromMinToMax(2000,0,MAX_ALPHA)
+  A1B = PL.MakeNBinsFromMinToMax(1000,0,MAX_ALPHA)
 
   ### PICOTREE DIRECTORIES ###
   pico_dir = "/cms/xaastorage-2/DiPhotonsTrees/"
@@ -350,7 +350,8 @@ def interpoSignalMaker(o, xtreename, wgt):
 
   if interpoBool: 
 
-    ivars = ["XM", "alpha"]
+    ivars = ["alpha"]
+    #ivars = ["XM", "alpha"]
 
     ##
     myout = ROOT.TFile(outFileName, "RECREATE")
