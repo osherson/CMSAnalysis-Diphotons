@@ -13,9 +13,9 @@ LUMI["2016"] = 36.050
 LUMI["2017"] = 39.670
 LUMI["2018"] = 59.320
 
-XS = 100 #fb^-1
 
-##TODO: Trigger, xbinning, weights?
+##TODO: Trigger, xbinning?
+
 
 def computeBoundingIndices(M, anchors):
   lowI, highI = 0,0
@@ -160,20 +160,25 @@ def getAlphaHists(xtreename, xs, alpha, dists, var, weight):
         Chain=ROOT.TChain(xtreename)
         Chain.Add(F)
         rdf = ROOT.RDataFrame.RDataFrame(Chain)
+        rdf = rdf.Filter("HLT_DoublePhoton > 0", "Trigger")
         cutString = "masym < 0.25 && clu1_dipho > 0.9 && clu2_dipho > 0.9 && clu1_iso > 0.8 && clu2_iso > 0.8 && clu1_pt > 70 && clu2_pt > 70"
         rdf = rdf.Filter(cutString)
         hist = rdf.Histo1D( ("alpha","alpha",4000,0,4000), "alpha")
         alphastd = hist.GetStdDev()
-        #rdf = rdf.Filter("alpha > {} && alpha < {}".format(alpha - alphastd*3, alpha + alphastd*3), "alpha Window")
-        rdf = rdf.Filter("alpha > 0 && alpha < {}".format(MAX_ALPHA), "alpha Window")
+        rdf = rdf.Filter("alpha > {} && alpha < {}".format(alpha - alphastd*3, alpha + alphastd*3), "alpha Window")
+        #rdf = rdf.Filter("alpha > 0 && alpha < {}".format(MAX_ALPHA), "alpha Window")
         num = float(rdf.Count().GetValue())
         rdf = rdf.Filter("XM > {} && XM < {}".format(float(xm)*0.85, MAX_XM))
 
-        #xhist = rdf.Histo1D(("xhist_{}_{}".format(xm, phim),"xmass", nxbins, 0, max(int(xm)*2, MAX_XM)), "XM")
-        if(var=="XM"): max_x = max(int(xm)*2, MAX_XM)
-        elif(var=="alpha"): max_x = max(int(alpha)*2, MAX_ALPHA)
+        if(var=="XM"): 
+          max_x = max(int(xm)*2, MAX_XM)
+          #myhist = rdf.Histo1D(("{}_{}_{}".format(var, xm, dphi),var, nxbins, 0, max_x ), var, weight)
+          myhist = rdf.Histo1D(("{}_{}_{}".format(var, xm, dphi),var,  len(X1B)-1, numpy.array(X1B)), var, weight)
+        elif(var=="alpha"): 
+          max_x = max(int(alpha)*2, MAX_ALPHA)
+          myhist = rdf.Histo1D(("{}_{}_{}".format(var, xm, dphi),var, nxbins, 0, max_x ), var, weight)
+          myhist = rdf.Histo1D(("{}_{}_{}".format(var, xm, dphi),var,  len(A1B)-1, numpy.array(A1B)), var, weight)
 
-        myhist = rdf.Histo1D(("{}_{}_{}".format(var, xm, dphi),var, nxbins, 0, max_x ), var, weight)
 
         effs.append(num / getDenom(int(xm), float(phim)))
         denoms.append(getDenom(int(xm), float(phim)))
@@ -200,19 +205,23 @@ def getPhiHists(xtreename, xm, alpha, alphas, dists, var, weight):
         Chain=ROOT.TChain(xtreename)
         Chain.Add(F)
         rdf = ROOT.RDataFrame.RDataFrame(Chain)
+        rdf = rdf.Filter("HLT_DoublePhoton > 0", "Trigger")
         cutString = "masym < 0.25 && clu1_dipho > 0.9 && clu2_dipho > 0.9 && clu1_iso > 0.8 && clu2_iso > 0.8 && clu1_pt > 70 && clu2_pt > 70"
         rdf = rdf.Filter(cutString)
         hist = rdf.Histo1D( ("alpha","alpha",4000,0,4000), "alpha")
         alphastd = hist.GetStdDev()
-        #rdf = rdf.Filter("alpha > {} && alpha < {}".format(t_alpha - alphastd*3, t_alpha + alphastd*3), "alpha Window")
-        rdf = rdf.Filter("alpha > 0 && alpha < {}".format(MAX_ALPHA), "alpha Window")
+        rdf = rdf.Filter("alpha > {} && alpha < {}".format(t_alpha - alphastd*3, t_alpha + alphastd*3), "alpha Window")
+        #rdf = rdf.Filter("alpha > 0 && alpha < {}".format(MAX_ALPHA), "alpha Window")
         num = float(rdf.Count().GetValue())
         rdf = rdf.Filter("XM > {} && XM < {}".format(float(xm)*0.85, MAX_XM))
 
-        if(var=="XM"): max_x = max(int(xm)*2, MAX_XM)
-        elif(var=="alpha"): max_x = max(int(alpha)*2, MAX_ALPHA)
+        if(var=="XM"): 
+          max_x = max(int(xm)*2, MAX_XM)
+          myhist = rdf.Histo1D(("{}_{}_{}".format(var, xm, dphi),var,  len(X1B)-1, numpy.array(X1B)), var, weight)
+        elif(var=="alpha"): 
+          max_x = max(int(alpha)*2, MAX_ALPHA)
+          myhist = rdf.Histo1D(("{}_{}_{}".format(var, xm, dphi),var,  len(A1B)-1, numpy.array(A1B)), var, weight)
 
-        myhist = rdf.Histo1D(("{}_{}_{}".format(var, xm, dphi),var, nxbins, 0, max_x ), var, weight)
         effs.append(num / getDenom(int(xm), float(dphi)))
         denoms.append(getDenom(int(xm), float(dphi)))
         histos.append(myhist.GetValue().Clone())
@@ -252,15 +261,15 @@ def InterpolateHists(input_x, input_phi, var, xtreename, masslist, lm, him, useh
       E.SetTitle("{}, X {} #phi {} Interpolated Signal".format(var, input_x, input_phi))
       E.Sumw2()
       ##
-      #E.Scale(neweff * LUMI[year] * XS)
       E.Scale(neweff * newNevt)
+      E.Scale(LUMI[year] * XS)
       E.SetName("X{}phi{}_{}".format(input_x, input_phi, var))
       ##
       return E, neweff, newNevt
 
 def interpoSignalMaker(o, xtreename, wgt):
 
-  global year, MAX_XM, MAX_ALPHA, nxbins
+  global year, MAX_XM, MAX_ALPHA, nxbins, XS, X1B, A1B
   year = o.year
   in_xphi = o.mass
   in_x = float(in_xphi[1 : in_xphi.find("A")])
@@ -272,7 +281,10 @@ def interpoSignalMaker(o, xtreename, wgt):
   MAX_XM = int(max(in_x * 3, 2000))
   MAX_ALPHA = 0.05
   nxbins = MAX_XM / 2
-  
+  XS = float(o.xs) #fb^-1
+
+  X1B = PL.MakeNBinsFromMinToMax(2860, 250., 3110.)
+  A1B = PL.MakeNBinsFromMinToMax(2000,0,MAX_ALPHA)
 
   ### PICOTREE DIRECTORIES ###
   pico_dir = "/cms/xaastorage-2/DiPhotonsTrees/"
@@ -281,7 +293,6 @@ def interpoSignalMaker(o, xtreename, wgt):
   phimasses = []
   alphas = []
   ##
-
 
   nud = xtreename[xtreename.find("_")+1 :]
   PL.MakeFolder("../inputs/Interpolations/{}/X{}A{}".format(year,in_x,in_phi))
@@ -386,7 +397,7 @@ def interpoSignalMaker(o, xtreename, wgt):
           lowa, hia = computeBoundingIndices(in_alpha, alphas)
 
           INPUTM = [alphas[lowa], alphas[hia]]
-          myphis, myhists, myeffs, mydenoms = getPhiHists(xtreename, dox, in_alpha, INPUTM, dists, ivar)
+          myphis, myhists, myeffs, mydenoms = getPhiHists(xtreename, dox, in_alpha, INPUTM, dists, ivar, wgt)
           print(myphis)
           use_masses = {}
           use_masses["phi"] = myphis
@@ -415,11 +426,12 @@ if __name__ == "__main__":
   parser.add_argument("--year", required=True, default=2018, help='Run II Year' )
   parser.add_argument("--mass", required=True, default = "X623A17", help='X, Phi mass entered as X123A123' )
   parser.add_argument("--forceinterpo", action="store_true", dest="force", help="Force interpolation of intermediate mass points which are given.")
+  parser.add_argument("--xs", required=False, default=10, dest="xs", help="Cross Section to Scale Signals in fb^-1. Default is 10")
 
   args = parser.parse_args()
 
   interpoSignalMaker(args, "pico_nom", "puWeight")
-  interpoSignalMaker(args, "pico_nom", "puWeightUp")
-  interpoSignalMaker(args, "pico_nom", "puWeightDown")
-  interpoSignalMaker(args, "pico_scale_up", "puWeight")
-  interpoSignalMaker(args, "pico_scale_down", "puWeight")
+  #interpoSignalMaker(args, "pico_nom", "puWeightUp")
+  #interpoSignalMaker(args, "pico_nom", "puWeightDown")
+  #interpoSignalMaker(args, "pico_scale_up", "puWeight")
+  #interpoSignalMaker(args, "pico_scale_down", "puWeight")
