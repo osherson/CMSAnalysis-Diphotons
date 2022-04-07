@@ -98,20 +98,20 @@ class HC:
     un = nameM
 
     ##
-    c1 = ROOT.TCanvas()
-    c1.cd()
-    ll = ROOT.TLegend(0.6,0.5,0.8,0.75)
-    ll.SetBorderSize(0)
-    HL.SetLineColor(ROOT.kGreen)
-    HL.SetLineWidth(2)
-    HL.SetTitle("HL")
-    HL.Draw("hist")
-    HH.SetTitle("HH")
-    HH.SetLineColor(ROOT.kRed)
-    HH.Draw("histsame")
-
-    ll.AddEntry(HL, "In_Low")
-    ll.AddEntry(HH, "In_High")
+#    c1 = ROOT.TCanvas()
+#    c1.cd()
+#    ll = ROOT.TLegend(0.6,0.5,0.8,0.75)
+#    ll.SetBorderSize(0)
+#    HL.SetLineColor(ROOT.kGreen)
+#    HL.SetLineWidth(2)
+#    HL.SetTitle("HL")
+#    HL.Draw("hist")
+#    HH.SetTitle("HH")
+#    HH.SetLineColor(ROOT.kRed)
+#    HH.Draw("histsame")
+#
+#    ll.AddEntry(HL, "In_Low")
+#    ll.AddEntry(HH, "In_High")
     ##
 
     print("Bounding Masses: {} - {}".format(self._massArr[self._lowI], self._massArr[self._hiI]))
@@ -135,13 +135,13 @@ class HC:
 
 
     ##
-    rr = RHI.Clone(un+N)
-    rr.SetTitle("OUT")
-    rr.SetLineColor(ROOT.kBlack)
-    rr.Draw("histsame")
-    ll.AddEntry(rr, "OUT")
-    #ll.Draw("same")
-    c1.Print("tc3.png")
+#    rr = RHI.Clone(un+N)
+#    rr.SetTitle("OUT")
+#    rr.SetLineColor(ROOT.kBlack)
+#    rr.Draw("histsame")
+#    ll.AddEntry(rr, "OUT")
+#    #ll.Draw("same")
+#    c1.Print("tc3.png")
     ##
 
     return RHI.Clone(un+N), inxhists
@@ -298,7 +298,7 @@ def interpoSignalMaker(o, xtreename, wgt):
   PL.MakeFolder("../inputs/Interpolations/{}/X{}A{}".format(year,in_x,in_phi))
   if("Up" in wgt ):
     outFileName = "../inputs/Interpolations/{}/X{}A{}/X{}phi{}_{}_puUp.root".format(year,in_x,in_phi,in_x,in_phi,nud)
-  if("Down" in wgt ):
+  elif("Down" in wgt ):
     outFileName = "../inputs/Interpolations/{}/X{}A{}/X{}phi{}_{}_puDown.root".format(year,in_x,in_phi,in_x,in_phi,nud)
   else:
     outFileName = "../inputs/Interpolations/{}/X{}A{}/X{}phi{}_{}_pu.root".format(year,in_x,in_phi,in_x,in_phi,nud)
@@ -350,8 +350,7 @@ def interpoSignalMaker(o, xtreename, wgt):
 
   if interpoBool: 
 
-    ivars = ["alpha"]
-    #ivars = ["XM", "alpha"]
+    ivars = ["XM", "alpha"]
 
     ##
     myout = ROOT.TFile(outFileName, "RECREATE")
@@ -432,7 +431,7 @@ if __name__ == "__main__":
   args = parser.parse_args()
 
   interpoSignalMaker(args, "pico_nom", "puWeight")
-  #interpoSignalMaker(args, "pico_nom", "puWeightUp")
-  #interpoSignalMaker(args, "pico_nom", "puWeightDown")
-  #interpoSignalMaker(args, "pico_scale_up", "puWeight")
-  #interpoSignalMaker(args, "pico_scale_down", "puWeight")
+  interpoSignalMaker(args, "pico_nom", "puWeightUp")
+  interpoSignalMaker(args, "pico_nom", "puWeightDown")
+  interpoSignalMaker(args, "pico_scale_up", "puWeight")
+  interpoSignalMaker(args, "pico_scale_down", "puWeight")
