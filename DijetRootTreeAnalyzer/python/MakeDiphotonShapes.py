@@ -292,18 +292,6 @@ def interpoSignalMaker(o, xtreename, wgt):
   xmasses = []
   phimasses = []
   alphas = []
-  ##
-
-  nud = xtreename[xtreename.find("_")+1 :]
-  PL.MakeFolder("../inputs/Interpolations/{}/X{}A{}".format(year,in_x,in_phi))
-  if("Up" in wgt ):
-    outFileName = "../inputs/Interpolations/{}/X{}A{}/X{}phi{}_{}_puUp.root".format(year,in_x,in_phi,in_x,in_phi,nud)
-  elif("Down" in wgt ):
-    outFileName = "../inputs/Interpolations/{}/X{}A{}/X{}phi{}_{}_puDown.root".format(year,in_x,in_phi,in_x,in_phi,nud)
-  else:
-    outFileName = "../inputs/Interpolations/{}/X{}A{}/X{}phi{}_{}_pu.root".format(year,in_x,in_phi,in_x,in_phi,nud)
-
-  ###
 
   for path, subdirs, files in os.walk(pico_dir):
     for name in files:
@@ -346,6 +334,18 @@ def interpoSignalMaker(o, xtreename, wgt):
   elif(in_alpha < min(alphas) or in_alpha > max(alphas)): 
     print("Input alpha={} out of alpha mass range. Doing nothing".format(in_alpha))
     return
+  ###
+  ##
+
+  nud = xtreename[xtreename.find("_")+1 :]
+  PL.MakeFolder("../inputs/Interpolations/{}/X{}A{}".format(year,in_x,in_phi))
+  if("Up" in wgt ):
+    outFileName = "../inputs/Interpolations/{}/X{}A{}/X{}phi{}_{}_puUp.root".format(year,in_x,in_phi,in_x,in_phi,nud)
+  elif("Down" in wgt ):
+    outFileName = "../inputs/Interpolations/{}/X{}A{}/X{}phi{}_{}_puDown.root".format(year,in_x,in_phi,in_x,in_phi,nud)
+  else:
+    outFileName = "../inputs/Interpolations/{}/X{}A{}/X{}phi{}_{}.root".format(year,in_x,in_phi,in_x,in_phi,nud)
+
   ###
 
   if interpoBool: 
