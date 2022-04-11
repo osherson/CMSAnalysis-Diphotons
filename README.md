@@ -66,13 +66,55 @@ scram b
 ```
 
 # Creating your working trees:
+
+## Modifying NanoAOD Tools
+
+First we need to change a few lines in NanoAODTools to accomodate our picoTrees. Step 1 is to checkout Nanoaod tools:
+```
+cd $CMSSW_BASE/src
+git clone https://github.com/cms-nanoAOD/nanoAOD-tools.git PhysicsTools/NanoAODTools
+cd PhysicsTools/NanoAODTools
+cmsenv
+scram b
+```
+Now open the file PhysicsTools/NanoAODTools/python/postprocessing/modules/common/puWeightProducer.py . Modify line 18 so that it now says:
+```
+nvtx_var="pvtx_size",
+```
+and modify line 81 so that it now says:
+```
+inputFile.Get("pico_nom").Project("autoPU",
+```
+
+Next, open PhysicsTools/NanoAODTools/python/postprocessing/framework/output.py . Modify line 144 so that it now says:
+```
+if kn == "Events" or kn == "pico_nom":
+```
+and modify line 151 so that it now says:
+```
+elif kn in ("LuminosityBlocks", "Runs", "pico_scale_up", "pico_scale_down"):
+```
+
+Lastly, open PhysicsTools/NanoAODTools/python/postprocessing/framework/postprocessor.py. Modify line 164 so that it now says: 
+```
+inTree = inFile.Get("pico_nom")
+```
+and modify  line 185 so that it now says:
+```
+inAddTree = inAddFiles[-1].Get("pico_nom")
+```
+
+## Our Treemaker
+
 The "treemaker" can be found at 
 ```
-cd $CMSSW_BASE/src/
+cd $CMSSW_BASE/src/CMSAnalysis-Diphotons/Diphoton-Treemaker/
 ```
-and might be run (for a single dataset or signal file) like this:
+to make pico trees for all years of data and signal:
 ```
-import Treemaker
-Treemaker.Treemaker("path_to_flat_trees", "name", bool-"is_this_data", "year")
+cd ProcessTreemaker/
+cmsenv
+./MakeAllTrees.sh
 ```
-This will automatically create 10% and Full versions of datasets, and nominal and up/down sys trees for MCs.
+This will automatically create 10% and Full versions of datasets, and nominal and up/down sys trees for MCs. This will start 6 condor jobs, the 3 signal jobs should finish in a matter of a few hours,
+the data will take about a day.
