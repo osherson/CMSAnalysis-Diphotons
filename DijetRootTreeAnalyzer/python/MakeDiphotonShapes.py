@@ -5,7 +5,8 @@ import math
 import sys
 import pandas
 
-sys.path.append("../../.")
+dir_path = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(dir_path+"/../../.")
 import PlottingPayload as PL
 
 LUMI = {}
@@ -13,9 +14,18 @@ LUMI["2016"] = 36.050
 LUMI["2017"] = 39.670
 LUMI["2018"] = 59.320
 
-
-##TODO: Trigger, xbinning?
-
+def FindAndSetMax(*args):
+  if len(args) == 1: args = args[0]
+  maximum = 0.0
+  for i in args:
+    i.SetStats(0)
+    t = i.GetMaximum()
+    if t > maximum:
+      maximum = t
+  for j in args:
+    j.GetYaxis().SetRangeUser(0,maximum*1.35)#should be 1.35 (below as well)
+    j.SetLineWidth(2)
+  return maximum*1.35
 
 def computeBoundingIndices(M, anchors):
   lowI, highI = 0,0
@@ -81,46 +91,32 @@ class HC:
     self._inxhists = []
     self._cutEff = []
 
-  def morph(self, MM, var, nameM, N, scaled=False):
+  def morph(self, MM, var, nameM, N, wpoint):
     #scaled=True
     self._lowI, self._hiI = computeBoundingIndices(MM, self._massArr)
     print(self._massArr[self._lowI], self._massArr[self._hiI])
 
-    if var == "XM":
+    if "alpha" not in var:
       HL = self._histArr[self._lowI].Clone(self._histArr[self._lowI].GetName() + "HL")
       HH = self._histArr[self._hiI].Clone(self._histArr[self._hiI].GetName() + "HH")
 
-    elif var == "alpha":
+    else: 
       HH = self._histArr[self._lowI].Clone(self._histArr[self._lowI].GetName() + "HL")
       HL = self._histArr[self._hiI].Clone(self._histArr[self._hiI].GetName() + "HH")
 
     inxhists = [HL, HH]
     un = nameM
 
-    ##
-#    c1 = ROOT.TCanvas()
-#    c1.cd()
-#    ll = ROOT.TLegend(0.6,0.5,0.8,0.75)
-#    ll.SetBorderSize(0)
-#    HL.SetLineColor(ROOT.kGreen)
-#    HL.SetLineWidth(2)
-#    HL.SetTitle("HL")
-#    HL.Draw("hist")
-#    HH.SetTitle("HH")
-#    HH.SetLineColor(ROOT.kRed)
-#    HH.Draw("histsame")
-#
-#    ll.AddEntry(HL, "In_Low")
-#    ll.AddEntry(HH, "In_High")
-    ##
-
     print("Bounding Masses: {} - {}".format(self._massArr[self._lowI], self._massArr[self._hiI]))
 
-    if var == "XM": 
+    if "alpha" not in var: 
       alpha = (float(MM) - float(self._massArr[self._lowI]))/(float(self._massArr[self._hiI]) - float(self._massArr[self._lowI]))
-      rmass = ROOT.RooRealVar("rm_{}".format(un), "rmass", alpha, 0., 1.)
-    elif var == "alpha": 
-      rmass = ROOT.RooRealVar("rm_{}".format(un), "rmass", 0.5, 0., 1.)
+      lM, hM = self._massArr[self._lowI], self._massArr[self._hiI]
+      wpoint = float(MM - lM) / float(hM - lM)
+      print(lM, hM, MM, wpoint)
+      rmass = ROOT.RooRealVar("rm_{}".format(un), "rmass", wpoint, 0., 1.)
+    else:
+      rmass = ROOT.RooRealVar("rm_{}".format(un), "rmass", wpoint, 0., 1.)
 
     RHL = ROOT.RooDataHist("HL_".format(un), ";DiCluster Mass [GeV];Events/GeV", ROOT.RooArgList(self._x), HL)
     RHLR = ROOT.RooHistPdf("HL_AbsReal_{}".format(un), "", ROOT.RooArgSet(self._x), RHL)
@@ -131,22 +127,38 @@ class HC:
     self.xframe = self._x.frame(ROOT.RooFit.Title(";DiCluster Mass [GeV];Events/GeV"), ROOT.RooFit.Range(0, 10000))
     #self.xframe = self._x.frame(ROOT.RooFit.Title(";DiCluster Mass [GeV];Events/GeV"), ROOT.RooFit.Range(0, 0.1))
     RHI = RHIM.createHistogram("Hinterpo_{}".format(un), self._x)
-    #if scaled: RHI.Scale(integralInterpo(self._massArr, self._histInts, MM)/RHI.Integral())
-
 
     ##
+    ##
+#    c1 = ROOT.TCanvas()
+#    c1.cd()
+#    ll = ROOT.TLegend(0.6,0.5,0.8,0.75)
+#    ll.SetBorderSize(0)
+#    HH.SetTitle("HH")
+#    HH.SetLineColor(ROOT.kRed)
+#    HL.SetLineColor(ROOT.kGreen)
+#    HL.SetLineWidth(2)
+#    HL.SetTitle("HL")
+#
+#    ll.AddEntry(HL, "In_Low")
+#    ll.AddEntry(HH, "In_High")
+#    ##
 #    rr = RHI.Clone(un+N)
 #    rr.SetTitle("OUT")
 #    rr.SetLineColor(ROOT.kBlack)
-#    rr.Draw("histsame")
 #    ll.AddEntry(rr, "OUT")
 #    #ll.Draw("same")
+#    FindAndSetMax([HH, HL, rr])
+#    HH.Draw("hist")
+#    HL.Draw("histsame")
+#    rr.Draw("histsame")
 #    c1.Print("tc3.png")
     ##
 
     return RHI.Clone(un+N), inxhists
 
 def getAlphaHists(xtreename, xs, alpha, dists, var, weight):
+  print("in getAlphaHists()")
   histos = []
   effs = []
   denoms = []
@@ -163,22 +175,21 @@ def getAlphaHists(xtreename, xs, alpha, dists, var, weight):
         rdf = rdf.Filter("HLT_DoublePhoton > 0", "Trigger")
         cutString = "masym < 0.25 && clu1_dipho > 0.9 && clu2_dipho > 0.9 && clu1_iso > 0.8 && clu2_iso > 0.8 && clu1_pt > 70 && clu2_pt > 70"
         rdf = rdf.Filter(cutString)
-        hist = rdf.Histo1D( ("alpha","alpha",4000,0,4000), "alpha")
-        alphastd = hist.GetStdDev()
-        rdf = rdf.Filter("alpha > {} && alpha < {}".format(alpha - alphastd*3, alpha + alphastd*3), "alpha Window")
-        #rdf = rdf.Filter("alpha > 0 && alpha < {}".format(MAX_ALPHA), "alpha Window")
+        if(var != "na" in var):
+          hist = rdf.Histo1D( ("alpha","alpha",4000,0,4000), "alpha")
+          alphastd = hist.GetStdDev()
+          rdf = rdf.Filter("alpha > {} && alpha < {}".format(alpha - alphastd*3, alpha + alphastd*3), "alpha Window")
         num = float(rdf.Count().GetValue())
         rdf = rdf.Filter("XM > {} && XM < {}".format(float(xm)*0.85, MAX_XM))
 
         if(var=="XM"): 
-          max_x = max(int(xm)*2, MAX_XM)
-          #myhist = rdf.Histo1D(("{}_{}_{}".format(var, xm, dphi),var, nxbins, 0, max_x ), var, weight)
           myhist = rdf.Histo1D(("{}_{}_{}".format(var, xm, dphi),var,  len(X1B)-1, numpy.array(X1B)), var, weight)
+        elif(var=="XM_na"): 
+          myhist = rdf.Histo1D(("{}_{}_{}".format(var, xm, dphi),var,  len(X1B)-1, numpy.array(X1B)), "XM", weight)
         elif(var=="alpha"): 
-          max_x = max(int(alpha)*2, MAX_ALPHA)
-          myhist = rdf.Histo1D(("{}_{}_{}".format(var, xm, dphi),var, nxbins, 0, max_x ), var, weight)
           myhist = rdf.Histo1D(("{}_{}_{}".format(var, xm, dphi),var,  len(A1B)-1, numpy.array(A1B)), var, weight)
-
+        elif(var=="alpha_na"): 
+          myhist = rdf.Histo1D(("{}_{}_{}".format(var, xm, dphi),var,  len(A1B)-1, numpy.array(A1B)), "alpha", weight)
 
         effs.append(num / getDenom(int(xm), float(phim)))
         denoms.append(getDenom(int(xm), float(phim)))
@@ -188,10 +199,13 @@ def getAlphaHists(xtreename, xs, alpha, dists, var, weight):
   return histos, effs, denoms
 
 def getPhiHists(xtreename, xm, alpha, alphas, dists, var, weight):
+  print("in getPhiHists()")
   gphis = []
   histos = []
   effs = []
   denoms = []
+
+  use_alphas = []
 
   for t_alpha in alphas:
     for xphi,F in dists.items():
@@ -201,6 +215,7 @@ def getPhiHists(xtreename, xm, alpha, alphas, dists, var, weight):
       dalpha = dphi / dx
       if(dalpha == t_alpha):
         print(xphi)
+        use_alphas.append(dalpha)
         gphis.append(dphi)
         Chain=ROOT.TChain(xtreename)
         Chain.Add(F)
@@ -208,29 +223,36 @@ def getPhiHists(xtreename, xm, alpha, alphas, dists, var, weight):
         rdf = rdf.Filter("HLT_DoublePhoton > 0", "Trigger")
         cutString = "masym < 0.25 && clu1_dipho > 0.9 && clu2_dipho > 0.9 && clu1_iso > 0.8 && clu2_iso > 0.8 && clu1_pt > 70 && clu2_pt > 70"
         rdf = rdf.Filter(cutString)
-        hist = rdf.Histo1D( ("alpha","alpha",4000,0,4000), "alpha")
-        alphastd = hist.GetStdDev()
-        rdf = rdf.Filter("alpha > {} && alpha < {}".format(t_alpha - alphastd*3, t_alpha + alphastd*3), "alpha Window")
-        #rdf = rdf.Filter("alpha > 0 && alpha < {}".format(MAX_ALPHA), "alpha Window")
+        if("na" in var):
+          hist = rdf.Histo1D( ("alpha","alpha",4000,0,4000), "alpha")
+          alphastd = hist.GetStdDev()
+          rdf = rdf.Filter("alpha > {} && alpha < {}".format(t_alpha - alphastd*3, t_alpha + alphastd*3), "alpha Window")
         num = float(rdf.Count().GetValue())
-        rdf = rdf.Filter("XM > {} && XM < {}".format(float(xm)*0.85, MAX_XM))
+        rdf = rdf.Filter("XM > {} && XM < {}".format(float(xm)*0.85, MAX_XM), "xmass cut")
 
         if(var=="XM"): 
-          max_x = max(int(xm)*2, MAX_XM)
           myhist = rdf.Histo1D(("{}_{}_{}".format(var, xm, dphi),var,  len(X1B)-1, numpy.array(X1B)), var, weight)
+        elif(var=="XM_na"): 
+          myhist = rdf.Histo1D(("{}_{}_{}".format(var, xm, dphi),var,  len(X1B)-1, numpy.array(X1B)), "XM", weight)
         elif(var=="alpha"): 
-          max_x = max(int(alpha)*2, MAX_ALPHA)
           myhist = rdf.Histo1D(("{}_{}_{}".format(var, xm, dphi),var,  len(A1B)-1, numpy.array(A1B)), var, weight)
+        elif(var=="alpha_na"): 
+          myhist = rdf.Histo1D(("{}_{}_{}".format(var, xm, dphi),var,  len(A1B)-1, numpy.array(A1B)), "alpha", weight)
 
         effs.append(num / getDenom(int(xm), float(dphi)))
         denoms.append(getDenom(int(xm), float(dphi)))
         histos.append(myhist.GetValue().Clone())
         del Chain, rdf
 
-  return gphis, histos, effs, denoms
+  try: wp = (alpha - min(use_alphas)) / (max(use_alphas) - min(use_alphas))
+  except ZeroDivisionError:
+    wp=1
+  print(alpha, use_alphas, wp)
+
+  return gphis, histos, effs, denoms, wp
 
 
-def InterpolateHists(input_x, input_phi, var, xtreename, masslist, lm, him, usehists, usemasses, useeffs, denoms):
+def InterpolateHists(input_x, input_phi, var, xtreename, masslist, lm, him, usehists, usemasses, useeffs, denoms, wpp):
 
       h1,h2 = usehists[0], usehists[1]
       h1.Scale(1/h1.Integral())
@@ -256,7 +278,10 @@ def InterpolateHists(input_x, input_phi, var, xtreename, masslist, lm, him, useh
       print("Final Efficiency: ")
       print("X {}, phi {} : {:.4f}".format(input_x, input_phi, neweff))
 
-      E, newxhists = mp.morph(input_x, var, "{}_{}_{}_{}".format(input_x, input_phi, xtreename, var), "newhist_{}_{}_{}_{}".format(input_x, input_phi, xtreename, var), input_x)
+      if("alpha" in var): this_wp = wpp
+      else: this_wp = 1 #Doesn't get used
+
+      E, newxhists = mp.morph(input_x, var, "{}_{}_{}_{}".format(input_x, input_phi, xtreename, var), "newhist_{}_{}_{}_{}".format(input_x, input_phi, xtreename, var), this_wp)
       #E.SetName("X{}phi{}_normed".format(input_x, input_phi))
       E.SetTitle("{}, X {} #phi {} Interpolated Signal".format(var, input_x, input_phi))
       E.Sumw2()
@@ -269,22 +294,32 @@ def InterpolateHists(input_x, input_phi, var, xtreename, masslist, lm, him, useh
 
 def interpoSignalMaker(o, xtreename, wgt):
 
-  global year, MAX_XM, MAX_ALPHA, nxbins, XS, X1B, A1B
+  global year, MAX_XM, MAX_ALPHA, nxbins, XS, XB, X1B, A1B
   year = o.year
   in_xphi = o.mass
+  if(in_xphi[-2:] == "p0"): 
+    in_xphi = in_xphi[:-2] #if input is 'X1000A10p0', input becomes 'X1000A10'
   in_x = float(in_xphi[1 : in_xphi.find("A")])
   in_phi = float(in_xphi[in_xphi.find("A")+1 :].replace("p","."))
   in_alpha = in_phi / in_x
   if(in_x.is_integer()): in_x = int(in_x)
   if(in_phi.is_integer()): in_phi = int(in_phi)
 
+  if(in_alpha > 0.03): 
+    print("Resolved signal. Skipping.")
+    return
+
   MAX_XM = int(max(in_x * 3, 2000))
   MAX_ALPHA = 0.05
   nxbins = MAX_XM / 2
   XS = float(o.xs) #fb^-1
 
-  X1B = PL.MakeNBinsFromMinToMax(2860, 250., 3110.)
-  A1B = PL.MakeNBinsFromMinToMax(1000,0,MAX_ALPHA)
+  XB = [250.0, 255.0, 261.0, 267.0, 273.0, 279.0, 285.0, 291.0, 297.0, 303.0, 310.0, 317.0, 324.0, 331.0, 338.0, 345.0, 352.0, 360.0, 368.0, 376.0, 384.0, 392.0, 400.0, 409.0, 418.0, 427.0, 436.0, 445.0, 454.0, 464.0, 474.0, 484.0, 494.0, 504.0, 515.0, 526.0, 537.0, 548.0, 560.0, 572.0, 584.0, 596.0, 609.0, 622.0, 635.0, 648.0, 662.0, 676.0, 690.0, 704.0, 719.0, 734.0, 749.0, 765.0, 781.0, 797.0, 814.0, 831.0, 848.0, 866.0, 884.0, 902.0, 921.0, 940.0, 959.0, 979.0, 999.0, 1020.0, 1041.0, 1063.0, 1085.0, 1107.0, 1130.0, 1153.0, 1177.0, 1201.0, 1226.0, 1251.0, 1277.0, 1303.0, 1330.0, 1357.0, 1385.0, 1413.0, 1442.0, 1472.0, 1502.0, 1533.0, 1564.0, 1596.0, 1629.0, 1662.0, 1696.0, 1731.0, 1766.0, 1802.0, 1839.0, 1877.0, 1915.0, 1954.0, 1994.0, 2035.0, 2077.0, 2119.0, 2162.0, 2206.0, 2251.0, 2297.0, 2344.0, 2392.0, 2441.0, 2491.0, 2542.0, 2594.0, 2647.0, 2701.0, 2756.0, 2812.0, 2869.0, 2927.0, 2987.0, 3048.0, 3110.0]
+  #X1B = PL.MakeNBinsFromMinToMax(2860, 250., 3110.), in_alpha
+  X1B = PL.MakeNBinsFromMinToMax(2920, 190., 3110.)
+  #A1B = PL.MakeNBinsFromMinToMax(1000,0,MAX_ALPHA)
+  A1B = PL.MakeNBinsFromMinToMax(int(MAX_ALPHA * 4000),0,MAX_ALPHA)
+  #print(A1B)
 
   ### PICOTREE DIRECTORIES ###
   pico_dir = "/cms/xaastorage-2/DiPhotonsTrees/"
@@ -300,6 +335,8 @@ def interpoSignalMaker(o, xtreename, wgt):
         xamass = name[:name.find("_")]
         xmass = int(xamass[1 : xamass.find("A")])
         phimass = float(xamass[xamass.find("A")+1 :].replace("p",".") )
+
+        #if(xamass == "X600A6"): continue
   
         if (File.endswith(".root") and year in name and "v_" not in File):
           if(os.path.getsize(File) > 100):
@@ -307,7 +344,6 @@ def interpoSignalMaker(o, xtreename, wgt):
               xmasses.append(xmass)
               phimasses.append(phimass)
               alphas.append(phimass / xmass)
-
 
   #Determine if we already have xmass or phi mass
   interpoBool = True
@@ -323,7 +359,7 @@ def interpoSignalMaker(o, xtreename, wgt):
 
   if(in_x in xmasses): have_x = True
   if(in_phi in phimasses): have_phi=True
-  if(o.mass in xphipairs): interpoBool=False
+  if(in_xphi in xphipairs): interpoBool=False
   if(in_alpha in alphas): have_alpha = True
   if o.force : interpoBool=True
 
@@ -338,18 +374,20 @@ def interpoSignalMaker(o, xtreename, wgt):
   ##
 
   nud = xtreename[xtreename.find("_")+1 :]
-  PL.MakeFolder("../inputs/Interpolations/{}/X{}A{}".format(year,in_x,in_phi))
+  folderName = "{}inputs/Interpolations/{}/X{}A{}".format(dir_path.replace("python",""),year,in_x,in_phi)
+  PL.MakeFolder(folderName)
   if("Up" in wgt ):
-    outFileName = "../inputs/Interpolations/{}/X{}A{}/X{}phi{}_{}_puUp.root".format(year,in_x,in_phi,in_x,in_phi,nud)
+    outFileName = "{}inputs/Interpolations/{}/X{}A{}/X{}phi{}_{}_puUp.root".format(dir_path.replace("python",""),year,in_x,in_phi,in_x,in_phi,nud)
   elif("Down" in wgt ):
-    outFileName = "../inputs/Interpolations/{}/X{}A{}/X{}phi{}_{}_puDown.root".format(year,in_x,in_phi,in_x,in_phi,nud)
+    outFileName = "{}inputs/Interpolations/{}/X{}A{}/X{}phi{}_{}_puDown.root".format(dir_path.replace("python",""),year,in_x,in_phi,in_x,in_phi,nud)
   else:
-    outFileName = "../inputs/Interpolations/{}/X{}A{}/X{}phi{}_{}.root".format(year,in_x,in_phi,in_x,in_phi,nud)
+    outFileName = "{}inputs/Interpolations/{}/X{}A{}/X{}phi{}_{}.root".format(dir_path.replace("python",""),year,in_x,in_phi,in_x,in_phi,nud)
 
   ###
 
   if interpoBool: 
 
+    #ivars = ["XM","XM_na", "alpha", "alpha_na"]
     ivars = ["XM", "alpha"]
 
     ##
@@ -371,7 +409,7 @@ def interpoSignalMaker(o, xtreename, wgt):
         myhists, myeffs, mydenoms = getAlphaHists(xtreename, INPUTM, in_alpha, dists, ivar, wgt)
         use_masses = {}
         use_masses["X"] = xmasses
-        finalshape, feff, fevt = InterpolateHists(in_x, in_phi, ivar, xtreename, use_masses, lowx, hix, myhists, INPUTM, myeffs, mydenoms)
+        finalshape, feff, fevt = InterpolateHists(in_x, in_phi, ivar, xtreename, use_masses, lowx, hix, myhists, INPUTM, myeffs, mydenoms, 1)
 
       elif( (have_x and not have_alpha) or o.force ):
         if( o.force ): print("Forcing Interpolation for known signal")
@@ -380,10 +418,10 @@ def interpoSignalMaker(o, xtreename, wgt):
         lowa, hia = computeBoundingIndices(in_alpha, alphas)
 
         INPUTM = [alphas[lowa], alphas[hia]]
-        myphis, myhists, myeffs, mydenoms = getPhiHists(xtreename, in_x, in_alpha, INPUTM, dists, ivar, wgt)
+        myphis, myhists, myeffs, mydenoms, wps = getPhiHists(xtreename, in_x, in_alpha, INPUTM, dists, ivar, wgt)
         use_masses = {}
         use_masses["phi"] = myphis
-        finalshape, feff, fevt = InterpolateHists(in_x, in_phi, ivar, xtreename, use_masses, 0, 1, myhists, myphis, myeffs, mydenoms)
+        finalshape, feff, fevt = InterpolateHists(in_x, in_phi, ivar, xtreename, use_masses, 0, 1, myhists, myphis, myeffs, mydenoms, wps)
 
       else:
         print("Unknown X and phi mass. Interpolating twice")
@@ -397,24 +435,72 @@ def interpoSignalMaker(o, xtreename, wgt):
           lowa, hia = computeBoundingIndices(in_alpha, alphas)
 
           INPUTM = [alphas[lowa], alphas[hia]]
-          myphis, myhists, myeffs, mydenoms = getPhiHists(xtreename, dox, in_alpha, INPUTM, dists, ivar, wgt)
+          myphis, myhists, myeffs, mydenoms, wps = getPhiHists(xtreename, dox, in_alpha, INPUTM, dists, ivar, wgt)
           print(myphis)
           use_masses = {}
           use_masses["phi"] = myphis
-          newhist, neweff, newdenom = InterpolateHists(dox, in_phi, ivar, xtreename, use_masses, 0, 1, myhists, myphis, myeffs, mydenoms)
+          newhist, neweff, newdenom = InterpolateHists(dox, in_phi, ivar, xtreename, use_masses, 0, 1, myhists, myphis, myeffs, mydenoms, wps)
           inx_alphahists.append(newhist)
           myeffs.append(neweff)
           mydenoms.append(newdenom)
 
         use_masses = {}
         use_masses["X"] = xmasses
-        finalshape, feff, fevt = InterpolateHists(in_x, in_phi, ivar, xtreename, use_masses, lowx, hix, inx_alphahists, bxs, myeffs, mydenoms)
+        finalshape, feff, fevt = InterpolateHists(in_x, in_phi, ivar, xtreename, use_masses, lowx, hix, inx_alphahists, bxs, myeffs, mydenoms, wps)
+
+      if(ivar == "XM"):
+        with open(folderName + "/{}.txt".format(in_xphi.replace("A","phi")), 'w') as effFile:
+            print("eff ("+in_xphi+")---> " + str(feff))
+            effFile.write(str(feff))
 
       finalshape.Write()
     myout.Close()
 
   else: 
-    print("Known Signal. Doing Nothing")
+    myout = ROOT.TFile(outFileName, "RECREATE")
+    myout.cd()
+    print("Known Signal. Getting shapes for {}".format(in_xphi))
+    print(in_xphi)
+    Chain=ROOT.TChain(xtreename)
+    Chain.Add(dists[in_xphi])
+    rdf = ROOT.RDataFrame.RDataFrame(Chain)
+    rdf = rdf.Filter("HLT_DoublePhoton > 0", "Trigger")
+    cutString = "masym < 0.25 && clu1_dipho > 0.9 && clu2_dipho > 0.9 && clu1_iso > 0.8 && clu2_iso > 0.8 && clu1_pt > 70 && clu2_pt > 70"
+    rdf = rdf.Filter(cutString)
+
+    for var in ["XM", "XM_na", "alpha", "alpha_na"]:
+      if("na" in var):
+        hist = rdf.Histo1D( ("alpha","alpha",4000,0,4000), "alpha")
+        alphastd = hist.GetStdDev()
+        rdf = rdf.Filter("alpha > {} && alpha < {}".format(in_alpha - alphastd*3, in_alpha + alphastd*3), "alpha Window")
+      num = float(rdf.Count().GetValue())
+      rdf = rdf.Filter("XM > {} && XM < {}".format(float(in_x)*0.85, MAX_XM), "xmass cut")
+
+      if(var=="XM"): 
+        myhist = rdf.Histo1D(("{}_{}_{}".format(var, in_x, in_phi),var,  len(X1B)-1, numpy.array(X1B)), var, wgt)
+      elif(var=="XM_na"): 
+        myhist = rdf.Histo1D(("{}_{}_{}".format(var, in_x, in_phi),var,  len(X1B)-1, numpy.array(X1B)), "XM", wgt)
+      elif(var=="alpha"): 
+        myhist = rdf.Histo1D(("{}_{}_{}".format(var, in_x, in_phi),var,  len(A1B)-1, numpy.array(A1B)), var, wgt)
+      elif(var=="alpha_na"): 
+        myhist = rdf.Histo1D(("{}_{}_{}".format(var, in_x, in_phi),var,  len(A1B)-1, numpy.array(A1B)), "alpha", wgt)
+
+      t_nevt = getDenom(in_x, in_phi)
+      t_eff = num / t_nevt
+      shist = myhist.GetValue().Clone("X{}phi{}_{}".format(in_x, in_phi, var))
+      shist.Scale(1/shist.Integral())
+      shist.Sumw2()
+      shist.Scale(t_eff*t_nevt)
+      shist.Scale(LUMI[year] * XS)
+      shist.Write()
+
+      if(var == "XM"):
+        with open(folderName + "/{}.txt".format(in_xphi.replace("A","phi")), 'w') as effFile:
+            print("eff ("+in_xphi+")---> " + str(t_eff))
+            effFile.write(str(t_eff))
+
+    print("Saving as: {}".format(outFileName))
+    myout.Close()
     return
 
   print("Saving file: {}".format(outFileName))
@@ -431,7 +517,7 @@ if __name__ == "__main__":
   args = parser.parse_args()
 
   interpoSignalMaker(args, "pico_nom", "puWeight")
-  interpoSignalMaker(args, "pico_nom", "puWeightUp")
-  interpoSignalMaker(args, "pico_nom", "puWeightDown")
-  interpoSignalMaker(args, "pico_scale_up", "puWeight")
-  interpoSignalMaker(args, "pico_scale_down", "puWeight")
+  #interpoSignalMaker(args, "pico_nom", "puWeightUp")
+  #interpoSignalMaker(args, "pico_nom", "puWeightDown")
+  #interpoSignalMaker(args, "pico_scale_up", "puWeight")
+  #interpoSignalMaker(args, "pico_scale_down", "puWeight")
