@@ -14,6 +14,10 @@ LUMI["2016"] = 36.050
 LUMI["2017"] = 39.670
 LUMI["2018"] = 59.320
 
+#Analysis cuts, make sure these match MakeShapes.py
+#cutString = "masym < 0.25 && clu1_dipho > 0.9 && clu2_dipho > 0.9 && clu1_iso > 0.8 && clu2_iso > 0.8 && clu1_pt > 70 && clu2_pt > 70"
+cutString = "masym < 1 && clu1_dipho > 0.9 && clu2_dipho > 0.9 && clu1_iso > 0.5 && clu2_iso > 0.5"
+
 def FindAndSetMax(*args):
   if len(args) == 1: args = args[0]
   maximum = 0.0
@@ -173,7 +177,6 @@ def getAlphaHists(xtreename, xs, alpha, dists, var, weight):
         Chain.Add(F)
         rdf = ROOT.RDataFrame.RDataFrame(Chain)
         rdf = rdf.Filter("HLT_DoublePhoton > 0", "Trigger")
-        cutString = "masym < 0.25 && clu1_dipho > 0.9 && clu2_dipho > 0.9 && clu1_iso > 0.8 && clu2_iso > 0.8 && clu1_pt > 70 && clu2_pt > 70"
         rdf = rdf.Filter(cutString)
         if(var != "na" in var):
           hist = rdf.Histo1D( ("alpha","alpha",4000,0,4000), "alpha")
@@ -221,7 +224,6 @@ def getPhiHists(xtreename, xm, alpha, alphas, dists, var, weight):
         Chain.Add(F)
         rdf = ROOT.RDataFrame.RDataFrame(Chain)
         rdf = rdf.Filter("HLT_DoublePhoton > 0", "Trigger")
-        cutString = "masym < 0.25 && clu1_dipho > 0.9 && clu2_dipho > 0.9 && clu1_iso > 0.8 && clu2_iso > 0.8 && clu1_pt > 70 && clu2_pt > 70"
         rdf = rdf.Filter(cutString)
         if("na" in var):
           hist = rdf.Histo1D( ("alpha","alpha",4000,0,4000), "alpha")
@@ -387,8 +389,8 @@ def interpoSignalMaker(o, xtreename, wgt):
 
   if interpoBool: 
 
-    #ivars = ["XM","XM_na", "alpha", "alpha_na"]
-    ivars = ["XM", "alpha"]
+    ivars = ["XM","XM_na", "alpha", "alpha_na"]
+    #ivars = ["XM", "alpha"]
 
     ##
     myout = ROOT.TFile(outFileName, "RECREATE")
@@ -465,7 +467,6 @@ def interpoSignalMaker(o, xtreename, wgt):
     Chain.Add(dists[in_xphi])
     rdf = ROOT.RDataFrame.RDataFrame(Chain)
     rdf = rdf.Filter("HLT_DoublePhoton > 0", "Trigger")
-    cutString = "masym < 0.25 && clu1_dipho > 0.9 && clu2_dipho > 0.9 && clu1_iso > 0.8 && clu2_iso > 0.8 && clu1_pt > 70 && clu2_pt > 70"
     rdf = rdf.Filter(cutString)
 
     for var in ["XM", "XM_na", "alpha", "alpha_na"]:
@@ -497,6 +498,7 @@ def interpoSignalMaker(o, xtreename, wgt):
       if(var == "XM"):
         with open(folderName + "/{}.txt".format(in_xphi.replace("A","phi")), 'w') as effFile:
             print("eff ("+in_xphi+")---> " + str(t_eff))
+            print(num, t_nevt, t_eff)
             effFile.write(str(t_eff))
 
     print("Saving as: {}".format(outFileName))
@@ -517,7 +519,7 @@ if __name__ == "__main__":
   args = parser.parse_args()
 
   interpoSignalMaker(args, "pico_nom", "puWeight")
-  #interpoSignalMaker(args, "pico_nom", "puWeightUp")
-  #interpoSignalMaker(args, "pico_nom", "puWeightDown")
-  #interpoSignalMaker(args, "pico_scale_up", "puWeight")
-  #interpoSignalMaker(args, "pico_scale_down", "puWeight")
+  interpoSignalMaker(args, "pico_nom", "puWeightUp")
+  interpoSignalMaker(args, "pico_nom", "puWeightDown")
+  interpoSignalMaker(args, "pico_scale_up", "puWeight")
+  interpoSignalMaker(args, "pico_scale_down", "puWeight")
