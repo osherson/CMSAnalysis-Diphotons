@@ -35,7 +35,7 @@ elif("18" in year):
             "Run_A",
             "Run_B",
             "Run_C",
-            "Run_D",
+            #"Run_D",
             ]
 
 for run in RunList:
