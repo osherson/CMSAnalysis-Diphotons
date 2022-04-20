@@ -7,6 +7,11 @@ def RunFitter(o):
     words = " --words " + o.WORDS
     if o.FIT != "combine": box += "_%s" % str(o.FIT)
     input = " inputs/" + str(o.SIG) + "/PLOTS_" + str(o.SIG) + ".root"
+    if(os.exists(input)):
+      print("Getting Generated Shape for {}".format(o.SIG))
+    if(not os.exists(input)):
+      print("Getting Interpolated Shape for {}".format(o.SIG))
+      input = " inputs/Shapes_fromInterpo/" + str(o.SIG) + "/PLOTS_" + str(o.SIG) + ".root"
     output = " -d output"
     
     dcstring = "python python/BinnedDiphotonFit.py" + config + lumi + box + input + output + " --fit-spectrum --write-fit" + words

@@ -125,14 +125,6 @@ def SaveHists(N, sXr, sX1r, sXvAr, sX, sX1, dX, dX1, dXvA, sX1pu, sX1pd, sX1su, 
     oF.Save()
     oF.Close()
 
-#def SaveHists_Interpo(N, sXr, sX1, sX1pu, sX1pd, sX1su, sX1sd):
-#    PL.MakeFolder("../inputs/Shapes_fromInterpo/"+N)
-#    doOneInputInterpo(N, sX1, "h_AveDijetMass_1GeV", "Sig_nominal", True)
-#    doOneInputInterpo(N, sX1pu, "h_AveDijetMass_1GeV", "Sig_PU", True)
-#    doOneInputInterpo(N, sX1pd, "h_AveDijetMass_1GeV", "Sig_PD", True)
-#    doOneInputInterpo(N, sX1su, "h_AveDijetMass_1GeV", "Sig_SU", True)
-#    doOneInputInterpo(N, sX1sd, "h_AveDijetMass_1GeV", "Sig_SD", True)
-
 def SaveHists_Interpo(N, sXr, sX1r, sX, sX1, dX, dX1, sX1pu, sX1pd, sX1su, sX1sd):
     PL.MakeFolder("../inputs/Shapes_fromInterpo/"+N)
     txtfile = interp_directory + N + "/" + N.replace("A","phi").replace(".","p") + '.txt'
@@ -162,7 +154,7 @@ SignalsGenerated = {}
 #SignalsGenerated["X300A1p5"] = ["/cms/xaastorage-2/DiPhotonsTrees/X300A1p5_2018.root"]
 #SignalsGenerated["X400A2"] = ["/cms/xaastorage-2/DiPhotonsTrees/X400A2_2018.root"]
 #SignalsGenerated["X500A2p5"] = ["/cms/xaastorage-2/DiPhotonsTrees/X500A2p5_2018.root"]
-SignalsGenerated["X600A3"] = ["/cms/xaastorage-2/DiPhotonsTrees/X600A3_2018.root"]
+#SignalsGenerated["X600A3"] = ["/cms/xaastorage-2/DiPhotonsTrees/X600A3_2018.root"]
 #SignalsGenerated["X750A3p75"] = ["/cms/xaastorage-2/DiPhotonsTrees/X750A3p75_2018.root"]
 #SignalsGenerated["X1000A5"] = ["/cms/xaastorage-2/DiPhotonsTrees/X1000A5_2018.root"]
 #SignalsGenerated["X1500A7p5"] = ["/cms/xaastorage-2/DiPhotonsTrees/X1500A7p5_2018.root"]
@@ -170,20 +162,21 @@ SignalsGenerated["X600A3"] = ["/cms/xaastorage-2/DiPhotonsTrees/X600A3_2018.root
 #SignalsGenerated["X3000A15"] = ["/cms/xaastorage-2/DiPhotonsTrees/X3000A15_2018.root"]
 
 #Get all signals
-#storage = "/cms/xaastorage-2/DiPhotonsTrees/"
-#year = 2018
-#for subdir, dirs, files in os.walk(storage):
-#  for ff in files:
-#    if(ff[0]=="X" and str(year) in ff and "X200A" not in ff):
-#      thisxa = ff[ : ff.find("_")]
-#      this_x = int(thisxa[1:thisxa.find("A")])
-#      this_phi = float(thisxa[thisxa.find("A")+1:].replace("p","."))
-#      if(this_phi / this_x > 0.03): continue
-#
-#      SignalsGenerated[thisxa] = [os.path.join(storage, ff)]
+storage = "/cms/xaastorage-2/DiPhotonsTrees/"
+year = 2018
+for subdir, dirs, files in os.walk(storage):
+  for ff in files:
+    if(ff[0]=="X" and str(year) in ff and "X200A" not in ff):
+      thisxa = ff[ : ff.find("_")]
+      this_x = int(thisxa[1:thisxa.find("A")])
+      this_phi = float(thisxa[thisxa.find("A")+1:].replace("p","."))
+      if(this_phi / this_x != 0.005): continue
+
+      SignalsGenerated[thisxa] = [os.path.join(storage, ff)]
 
 CUTS = [1.0, 3.5, 0.9, 0.5] # masym eta dipho iso
 for s in SignalsGenerated:
+    print(s)
     thisdir = "../inputs/{}".format(s)
     #if(os.path.isdir(thisdir)): 
     #  print("{} already exists. Skipping".format(thisdir))
@@ -206,15 +199,25 @@ for s in SignalsGenerated:
 interp_directory = "../inputs/Interpolations/2018/"
 interp_signals = [dirs for subdir, dirs, files in os.walk(interp_directory)][0]
 #interp_signals = ["X600A3"]
-interp_signals = ["X500A7"]
+#interp_signals = ["X500A7"]
+interp_signals = []
+for sub, dirs, files in os.walk(interp_directory):
+  for dd in dirs:
+    thisxa = dd
+    this_x = int(thisxa[1:thisxa.find("A")])
+    this_phi = float(thisxa[thisxa.find("A")+1:].replace("p","."))
+    if(this_phi / this_x != 0.005 or thisxa.replace(".","p") in SignalsGenerated.keys() ): continue
+    interp_signals.append(thisxa)
+
 
 ct = 0
 for isig in interp_signals:
-  print("doing nothing for interpolated signals.")
-  continue
+  print(isig)
   if (ct % 100 == 0): print("Finished {} signals".format(ct))
   ct += 1
   this_dir = interp_directory + isig +""
+
+  print("{}/{}_nom.root".format(this_dir, isig.replace("A","phi")))
 
   nom_file = ROOT.TFile("{}/{}_nom.root".format(this_dir, isig.replace("A","phi")), "read")
   puUp_file = ROOT.TFile("{}/{}_nom_puUp.root".format(this_dir, isig.replace("A","phi")), "read")
@@ -239,8 +242,6 @@ for isig in interp_signals:
   #Get alpha mean +/- 3 sigma for making data plots
   lA = sAr.GetMean() - 3.*sAr.GetRMS()
   hA = sAr.GetMean() + 3.*sAr.GetRMS()
-
-  print(lA, hA)
 
   (dX, dX1, dXvA) = PL.GetDiphoShapeAnalysis(DATA, "pico_skim", "data", CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "1.")
 
