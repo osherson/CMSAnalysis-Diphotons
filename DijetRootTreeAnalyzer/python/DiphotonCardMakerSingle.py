@@ -9,15 +9,25 @@ def RunDataCardMaker(o):
     mass = " --mass " + str(o.SIG).split("X")[1].split("A")[0]
     output = " -d output"
     xs = " --xsec " + o.XS
-    inputs = " -i output/DijetFitResults_diphoton_dijet.root"
-    inputs += " inputs/" + str(o.SIG) + "/DATA.root"
-    inputs += " inputs/"+ str(o.SIG)+"/Sig_nominal.root"
-    jesup = " --jesUp inputs/"+ str(o.SIG)+"/Sig_SU.root"
-    jesdown = " --jesDown inputs/"+ str(o.SIG)+"/Sig_SD.root"
-    jerup = " --jerUp inputs/"+ str(o.SIG)+"/Sig_PU.root"
-    jerdown = " --jerDown inputs/"+ str(o.SIG)+"/Sig_PD.root"
 
-            
+    if(os.path.exists("inputs/" + str(o.SIG) + "/DATA.root")):
+      inputs = " -i output/DijetFitResults_diphoton_dijet.root"
+      inputs += " inputs/" + str(o.SIG) + "/DATA.root"
+      inputs += " inputs/"+ str(o.SIG)+"/Sig_nominal.root"
+      jesup = " --jesUp inputs/"+ str(o.SIG)+"/Sig_SU.root"
+      jesdown = " --jesDown inputs/"+ str(o.SIG)+"/Sig_SD.root"
+      jerup = " --jerUp inputs/"+ str(o.SIG)+"/Sig_PU.root"
+      jerdown = " --jerDown inputs/"+ str(o.SIG)+"/Sig_PD.root"
+
+    else:
+      inputs = " -i output/DijetFitResults_diphoton_dijet.root"
+      inputs += " inputs/Shapes_fromInterpo/" + str(o.SIG) + "/DATA.root"
+      inputs += " inputs/Shapes_fromInterpo/"+ str(o.SIG)+"/Sig_nominal.root"
+      jesup = " --jesUp inputs/Shapes_fromInterpo/"+ str(o.SIG)+"/Sig_SU.root"
+      jesdown = " --jesDown inputs/Shapes_fromInterpo/"+ str(o.SIG)+"/Sig_SD.root"
+      jerup = " --jerUp inputs/Shapes_fromInterpo/"+ str(o.SIG)+"/Sig_PU.root"
+      jerdown = " --jerDown inputs/Shapes_fromInterpo/"+ str(o.SIG)+"/Sig_PD.root"
+
 
     dcstring = "python python/WriteDataCard_photons.py" + config + mass + box + output + inputs + jesup + jesdown + jerup + jerdown + xs + lumi
     print(dcstring)
