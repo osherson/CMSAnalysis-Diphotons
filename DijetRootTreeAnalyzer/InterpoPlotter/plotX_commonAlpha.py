@@ -41,6 +41,8 @@ for dd in dirs:
       xmass = int(xamass[1 : xamass.find("phi")])
       phimass = float(xamass[xamass.find("phi")+3 :].replace("p",".") )
       alpha = phimass / xmass
+      if xmass < 300 or xmass > 1000: continue
+      if xmass % 50 != 0: continue
       if(alpha != plot_alpha): continue
       if(xmass in [200, 300, 400, 500, 600, 750, 1000, 1500, 2000]):
           kdists[xamass]=File
@@ -80,6 +82,7 @@ c1.cd()
 legend = ROOT.TLegend(0.70,0.50,0.90,0.90)
 
 ct = 0
+
 
 for xphi, F in dists.items():
   this_x = int(xphi[1:xphi.find("phi")])

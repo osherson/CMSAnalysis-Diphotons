@@ -4,7 +4,7 @@ Requirements = (Arch == "X86_64")
 +AccountingGroup = "group_rutgers.sclark"
 use_x509userproxy = true
 
-Executable = Call_$(process).sh
+Executable = CallFiles/Call_$(process).sh
 
 should_transfer_files = NO
 
@@ -14,4 +14,4 @@ Output = ./condor_logfiles/prod_IM_EB_$(cluster)_$(process).stdout
 Error = ./condor_logfiles/prod_IM_EB_$(cluster)_$(process).stderr
 Log = ./condor_logfiles/prod_IM_EB_$(cluster)_$(process).condor
 Arguments = $(cluster) $(process)
-Queue 4576
+ Queue 4576

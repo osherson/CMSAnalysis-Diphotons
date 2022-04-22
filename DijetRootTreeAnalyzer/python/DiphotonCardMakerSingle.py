@@ -9,15 +9,27 @@ def RunDataCardMaker(o):
     mass = " --mass " + str(o.SIG).split("X")[1].split("A")[0]
     output = " -d output"
     xs = " --xsec " + o.XS
-    inputs = " -i output/DijetFitResults_diphoton_dijet.root"
-    inputs += " inputs/" + str(o.SIG) + "/DATA.root"
-    inputs += " inputs/"+ str(o.SIG)+"/Sig_nominal.root"
-    jesup = " --jesUp inputs/"+ str(o.SIG)+"/Sig_SU.root"
-    jesdown = " --jesDown inputs/"+ str(o.SIG)+"/Sig_SD.root"
-    jerup = " --jerUp inputs/"+ str(o.SIG)+"/Sig_PU.root"
-    jerdown = " --jerDown inputs/"+ str(o.SIG)+"/Sig_PD.root"
 
-            
+    yr = str(o.YEAR)
+
+    if(os.path.exists("inputs/Shapes_fromGen/" + yr + "/" + str(o.SIG) + "/DATA.root")):
+      inputs = " -i output/DijetFitResults_diphoton_dijet.root"
+      inputs += " inputs/Shapes_fromGen/" + yr + "/" + str(o.SIG) + "/DATA.root"
+      inputs += " inputs/Shapes_fromGen/"+ yr + "/" + str(o.SIG)+"/Sig_nominal.root"
+      jesup = " --jesUp inputs/Shapes_fromGen/"+ yr + "/" + str(o.SIG)+"/Sig_SU.root"
+      jesdown = " --jesDown inputs/Shapes_fromGen/"+ yr + "/" + str(o.SIG)+"/Sig_SD.root"
+      jerup = " --jerUp inputs/Shapes_fromGen/"+ yr + "/" + str(o.SIG)+"/Sig_PU.root"
+      jerdown = " --jerDown inputs/Shapes_fromGen/"+ yr + "/" + str(o.SIG)+"/Sig_PD.root"
+
+    else:
+      inputs = " -i output/DijetFitResults_diphoton_dijet.root"
+      inputs += " inputs/Shapes_fromInterpo/" + yr + "/" + str(o.SIG) + "/DATA.root"
+      inputs += " inputs/Shapes_fromInterpo/"+ yr + "/" + str(o.SIG)+"/Sig_nominal.root"
+      jesup = " --jesUp inputs/Shapes_fromInterpo/"+ yr + "/" + str(o.SIG)+"/Sig_SU.root"
+      jesdown = " --jesDown inputs/Shapes_fromInterpo/"+ yr + "/" + str(o.SIG)+"/Sig_SD.root"
+      jerup = " --jerUp inputs/Shapes_fromInterpo/"+ yr + "/" + str(o.SIG)+"/Sig_PU.root"
+      jerdown = " --jerDown inputs/Shapes_fromInterpo/"+ yr + "/" + str(o.SIG)+"/Sig_PD.root"
+
 
     dcstring = "python python/WriteDataCard_photons.py" + config + mass + box + output + inputs + jesup + jesdown + jerup + jerdown + xs + lumi
     print(dcstring)
@@ -29,6 +41,7 @@ if __name__ == "__main__":
     parser = OptionParser()
     parser.add_option("-f", "--fit", dest="FIT", type=str, help="name of fit function", metavar="FITFUNC")
     parser.add_option("-l", "--lumi", dest="LUM", type=str, help="lumi in this sample (in fb-1)", metavar="THELUMI")
+    parser.add_option("-y", "--year", dest="YEAR", type=str, help="Run II Year", metavar="THELUMI")
     parser.add_option("-s", "--sig", dest="SIG", type=str, help="signal samples", metavar="THESIGNAL")
     parser.add_option("-x", "--xsec", dest="XS", type=str, help="signal xs", metavar="THESIGNALxs")
     (o, args) = parser.parse_args()

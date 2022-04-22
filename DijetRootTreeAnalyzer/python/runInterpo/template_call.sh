@@ -15,4 +15,4 @@ eval `scramv1 runtime -sh`
 while IFS= read -r line; do
   $line
 
-done < single.ext
+done < SingleFiles/single.ext

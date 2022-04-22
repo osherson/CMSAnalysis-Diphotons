@@ -3,9 +3,6 @@ import os.path
 import sys
 import glob
 
-
-submitfile=open("submit.sh","w")
-
 needlist = []
 
 for subdir, dirs, files in os.walk("."):
@@ -20,7 +17,7 @@ for nn in needlist:
   
   fext = ext.lstrip("0")
   if fext=="": fext="0"
-  outcall = open("Call_{}.sh".format(fext), "w")
+  outcall = open("CallFiles/Call_{}.sh".format(fext), "w")
 
   Lines = callfile.readlines()
   for line in Lines:
