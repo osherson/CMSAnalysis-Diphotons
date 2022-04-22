@@ -3,6 +3,14 @@ from ROOT import *
 from array import array
 import os
 import numpy
+import sys
+
+year = sys.argv[1]
+
+LUMI = {}
+LUMI["2016"] = 3.59
+LUMI["2017"] = 4.15
+LUMI["2018"] = 5.99
 
 def GetTH(fN):
 	
@@ -105,32 +113,38 @@ xmlist = [int(xx) for xx in xmlist]
 
 xmlist_have = []
 for xx in xmlist:
-  if(os.path.exists("combineOutput/2018/X{}.root".format(xx))):
+  if(os.path.exists("combineOutput/{}/X{}.root".format(year,xx))):
     xmlist_have.append(xx)
 
 #for m in ['300', '400', '500', '600', '750', '1000', '1500', '2000', '3000']:
 for m in xmlist_have:
-	F = TFile('combineOutput/2018/X{}.root'.format(m))
-	T = F.Get("limit")
-	n = T.GetEntries()
-	if n == 6:
-		x.append(float(m))
-		T.GetEntry(5)
-		obs.append(T.limit)
-		T.GetEntry(0)
-		m2.append(T.limit)
-		T.GetEntry(1)
-		m1.append(T.limit)
-		T.GetEntry(2)
-		exp.append(T.limit)
-		T.GetEntry(3)
-		p1.append(T.limit)
-		T.GetEntry(4)
-		p2.append(T.limit)
+  F = TFile('combineOutput/{}/X{}.root'.format(year,m))
+  try:
+    T = F.Get("limit")
+    n = T.GetEntries()
+  except AttributeError:
+    print("Trouble with {}, Skipping.".format(F.GetName()))
+    continue
+  if n == 6:
+    x.append(float(m))
+    T.GetEntry(5)
+    obs.append(T.limit)
+    T.GetEntry(0)
+    m2.append(T.limit)
+    T.GetEntry(1)
+    m1.append(T.limit)
+    T.GetEntry(2)
+    exp.append(T.limit)
+    T.GetEntry(3)
+    p1.append(T.limit)
+    T.GetEntry(4)
+    p2.append(T.limit)
 
 #LimitPlot = TH2F("LP", ";Four-Photon Resonance Mass (GeV);(pp #rightarrow X #rightarrow #phi#phi #rightarrow (#gamma#gamma)(#gamma#gamma)) #sigma #times B (fb)", 100, 300, 3000, 100, 0.005, 50.)
-LimitPlot = TH2F("LP", ";Four-Photon Resonance Mass (GeV);(pp #rightarrow X #rightarrow #phi#phi #rightarrow (#gamma#gamma)(#gamma#gamma)) #sigma #times B (fb)", 100, 300, 2000, 100, 0.05, 50.)
+LimitPlot = TH2F("LP", ";Four-Photon Resonance Mass (GeV);(pp #rightarrow X #rightarrow #phi#phi #rightarrow (#gamma#gamma)(#gamma#gamma)) #sigma #times B (fb)", 100, 300, 2000, 100, 0.5, 50.)
 LimitPlot.SetStats(0)
+
+LimitPlot.GetXaxis().SetMoreLogLabels(ROOT.kTRUE)
 
 TH1 = GetTH(1)
 TH3 = GetTH(3)
@@ -151,7 +165,7 @@ Obs.SetMarkerSize(0.6666)
 Onesig = makeAFillGraph(x,m1,p1,kGreen,kGreen, 1001)
 Twosig = makeAFillGraph(x,m2,p2,kYellow,kYellow, 1001)
 
-L = TLegend(0.5,0.5,0.89,0.89)
+L = TLegend(0.52,0.52,0.89,0.89)
 L.SetLineColor(0)
 L.SetFillColor(0)
 L.SetHeader("95% CL Limits")
@@ -166,6 +180,7 @@ L.AddEntry(TH9, "X #rightarrow #phi#phi #rightarrow (#gamma#gamma)(#gamma#gamma)
 C = TCanvas()
 C.cd()
 C.SetLogy()
+C.SetLogx()
 LimitPlot.Draw()
 Twosig.Draw("Fsames")
 Onesig.Draw("Fsames")
@@ -174,6 +189,8 @@ TH3.Draw("Lsame")
 TH9.Draw("Lsame")
 Exp.Draw("Lsame")
 Obs.Draw("LPsame")
-#L.Draw("same")
-AddCMSLumi(gPad, 5.99, "Preliminary")
-C.Print("LIM.png")
+L.Draw("same")
+AddCMSLumi(gPad, str(LUMI[year]), "Preliminary")
+savename="combineOutput/LimitPlots/Lim_{}.png".format(year)
+print("Saving plot as: {}".format(savename))
+C.Print(savename)

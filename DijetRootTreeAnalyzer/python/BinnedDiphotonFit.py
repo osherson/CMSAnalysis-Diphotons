@@ -240,6 +240,8 @@ if __name__ == '__main__':
                   help="Output directory to store cards")
     parser.add_option('-l','--lumi',dest="lumi", default=1.,type="float",
                   help="integrated luminosity in pb^-1")
+    parser.add_option('-y','--year',dest="year", default=2018,type="int",
+                  help="run II year")
     parser.add_option('--run-min',dest="runMin", default=0,type="int",
                   help="minimum run to consider for trigger efficiency")
     parser.add_option('--run-max',dest="runMax", default=999999,type="int",
@@ -290,6 +292,7 @@ if __name__ == '__main__':
     
     box = options.box
     lumi = options.lumi
+    year = options.year
     noFit = options.noFit
     fitRegion = options.fitRegion
     plotRegion = options.plotRegion
@@ -1338,15 +1341,15 @@ if __name__ == '__main__':
     #rt.gStyle.SetOptStat(0)
 
     #c_pulls_distribution.Print(options.outDir+"/Pulls_mjj_%s_%s.png"%(fitRegion.replace(',','_'),box))
-    c.Print(options.outDir+"/fit_mjj_%s_%s.png"%(fitRegion.replace(',','_'),box))
-    c.Print(options.outDir+"/fit_mjj_%s_%s.C"%(fitRegion.replace(',','_'),box))
+    c.Print(options.outDir+"/fit_mjj_%s_%s_%s.png"%(fitRegion.replace(',','_'),box,year))
+    c.Print(options.outDir+"/fit_mjj_%s_%s_%s.C"%(fitRegion.replace(',','_'),box,year))
     #c.Print(options.outDir+"/SB_fit_mjj_%s_%s.png"%(fitRegion.replace(',','_'),box))	#for sb fit
     #c.Print(options.outDir+"/SB_fit_mjj_%s_%s.C"%(fitRegion.replace(',','_'),box))
     tdirectory.cd()
     c.Write()
     #c_pulls_distribution.Write()
 
-    outFileName = "DijetFitResults_%s.root"%(box)
+    outFileName = "DijetFitResults_%s_%s.root"%(box,year)
     #outFileName = "DijetFitResults_sb_%s.root"%(box)	#for sb fit
     outFile = rt.TFile(options.outDir+"/"+outFileName,'recreate')
     outFile.cd()

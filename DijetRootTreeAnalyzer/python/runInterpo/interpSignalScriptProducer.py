@@ -1,6 +1,7 @@
 import numpy as np
+import sys
 
-year = 2018
+year = sys.argv[1]
 
 xmin, xmax = 250, 2000
 xstep = 10
@@ -8,7 +9,6 @@ xstep = 10
 alphamin, alphamax = 0.005, 0.03
 nalphas = 25+1
 alphalist = np.linspace(alphamin, alphamax, nalphas)
-print(alphalist)
 
 xlist = [xx for xx in range(xmin, xmax+xstep, xstep)]
 
@@ -23,4 +23,5 @@ for mx in xlist:
 shfile = open("InterpoProducerScript.sh","w")
 
 for ii, (xx, pp) in enumerate(xapairs):
-  shfile.write("python MakeDiphotonShapes.py --year {} --mass X{}A{}\n".format(year, xx, str(round(pp,3)).replace(".","p")))
+  #if(ii > 10):break
+  shfile.write("python ../MakeDiphotonShapes.py --year {} --mass X{}A{}\n".format(year, xx, str(round(pp,3)).replace(".","p")))

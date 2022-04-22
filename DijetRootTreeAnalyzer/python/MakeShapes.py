@@ -9,8 +9,13 @@ sys.path.append("../../.")
 import PlottingPayload as PL
 gROOT.SetBatch()
 
+year = sys.argv[1]
+xaastorage = "/cms/xaastorage-2/DiPhotonsTrees/"
+const_alpha = True #Use this to get signals at one alpha val
+this_alpha = 0.005 #Set this to the alpha you want. If const_alpha = False, this does nothing
+
 def doOneInput(N, h, H, S, norm = False):
-    toF = TFile("../inputs/"+N+"/"+S+".root", "recreate")
+    toF = TFile("../inputs/Shapes_fromGen/{}/".format(year)+N+"/"+S+".root", "recreate")
     if norm:
         h.Scale(1./h.Integral())
     toF.cd()
@@ -21,7 +26,7 @@ def doOneInput(N, h, H, S, norm = False):
     toF.Close()
 
 def doOneInputInterpo(N, h, H, S, norm = False):
-    toF = TFile("../inputs/Shapes_fromInterpo/"+N+"/"+S+".root", "recreate")
+    toF = TFile("../inputs/Shapes_fromInterpo/{}/".format(year)+N+"/"+S+".root", "recreate")
     if norm:
         h.Scale(1./h.Integral())
     toF.cd()
@@ -32,7 +37,7 @@ def doOneInputInterpo(N, h, H, S, norm = False):
     toF.Close()
 
 LH = []
-f = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/Diphoton-Treemaker/HelperFiles/Signal_NEvents_2018.csv"
+f = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/Diphoton-Treemaker/HelperFiles/Signal_NEvents_{}.csv".format(year)
 r = open(f)
 for i in r.readlines():
     #print i
@@ -45,13 +50,14 @@ def lookup(N):
         if r[0] == X and r[1] == A: return r[2]
 
 def SaveHists(N, sXr, sX1r, sXvAr, sX, sX1, dX, dX1, dXvA, sX1pu, sX1pd, sX1su, sX1sd):
-    PL.MakeFolder("../inputs/"+N)
+    header = "../inputs/Shapes_fromGen/{}/".format(year)+N
+    PL.MakeFolder(header)
     with open(N+".txt", 'w') as eff:
         E = sX1.GetEntries()
         G = lookup(N)
         print "eff ("+N+")---> " + str(float(E)/float(G))
         eff.write(str(float(E)/float(G)))
-    os.system('mv ' + N + '.txt ../inputs/'+N+"/")
+    os.system('mv ' + N + '.txt {}/.'.format(header))
     doOneInput(N, sX1, "h_AveDijetMass_1GeV", "Sig_nominal", True)
     doOneInput(N, sX1pu, "h_AveDijetMass_1GeV", "Sig_PU", True)
     doOneInput(N, sX1pd, "h_AveDijetMass_1GeV", "Sig_PD", True)
@@ -62,7 +68,7 @@ def SaveHists(N, sXr, sX1r, sXvAr, sX, sX1, dX, dX1, dXvA, sX1pu, sX1pd, sX1su, 
     for h in [sXr, sX1r]:
         h.SetFillColor(0)
         h.SetLineColor(1)
-    oF = TFile("../inputs/"+N+"/PLOTS_"+N+".root", "recreate")
+    oF = TFile(header+"/PLOTS_"+N+".root", "recreate")
     sX.Write()
     sX1.Write()
     dX.Write()
@@ -89,12 +95,12 @@ def SaveHists(N, sXr, sX1r, sXvAr, sX, sX1, dX, dX1, dXvA, sX1pu, sX1pd, sX1su, 
     sXr.Draw("samehist")
     sX.Draw("samehist")
     L.Draw("same")
-    C.Print("../inputs/"+N+"/sX.png")
+    C.Print(header+"/sX.png")
     dX1.Draw("e")
     sX1r.Draw("samehist")
     sX1.Draw("samehist")
     L.Draw("same")
-    C.Print("../inputs/"+N+"/sX1M.png")
+    C.Print(header+"/sX1M.png")
 ########### 
     lA = sXvAr.GetMean(2) - 3.*sXvAr.GetRMS(2)
     hA = sXvAr.GetMean(2) + 3.*sXvAr.GetRMS(2)
@@ -115,20 +121,20 @@ def SaveHists(N, sXr, sX1r, sXvAr, sX, sX1, dX, dX1, dXvA, sX1pu, sX1pd, sX1su, 
     sXvAr.Draw("col")
     lLine.Draw("same")
     hLine.Draw("same")
-    C.Print("../inputs/"+N+"/sXvA.png")
+    C.Print(header+"/sXvA.png")
 ############
     dXvA.Draw("col")
     lLine.Draw("same")
     hLine.Draw("same")
-    C.Print("../inputs/"+N+"/dXvA.png")
+    C.Print(header+"/dXvA.png")
     oF.Write()
     oF.Save()
     oF.Close()
 
 def SaveHists_Interpo(N, sXr, sX1r, sX, sX1, dX, dX1, sX1pu, sX1pd, sX1su, sX1sd):
-    PL.MakeFolder("../inputs/Shapes_fromInterpo/"+N)
+    PL.MakeFolder("../inputs/Shapes_fromInterpo/{}/".format(year)+N)
     txtfile = interp_directory + N + "/" + N.replace("A","phi").replace(".","p") + '.txt'
-    os.system('cp ' + txtfile +  ' ../inputs/Shapes_fromInterpo/'+N+"/" + N.replace(".","p") + ".txt")
+    os.system('cp ' + txtfile +  ' ../inputs/Shapes_fromInterpo/{}/'.format(year)+N+"/" + N.replace(".","p") + ".txt")
 
     doOneInputInterpo(N, sX1, "h_AveDijetMass_1GeV", "Sig_nominal", True)
     doOneInputInterpo(N, sX1pu, "h_AveDijetMass_1GeV", "Sig_PU", True)
@@ -140,7 +146,7 @@ def SaveHists_Interpo(N, sXr, sX1r, sX, sX1, dX, dX1, sX1pu, sX1pd, sX1su, sX1sd
     for h in [sXr, sX1r]:
         h.SetFillColor(0)
         h.SetLineColor(1)
-    oF = TFile("../inputs/Shapes_fromInterpo/"+N+"/PLOTS_"+N+".root", "recreate")
+    oF = TFile("../inputs/Shapes_fromInterpo/{}/".format(year)+N+"/PLOTS_"+N+".root", "recreate")
     sX.SetName(sX.GetName().replace("XrM","XM"))
     sX.Write()
     sX1.Write()
@@ -148,36 +154,37 @@ def SaveHists_Interpo(N, sXr, sX1r, sX, sX1, dX, dX1, sX1pu, sX1pd, sX1su, sX1sd
     dX1.Write()
 
 
-### PICOTREE DIRECTORIES ###
-DATA = ["/cms/xaastorage-2/DiPhotonsTrees/v_first/Run_D_2018.root", "/cms/xaastorage-2/DiPhotonsTrees/v_first/Run_C_2018.root","/cms/xaastorage-2/DiPhotonsTrees/v_first/Run_B_2018.root", "/cms/xaastorage-2/DiPhotonsTrees/v_first/Run_A_2018.root"]
+
+################################################
+#Get DATA
+DATA = []
+for ff in os.listdir(xaastorage):
+  if("Run" in ff and year in ff):
+    DATA.append(os.path.join(xaastorage,ff))
+
+#################################################
+#Generated Signals 
+
 SignalsGenerated = {}
-#SignalsGenerated["X300A1p5"] = ["/cms/xaastorage-2/DiPhotonsTrees/X300A1p5_2018.root"]
-#SignalsGenerated["X400A2"] = ["/cms/xaastorage-2/DiPhotonsTrees/X400A2_2018.root"]
-#SignalsGenerated["X500A2p5"] = ["/cms/xaastorage-2/DiPhotonsTrees/X500A2p5_2018.root"]
-#SignalsGenerated["X600A3"] = ["/cms/xaastorage-2/DiPhotonsTrees/X600A3_2018.root"]
-#SignalsGenerated["X750A3p75"] = ["/cms/xaastorage-2/DiPhotonsTrees/X750A3p75_2018.root"]
-#SignalsGenerated["X1000A5"] = ["/cms/xaastorage-2/DiPhotonsTrees/X1000A5_2018.root"]
-#SignalsGenerated["X1500A7p5"] = ["/cms/xaastorage-2/DiPhotonsTrees/X1500A7p5_2018.root"]
-#SignalsGenerated["X2000A10"] = ["/cms/xaastorage-2/DiPhotonsTrees/X2000A10_2018.root"]
-#SignalsGenerated["X3000A15"] = ["/cms/xaastorage-2/DiPhotonsTrees/X3000A15_2018.root"]
+#SignalsGenerated["X300A1p5"] = ["/cms/xaastorage-2/DiPhotonsTrees/X300A1p5_{}.root".format(year)]
 
 #Get all signals
-storage = "/cms/xaastorage-2/DiPhotonsTrees/"
-year = 2018
-for subdir, dirs, files in os.walk(storage):
-  for ff in files:
-    if(ff[0]=="X" and str(year) in ff and "X200A" not in ff):
-      thisxa = ff[ : ff.find("_")]
-      this_x = int(thisxa[1:thisxa.find("A")])
-      this_phi = float(thisxa[thisxa.find("A")+1:].replace("p","."))
-      if(this_phi / this_x != 0.005): continue
+for ff in os.listdir(xaastorage):
+  if(ff[0]=="X" and str(year) in ff and "X200A" not in ff):
+    thisxa = ff[ : ff.find("_")]
+    this_x = int(thisxa[1:thisxa.find("A")])
+    this_phi = float(thisxa[thisxa.find("A")+1:].replace("p","."))
+    if(const_alpha and this_phi / this_x != this_alpha): continue
+    SignalsGenerated[thisxa] = [os.path.join(xaastorage, ff)]
 
-      SignalsGenerated[thisxa] = [os.path.join(storage, ff)]
-
+ct = 0
 CUTS = [1.0, 3.5, 0.9, 0.5] # masym eta dipho iso
 for s in SignalsGenerated:
+    ct += 1
+    #if ct > 1: break
     print(s)
-    thisdir = "../inputs/{}".format(s)
+
+    #thisdir = "../inputs/Shapes_fromGen/{}/{}".format(year,s)
     #if(os.path.isdir(thisdir)): 
     #  print("{} already exists. Skipping".format(thisdir))
     #  continue
@@ -196,7 +203,7 @@ for s in SignalsGenerated:
     SaveHists(s, sXr, sX1r, sXvAr, sX, sX1, dX, dX1, dXvA, sX1pu, sX1pd, sX1su, sX1sd)
 
 #Now loop through signals created by interpolater
-interp_directory = "../inputs/Interpolations/2018/"
+interp_directory = "../inputs/Interpolations/{}/".format(year)
 interp_signals = [dirs for subdir, dirs, files in os.walk(interp_directory)][0]
 #interp_signals = ["X600A3"]
 #interp_signals = ["X500A7"]
@@ -206,16 +213,18 @@ for sub, dirs, files in os.walk(interp_directory):
     thisxa = dd
     this_x = int(thisxa[1:thisxa.find("A")])
     this_phi = float(thisxa[thisxa.find("A")+1:].replace("p","."))
-    if(this_phi / this_x != 0.005 or thisxa.replace(".","p") in SignalsGenerated.keys() ): continue
+    if(const_alpha and this_phi / this_x != this_alpha or thisxa.replace(".","p") in SignalsGenerated.keys() ): continue
     interp_signals.append(thisxa)
 
-
+print(interp_signals)
+print(len(interp_signals))
 ct = 0
 for isig in interp_signals:
+  if (ct % 100 == 0): print("Beginning Signal {} / {}".format(ct+1, len(interp_signals)))
   print(isig)
-  if (ct % 100 == 0): print("Finished {} signals".format(ct))
   ct += 1
   this_dir = interp_directory + isig +""
+  #if(ct > 1): break
 
   print("{}/{}_nom.root".format(this_dir, isig.replace("A","phi")))
 

@@ -6,9 +6,21 @@
 DijetRootTreeAnalyzer/inputs/Interpolations/*
 DijetRootTreeAnalyzer/python/runInterpo/Call*
 DijetRootTreeAnalyzer/python/runInterpo/single*
+DijetRootTreeAnalyzer/python/runInterpo/CallFiles/
+DijetRootTreeAnalyzer/python/runInterpo/SingleFiles/
+DijetRootTreeAnalyzer/python/runInterpo/condor_logfiles/
 DijetRootTreeAnalyzer/inputs/X*
 DijetRootTreeAnalyzer/InterpoPlotter/OutFiles
 DijetRootTreeAnalyzer/inputs/Shapes_fromInterpo/*
+DijetRootTreeAnalyzer/inputs/Shapes_fromGen/*
 DijetRootTreeAnalyzer/InterpoPlotter/FineScanAnalysis/Plots
+DijetRootTreeAnalyzer/combineOutput/*
+DijetRootTreeAnalyzer/output/*.txt
+DijetRootTreeAnalyzer/output/*.C
+DijetRootTreeAnalyzer/output/*.pdf
+DijetRootTreeAnalyzer/output/*.png
+DijetRootTreeAnalyzer/output/*.root
+combine_logger.out
+
 
 
