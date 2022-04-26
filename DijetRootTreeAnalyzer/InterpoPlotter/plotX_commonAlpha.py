@@ -13,6 +13,14 @@ plot_alpha = float(sys.argv[2])
 
 out_dir = "../inputs/Interpolations/{}/".format(year)
 
+#tFind = "nom.root"
+tFind = "nom_puUp.root"
+#tFind = "nom_puDown.root"
+#tFind = "scale_up.root"
+#tFind = "scale_down.root"
+
+outFileName = "OutFiles/{}/alpha{}_{}_plots.png".format(year,str(plot_alpha).replace(".","p"), tFind.replace(".root",""))
+
 dists = {}
 xmasses = []
 alphas = []
@@ -22,8 +30,6 @@ kdists = {}
 kxmasses = []
 kalphas = []
 kphimasses = []
-
-outFileName = "OutFiles/{}/alpha{}_plots.png".format(year,str(plot_alpha).replace(".","p"))
 
 dirs = []
 
@@ -35,9 +41,9 @@ for path, subdirs, files in os.walk(out_dir):
 for dd in dirs:
   for path, subs, files in os.walk(dd):
     for name in files:
-      if("nom.root" not in name): continue
+      if(tFind not in name): continue
       File = os.path.join(path, name)
-      xamass = name[:name.find("_nom.root")]
+      xamass = name[:name.find("_{}".format(tFind))]
       xmass = int(xamass[1 : xamass.find("phi")])
       phimass = float(xamass[xamass.find("phi")+3 :].replace("p",".") )
       alpha = phimass / xmass
