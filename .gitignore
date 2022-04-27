@@ -22,6 +22,7 @@ DijetRootTreeAnalyzer/output/*.pdf
 DijetRootTreeAnalyzer/output/*.png
 DijetRootTreeAnalyzer/output/*.root
 combine_logger.out
+DijetRootTreeAnalyzer/FindEvent/RucluAODs
 
 
 

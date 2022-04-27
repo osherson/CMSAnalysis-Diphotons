@@ -160,8 +160,8 @@ def SaveHists_Interpo(N, sXr, sX1r, sX, sX1, dX, dX1, sX1pu, sX1pd, sX1su, sX1sd
 #Get DATA
 DATA = []
 for ff in os.listdir(xaastorage):
-  #if("Run" in ff and year in ff):
-  if("Run" in ff and "20" in ff): #All Data
+  if("Run" in ff and year in ff):
+  #if("Run" in ff and "20" in ff): #All Data
     DATA.append(os.path.join(xaastorage,ff))
 
 print(DATA)
@@ -182,10 +182,15 @@ for ff in os.listdir(xaastorage):
     if(const_alpha and this_phi / this_x != this_alpha): continue
     SignalsGenerated[thisxa] = [os.path.join(xaastorage, ff)]
 
+
 ct = 0
 CUTS = [1.0, 3.5, 0.9, 0.5] # masym eta dipho iso
 for s in SignalsGenerated:
     ct += 1
+    saveTree = False
+    if s=="X600A3": 
+      PL.MakeFolder("../inputs/Shapes_fromGen/{}/".format(year)+s)
+      saveTree=True
     #if ct > 1: break
     print(s)
 
@@ -202,9 +207,12 @@ for s in SignalsGenerated:
     (sX, sX1, sXvA) = PL.GetDiphoShapeAnalysis(SignalsGenerated[s], "pico_nom", s, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeight*weight*10.*5.99")
     (sXsu, sX1su, sXvAsu) = PL.GetDiphoShapeAnalysis(SignalsGenerated[s], "pico_scale_up", s, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "weight*10.*5.99")
     (sXsd, sX1sd, sXvAsd) = PL.GetDiphoShapeAnalysis(SignalsGenerated[s], "pico_scale_down", s, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "weight*10.*5.99")
-    (dX, dX1, dXvA) = PL.GetDiphoShapeAnalysis(DATA, "pico_skim", "data", CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "1.")
+    (dX, dX1, dXvA) = PL.GetDiphoShapeAnalysis(DATA, "pico_skim", "data", CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "1.", saveTree, year+"/"+s)
+    print(dX.GetEntries())
     #(dX, dX1, dXvA) = PL.GetDiphoShapeAnalysis(DATA, "pico_skim", "data", CUTS[0], CUTS[1], CUTS[2], CUTS[3], [0.,0.5], "HLT_DoublePhoton", "1.")
     SaveHists(s, sXr, sX1r, sXvAr, sX, sX1, dX, dX1, dXvA, sX1pu, sX1pd, sX1su, sX1sd)
+
+exit()
 
 #Now loop through signals created by interpolater
 interp_directory = "../inputs/Interpolations/{}/".format(year)
