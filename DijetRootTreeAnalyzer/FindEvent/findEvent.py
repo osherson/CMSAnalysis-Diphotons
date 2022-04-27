@@ -75,6 +75,6 @@ else:
 
 print("Now making RUCLU_AOD")
 os.system("./makeRUCLU.sh {} {} {} {} {}".format(found_file, obj, want_run, want_lumi, want_id))
-os.system("mv out.root RucluAODs/{}_{}_{}_{}.root".format(year, want_run, want_lumi, want_id))
+os.system("mv outflat.root RucluAODs/{}_{}_{}_{}.root".format(year, want_run, want_lumi, want_id))
 
 
