@@ -240,7 +240,7 @@ if __name__ == '__main__':
                   help="Output directory to store cards")
     parser.add_option('-l','--lumi',dest="lumi", default=1.,type="float",
                   help="integrated luminosity in pb^-1")
-    parser.add_option('-y','--year',dest="year", default=2018,type="int",
+    parser.add_option('-y','--year',dest="year", default=2018,type="string",
                   help="run II year")
     parser.add_option('--run-min',dest="runMin", default=0,type="int",
                   help="minimum run to consider for trigger efficiency")

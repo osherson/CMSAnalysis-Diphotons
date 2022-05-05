@@ -2,6 +2,9 @@ import ROOT
 import numpy
 import ctypes 
 import math
+import os
+
+dir_path = os.path.dirname(os.path.realpath(__file__))
 
 RDF = ROOT.RDataFrame.RDataFrame
 colors = [ROOT.kMagenta, ROOT.kAzure-2, ROOT.kOrange-3, ROOT.kRed, ROOT.kCyan+4, ROOT.kViolet+5, ROOT.kYellow-6, ROOT.kTeal-7]
@@ -424,7 +427,7 @@ XB = [250.0, 255.0, 261.0, 267.0, 273.0, 279.0, 285.0, 291.0, 297.0, 303.0, 310.
 #X1B = MakeNBinsFromMinToMax(2860, 250., 3110.)
 X1B = MakeNBinsFromMinToMax(2920, 190., 3110.)
 AB = [0.0, 0.001, 0.002, 0.003, 0.004, 0.005, 0.006, 0.007, 0.008, 0.009, 0.01, 0.011, 0.012, 0.013, 0.014, 0.015, 0.016, 0.017, 0.018, 0.019, 0.02, 0.021, 0.022, 0.023, 0.024, 0.025, 0.027, 0.029, 0.031, 0.033, 0.035]
-def GetDiphoShapeAnalysis(F, T, N, masym, deta, dipho, iso, alpha, trigger, scale):
+def GetDiphoShapeAnalysis(F, T, N, masym, deta, dipho, iso, alpha, trigger, scale, saveTree=False, saveSignal=""):
     # Load files:
     Chain = ROOT.TChain(T)
     for f in F:
@@ -450,6 +453,15 @@ def GetDiphoShapeAnalysis(F, T, N, masym, deta, dipho, iso, alpha, trigger, scal
         h.SetLineColor(2)
         h.SetFillStyle(3001)
     XMvA = c_XMvA.Clone(N+"_"+c_XMvA.GetName())
+
+    if saveTree:
+      keeplist = ["run","lumiSec","id","clu1_phi","clu2_phi","clu1_moe","clu2_moe","XM"]
+      branchList = ROOT.std.vector('std::string')()
+      for k in keeplist: branchList.push_back(k)
+      savename = "{}/DijetRootTreeAnalyzer/inputs/Shapes_fromGen/{}/DATATREE.root".format(dir_path,saveSignal)
+      print("Saving Data Tree As: {}".format(savename))
+      Rdf.Snapshot("datatree", savename, branchList)
+
     # Return plots:
     return (XM, X1M, XMvA)
 

@@ -3,6 +3,7 @@
 *.stdout
 *.pyc
 *.root
+*.swp
 DijetRootTreeAnalyzer/inputs/Interpolations/*
 DijetRootTreeAnalyzer/python/runInterpo/Call*
 DijetRootTreeAnalyzer/python/runInterpo/single*
@@ -21,6 +22,7 @@ DijetRootTreeAnalyzer/output/*.pdf
 DijetRootTreeAnalyzer/output/*.png
 DijetRootTreeAnalyzer/output/*.root
 combine_logger.out
+DijetRootTreeAnalyzer/FindEvent/RucluAODs
 
 
 
