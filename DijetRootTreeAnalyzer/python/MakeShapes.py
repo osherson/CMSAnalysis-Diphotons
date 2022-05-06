@@ -19,7 +19,7 @@ try: signalMass = sys.argv[3] #signal mass point, XxxxAaaa, only use for interpo
 except IndexError: print("Getting all generated signal shapes")
 
 xaastorage = "/cms/xaastorage-2/DiPhotonsTrees/"
-const_alpha = True #Use this to get signals at one alpha val
+const_alpha = False #Use this to get signals at one alpha val
 this_alpha = 0.005 #Set this to the alpha you want. If const_alpha = False, this does nothing
 
 def doOneInput(N, h, H, S, norm = False):
