@@ -15,8 +15,8 @@ LUMI["2017"] = 39.670
 LUMI["2018"] = 59.320
 
 #Analysis cuts, make sure these match MakeShapes.py
-#cutString = "masym < 0.25 && clu1_dipho > 0.9 && clu2_dipho > 0.9 && clu1_iso > 0.8 && clu2_iso > 0.8 && clu1_pt > 70 && clu2_pt > 70"
-cutString = "masym < 1 && clu1_dipho > 0.9 && clu2_dipho > 0.9 && clu1_iso > 0.5 && clu2_iso > 0.5"
+cutString = "masym < 0.25 && clu1_dipho > 0.9 && clu2_dipho > 0.9 && clu1_iso > 0.8 && clu2_iso > 0.8 && clu1_pt > 70 && clu2_pt > 70"
+#cutString = "masym < 1 && clu1_dipho > 0.9 && clu2_dipho > 0.9 && clu1_iso > 0.5 && clu2_iso > 0.5"
 
 def FindAndSetMax(*args):
   if len(args) == 1: args = args[0]
@@ -114,13 +114,18 @@ class HC:
     print("Bounding Masses: {} - {}".format(self._massArr[self._lowI], self._massArr[self._hiI]))
 
     if "alpha" not in var: 
+    #if wpoint != 1: 
+      print("WPoint: {}".format(wpoint))
       alpha = (float(MM) - float(self._massArr[self._lowI]))/(float(self._massArr[self._hiI]) - float(self._massArr[self._lowI]))
-      lM, hM = self._massArr[self._lowI], self._massArr[self._hiI]
+      tlM, thM = self._massArr[self._lowI], self._massArr[self._hiI]
+      lM = min(tlM, thM)
+      hM = max(tlM, thM)
       wpoint = float(MM - lM) / float(hM - lM)
-      print(lM, hM, MM, wpoint)
+      print("Calculating share value: ", lM, hM, MM, wpoint)
       rmass = ROOT.RooRealVar("rm_{}".format(un), "rmass", wpoint, 0., 1.)
     else:
       rmass = ROOT.RooRealVar("rm_{}".format(un), "rmass", wpoint, 0., 1.)
+    #rmass = ROOT.RooRealVar("rm_{}".format(un), "rmass", wpoint, 0., 1.)
 
     RHL = ROOT.RooDataHist("HL_".format(un), ";DiCluster Mass [GeV];Events/GeV", ROOT.RooArgList(self._x), HL)
     RHLR = ROOT.RooHistPdf("HL_AbsReal_{}".format(un), "", ROOT.RooArgSet(self._x), RHL)
@@ -151,11 +156,11 @@ class HC:
 #    rr.SetTitle("OUT")
 #    rr.SetLineColor(ROOT.kBlack)
 #    ll.AddEntry(rr, "OUT")
-#    #ll.Draw("same")
 #    FindAndSetMax([HH, HL, rr])
 #    HH.Draw("hist")
 #    HL.Draw("histsame")
 #    rr.Draw("histsame")
+#    ll.Draw("same")
 #    c1.Print("tc3.png")
     ##
 
@@ -277,21 +282,26 @@ def InterpolateHists(input_x, input_phi, var, xtreename, masslist, lm, him, useh
         neweff = linearInterpolate(input_phi, phi1, eff1, phi2, eff2) #This is the final efficiency for new signal
         newNevt = linearInterpolate(input_phi, phi1, d1, phi2, d2) #This is the expected n events for new signal
 
-      print("Final Efficiency: ")
-      print("X {}, phi {} : {:.4f}".format(input_x, input_phi, neweff))
+      print("Efficiency: {} -> {} = {}".format(eff1, eff2, neweff))
+      print("NEvt: {} -> {} = {}".format(d1, d2, newNevt))
 
-      if("alpha" in var): this_wp = wpp
-      else: this_wp = 1 #Doesn't get used
+      #if("alpha" in var): this_wp = wpp
+      #else: this_wp = 1 #Doesn't get used
+      this_wp = wpp
 
       E, newxhists = mp.morph(input_x, var, "{}_{}_{}_{}".format(input_x, input_phi, xtreename, var), "newhist_{}_{}_{}_{}".format(input_x, input_phi, xtreename, var), this_wp)
-      #E.SetName("X{}phi{}_normed".format(input_x, input_phi))
       E.SetTitle("{}, X {} #phi {} Interpolated Signal".format(var, input_x, input_phi))
       E.Sumw2()
-      ##
+
+
       E.Scale(neweff * newNevt)
       E.Scale(LUMI[year] * XS)
       E.SetName("X{}phi{}_{}".format(input_x, input_phi, var))
-      ##
+
+      #c1 = ROOT.TCanvas()
+      #c1.cd()
+      #E.Draw("hist")
+
       return E, neweff, newNevt
 
 def interpoSignalMaker(o, xtreename, wgt):
@@ -318,7 +328,8 @@ def interpoSignalMaker(o, xtreename, wgt):
 
   XB = [250.0, 255.0, 261.0, 267.0, 273.0, 279.0, 285.0, 291.0, 297.0, 303.0, 310.0, 317.0, 324.0, 331.0, 338.0, 345.0, 352.0, 360.0, 368.0, 376.0, 384.0, 392.0, 400.0, 409.0, 418.0, 427.0, 436.0, 445.0, 454.0, 464.0, 474.0, 484.0, 494.0, 504.0, 515.0, 526.0, 537.0, 548.0, 560.0, 572.0, 584.0, 596.0, 609.0, 622.0, 635.0, 648.0, 662.0, 676.0, 690.0, 704.0, 719.0, 734.0, 749.0, 765.0, 781.0, 797.0, 814.0, 831.0, 848.0, 866.0, 884.0, 902.0, 921.0, 940.0, 959.0, 979.0, 999.0, 1020.0, 1041.0, 1063.0, 1085.0, 1107.0, 1130.0, 1153.0, 1177.0, 1201.0, 1226.0, 1251.0, 1277.0, 1303.0, 1330.0, 1357.0, 1385.0, 1413.0, 1442.0, 1472.0, 1502.0, 1533.0, 1564.0, 1596.0, 1629.0, 1662.0, 1696.0, 1731.0, 1766.0, 1802.0, 1839.0, 1877.0, 1915.0, 1954.0, 1994.0, 2035.0, 2077.0, 2119.0, 2162.0, 2206.0, 2251.0, 2297.0, 2344.0, 2392.0, 2441.0, 2491.0, 2542.0, 2594.0, 2647.0, 2701.0, 2756.0, 2812.0, 2869.0, 2927.0, 2987.0, 3048.0, 3110.0]
   #X1B = PL.MakeNBinsFromMinToMax(2860, 250., 3110.), in_alpha
-  X1B = PL.MakeNBinsFromMinToMax(2920, 190., 3110.)
+  mmin, mmax = 190., 3110.
+  X1B = PL.MakeNBinsFromMinToMax(int(mmax - mmin), mmin, mmax)
   #A1B = PL.MakeNBinsFromMinToMax(1000,0,MAX_ALPHA)
   A1B = PL.MakeNBinsFromMinToMax(int(MAX_ALPHA * 4000),0,MAX_ALPHA)
   #print(A1B)
@@ -390,7 +401,7 @@ def interpoSignalMaker(o, xtreename, wgt):
   if interpoBool: 
 
     ivars = ["XM","XM_na", "alpha", "alpha_na"]
-    #ivars = ["XM", "alpha"]
+    #ivars = ["XM"]
 
     ##
     myout = ROOT.TFile(outFileName, "RECREATE")
@@ -421,6 +432,7 @@ def interpoSignalMaker(o, xtreename, wgt):
 
         INPUTM = [alphas[lowa], alphas[hia]]
         myphis, myhists, myeffs, mydenoms, wps = getPhiHists(xtreename, in_x, in_alpha, INPUTM, dists, ivar, wgt)
+        print("WPS: {}".format(wps))
         use_masses = {}
         use_masses["phi"] = myphis
         finalshape, feff, fevt = InterpolateHists(in_x, in_phi, ivar, xtreename, use_masses, 0, 1, myhists, myphis, myeffs, mydenoms, wps)
@@ -431,24 +443,23 @@ def interpoSignalMaker(o, xtreename, wgt):
         bxs = [xmasses[lowx], xmasses[hix]]
       
         inx_alphahists = []
-        myeffs = []
-        mydenoms = []
+        calc_effs = []
+        calc_denoms = []
         for dox in bxs:
           lowa, hia = computeBoundingIndices(in_alpha, alphas)
 
           INPUTM = [alphas[lowa], alphas[hia]]
           myphis, myhists, myeffs, mydenoms, wps = getPhiHists(xtreename, dox, in_alpha, INPUTM, dists, ivar, wgt)
-          print(myphis)
           use_masses = {}
           use_masses["phi"] = myphis
           newhist, neweff, newdenom = InterpolateHists(dox, in_phi, ivar, xtreename, use_masses, 0, 1, myhists, myphis, myeffs, mydenoms, wps)
           inx_alphahists.append(newhist)
-          myeffs.append(neweff)
-          mydenoms.append(newdenom)
+          calc_effs.append(neweff)
+          calc_denoms.append(newdenom)
 
         use_masses = {}
         use_masses["X"] = xmasses
-        finalshape, feff, fevt = InterpolateHists(in_x, in_phi, ivar, xtreename, use_masses, lowx, hix, inx_alphahists, bxs, myeffs, mydenoms, wps)
+        finalshape, feff, fevt = InterpolateHists(in_x, in_phi, ivar, xtreename, use_masses, lowx, hix, inx_alphahists, bxs, calc_effs, calc_denoms, wps)
 
       if(ivar == "XM"):
         with open(folderName + "/{}.txt".format(in_xphi.replace("A","phi")), 'w') as effFile:
