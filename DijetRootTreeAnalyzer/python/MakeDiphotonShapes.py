@@ -84,12 +84,39 @@ def getDenom(my_x, my_phi):
     if (x == my_x and p == my_phi):
       return n
 
+def findzerostart(hist,massmax):
+  zs = hist.GetXaxis().GetXmax()
+  bnum = hist.GetNbinsX()
+
+  for bb in range(hist.GetNbinsX()-2):
+    if(hist.GetBinCenter(bb) > massmax and hist.GetBinCenter(bb) > hist.GetMean()):
+      if(hist.GetBinContent(bb) == 0 and hist.GetBinContent(bb+1) == 0 and hist.GetBinContent(bb+2) == 0):
+        zs = hist.GetBinCenter(bb+1)
+        bnum = bb
+        break
+
+  return [zs,bnum]
+
 class HC:
+
+
   def __init__(self, histArr, massArr):
     self._massArr = massArr
+    print("MASSARR: {}".format(massArr))
     self._histArr = histArr
-    self._x  = ROOT.RooRealVar("x","x",histArr[0].GetXaxis().GetXmin(),histArr[0].GetXaxis().GetXmax())
+    #self._x  = ROOT.RooRealVar("x","x",histArr[0].GetXaxis().GetXmin(),histArr[0].GetXaxis().GetXmax())
+    self._x  = ROOT.RooRealVar("x","x",histArr[0].GetXaxis().GetXmin(),2100.)
+    #self._x  = ROOT.RooRealVar("x","x",histArr[0].GetXaxis().GetXmin(),1600)
     #self._x  = ROOT.RooRealVar("x","x",0.,0.1)
+    #poop = max(massArr) * 1.1
+    #zzs = findzerostart(histArr[1],max(massArr))[0]
+    #bbs = findzerostart(histArr[1],max(massArr))[1] 
+    #dummyvar = 2100.
+    #print("\n")
+    #print(zzs,dummyvar)
+    #print(type(zzs), type(dummyvar))
+    #print("\n")
+    #self._x  = ROOT.RooRealVar("x","x",histArr[0].GetXaxis().GetXmin(), dummyvar)
     self._x.setBins(histArr[0].GetNbinsX())
     self._histInts = [h.Integral() for h in histArr]
     self._inxhists = []
@@ -137,31 +164,38 @@ class HC:
     #self.xframe = self._x.frame(ROOT.RooFit.Title(";DiCluster Mass [GeV];Events/GeV"), ROOT.RooFit.Range(0, 0.1))
     RHI = RHIM.createHistogram("Hinterpo_{}".format(un), self._x)
 
+    nzcount = 0
+    for bb in range(HH.GetNbinsX()):
+      if(HH.GetBinCenter(bb) > 1500 and HH.GetBinContent(bb) > 0):
+        nzcount += 1
+        #print(HH.GetBinCenter(bb), HH.GetBinContent(bb))
+    print("NZ: {}".format(nzcount))
+
     ##
     ##
-#    c1 = ROOT.TCanvas()
-#    c1.cd()
-#    ll = ROOT.TLegend(0.6,0.5,0.8,0.75)
-#    ll.SetBorderSize(0)
-#    HH.SetTitle("HH")
-#    HH.SetLineColor(ROOT.kRed)
-#    HL.SetLineColor(ROOT.kGreen)
-#    HL.SetLineWidth(2)
-#    HL.SetTitle("HL")
-#
-#    ll.AddEntry(HL, "In_Low")
-#    ll.AddEntry(HH, "In_High")
-#    ##
-#    rr = RHI.Clone(un+N)
-#    rr.SetTitle("OUT")
-#    rr.SetLineColor(ROOT.kBlack)
-#    ll.AddEntry(rr, "OUT")
-#    FindAndSetMax([HH, HL, rr])
-#    HH.Draw("hist")
-#    HL.Draw("histsame")
-#    rr.Draw("histsame")
-#    ll.Draw("same")
-#    c1.Print("tc3.png")
+    c1 = ROOT.TCanvas()
+    c1.cd()
+    ll = ROOT.TLegend(0.6,0.5,0.8,0.75)
+    ll.SetBorderSize(0)
+    HH.SetTitle("HH")
+    HH.SetLineColor(ROOT.kRed)
+    HL.SetLineColor(ROOT.kGreen)
+    HL.SetLineWidth(2)
+    HL.SetTitle("HL")
+
+    ll.AddEntry(HL, "In_Low")
+    ll.AddEntry(HH, "In_High")
+    ##
+    rr = RHI.Clone(un+N)
+    rr.SetTitle("OUT")
+    rr.SetLineColor(ROOT.kBlack)
+    ll.AddEntry(rr, "OUT")
+    FindAndSetMax([HH, HL, rr])
+    HH.Draw("hist")
+    HL.Draw("histsame")
+    rr.Draw("histsame")
+    ll.Draw("same")
+    c1.Print("tc3.png")
     ##
 
     return RHI.Clone(un+N), inxhists
@@ -400,8 +434,8 @@ def interpoSignalMaker(o, xtreename, wgt):
 
   if interpoBool: 
 
-    ivars = ["XM","XM_na", "alpha", "alpha_na"]
-    #ivars = ["XM"]
+    #ivars = ["XM","XM_na", "alpha", "alpha_na"]
+    ivars = ["XM"]
 
     ##
     myout = ROOT.TFile(outFileName, "RECREATE")
@@ -530,7 +564,7 @@ if __name__ == "__main__":
   args = parser.parse_args()
 
   interpoSignalMaker(args, "pico_nom", "puWeight")
-  interpoSignalMaker(args, "pico_nom", "puWeightUp")
-  interpoSignalMaker(args, "pico_nom", "puWeightDown")
-  interpoSignalMaker(args, "pico_scale_up", "puWeight")
-  interpoSignalMaker(args, "pico_scale_down", "puWeight")
+  #interpoSignalMaker(args, "pico_nom", "puWeightUp")
+  #interpoSignalMaker(args, "pico_nom", "puWeightDown")
+  #interpoSignalMaker(args, "pico_scale_up", "puWeight")
+  #interpoSignalMaker(args, "pico_scale_down", "puWeight")
