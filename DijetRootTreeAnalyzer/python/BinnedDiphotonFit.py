@@ -298,6 +298,10 @@ if __name__ == '__main__':
     plotRegion = options.plotRegion
     histoName = cfg.getVariables(box, "histoName")
 
+    fitfunc=""
+    if("dijet" in options.config): fitfunc="Dijet"
+    elif("atlas" in options.config): fitfunc="Atlas"
+
     if options.signalFileName==None:
         signalFileNames = []
         models = []
@@ -751,7 +755,7 @@ if __name__ == '__main__':
         leg.SetLineWidth(0)
         leg.SetLineColor(rt.kWhite)
         leg.AddEntry(effGraph,"Data","pe") #Not called
-        leg.AddEntry(effTF1,"Fit","l")
+        leg.AddEntry(effTF1,"{} Fit".format(fitfunc),"l")
         leg.Draw()
         
         pave_param = rt.TPaveText(0.45,0.15,0.9,0.25,"NDC")
@@ -1023,7 +1027,7 @@ if __name__ == '__main__':
     leg.SetLineWidth(0)
     leg.SetLineColor(rt.kWhite)
     leg.AddEntry(g_data,"Data","pe")
-    leg.AddEntry(background,"Fit","l")
+    leg.AddEntry(background,"{} Fit".format(fitfunc),"l")
     for model, mass, xsec, signalFileName, g_signal in zip(models,masses,xsecs,signalFileNames, g_signals):
         if 'PF' in box:
             leg.AddEntry(g_signal,"%s (%.1f TeV)"%(model,float(mass)/1000.),"l")
