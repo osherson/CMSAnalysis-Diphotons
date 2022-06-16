@@ -6,17 +6,24 @@ import os
 import math
 import sys
 import time
-sys.path.append("../../.")
+
+dir_path = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(dir_path+"/../../.")
 import PlottingPayload as PL
 gROOT.SetBatch()
 
 year = sys.argv[1]
+igen = sys.argv[2]  #Interpolated or Generated shape, str "i" or "g"
+
+try: signalMass = sys.argv[3] #signal mass point, XxxxAaaa, only use for interpolated
+except IndexError: print("Getting all generated signal shapes")
+
 xaastorage = "/cms/xaastorage-2/DiPhotonsTrees/"
-const_alpha = True #Use this to get signals at one alpha val
+const_alpha = False #Use this to get signals at one alpha val
 this_alpha = 0.005 #Set this to the alpha you want. If const_alpha = False, this does nothing
 
 def doOneInput(N, h, H, S, norm = False):
-    toF = TFile("../inputs/Shapes_fromGen/{}/".format(year)+N+"/"+S+".root", "recreate")
+    toF = TFile("{}/../inputs/Shapes_fromGen/{}/".format(dir_path,year)+N+"/"+S+".root", "recreate")
     if norm:
         h.Scale(1./h.Integral())
     toF.cd()
@@ -27,7 +34,7 @@ def doOneInput(N, h, H, S, norm = False):
     toF.Close()
 
 def doOneInputInterpo(N, h, H, S, norm = False):
-    toF = TFile("../inputs/Shapes_fromInterpo/{}/".format(year)+N+"/"+S+".root", "recreate")
+    toF = TFile("{}/../inputs/Shapes_fromInterpo/{}/".format(dir_path,year)+N+"/"+S+".root", "recreate")
     if norm:
         h.Scale(1./h.Integral())
     toF.cd()
@@ -51,7 +58,7 @@ def lookup(N):
         if r[0] == X and r[1] == A: return r[2]
 
 def SaveHists(N, sXr, sX1r, sXvAr, sX, sX1, dX, dX1, dXvA, sX1pu, sX1pd, sX1su, sX1sd):
-    header = "../inputs/Shapes_fromGen/{}/".format(year)+N
+    header = "{}/../inputs/Shapes_fromGen/{}/".format(dir_path,year)+N
     PL.MakeFolder(header)
     with open(N+".txt", 'w') as eff:
         E = sX1.GetEntries()
@@ -133,9 +140,9 @@ def SaveHists(N, sXr, sX1r, sXvAr, sX, sX1, dX, dX1, dXvA, sX1pu, sX1pd, sX1su, 
     oF.Close()
 
 def SaveHists_Interpo(N, sXr, sX1r, sX, sX1, dX, dX1, sX1pu, sX1pd, sX1su, sX1sd):
-    PL.MakeFolder("../inputs/Shapes_fromInterpo/{}/".format(year)+N)
+    PL.MakeFolder("{}/../inputs/Shapes_fromInterpo/{}/".format(dir_path,year)+N)
     txtfile = interp_directory + N + "/" + N.replace("A","phi").replace(".","p") + '.txt'
-    os.system('cp ' + txtfile +  ' ../inputs/Shapes_fromInterpo/{}/'.format(year)+N+"/" + N.replace(".","p") + ".txt")
+    os.system('cp ' + txtfile +  ' {}/../inputs/Shapes_fromInterpo/{}/'.format(dir_path,year)+N+"/" + N.replace(".","p") + ".txt")
 
     doOneInputInterpo(N, sX1, "h_AveDijetMass_1GeV", "Sig_nominal", True)
     doOneInputInterpo(N, sX1pu, "h_AveDijetMass_1GeV", "Sig_PU", True)
@@ -147,7 +154,7 @@ def SaveHists_Interpo(N, sXr, sX1r, sX, sX1, dX, dX1, sX1pu, sX1pd, sX1su, sX1sd
     for h in [sXr, sX1r]:
         h.SetFillColor(0)
         h.SetLineColor(1)
-    oF = TFile("../inputs/Shapes_fromInterpo/{}/".format(year)+N+"/PLOTS_"+N+".root", "recreate")
+    oF = TFile("{}/../inputs/Shapes_fromInterpo/{}/".format(dir_path,year)+N+"/PLOTS_"+N+".root", "recreate")
     sX.SetName(sX.GetName().replace("XrM","XM"))
     sX.Write()
     sX1.Write()
@@ -160,44 +167,42 @@ def SaveHists_Interpo(N, sXr, sX1r, sX, sX1, dX, dX1, sX1pu, sX1pd, sX1su, sX1sd
 #Get DATA
 DATA = []
 for ff in os.listdir(xaastorage):
-  if("Run" in ff and year in ff):
-  #if("Run" in ff and "20" in ff): #All Data
+  #if("Run" in ff and year in ff): #one year data
+  if("Run" in ff and "20" in ff): #All Run II Data
     DATA.append(os.path.join(xaastorage,ff))
 
 print(DATA)
 time.sleep(3)
 
+#Analysis Cuts
+CUTS = [1.0, 3.5, 0.9, 0.5] # masym eta dipho iso
+
 #################################################
 #Generated Signals 
+if(igen == "g"):
 
-SignalsGenerated = {}
-#SignalsGenerated["X300A1p5"] = ["/cms/xaastorage-2/DiPhotonsTrees/X300A1p5_{}.root".format(year)]
+  SignalsGenerated = {}
+  #SignalsGenerated["X300A1p5"] = ["/cms/xaastorage-2/DiPhotonsTrees/X300A1p5_{}.root".format(year)]
 
-#Get all signals
-for ff in os.listdir(xaastorage):
-  if(ff[0]=="X" and str(year) in ff and "X200A" not in ff):
-    thisxa = ff[ : ff.find("_")]
-    this_x = int(thisxa[1:thisxa.find("A")])
-    this_phi = float(thisxa[thisxa.find("A")+1:].replace("p","."))
-    if(const_alpha and this_phi / this_x != this_alpha): continue
-    SignalsGenerated[thisxa] = [os.path.join(xaastorage, ff)]
+  #Get all signals
+  for ff in os.listdir(xaastorage):
+    if(ff[0]=="X" and str(year) in ff and "X200A" not in ff):
+      thisxa = ff[ : ff.find("_")]
+      this_x = int(thisxa[1:thisxa.find("A")])
+      this_phi = float(thisxa[thisxa.find("A")+1:].replace("p","."))
+      if(const_alpha and this_phi / this_x != this_alpha): continue
+      SignalsGenerated[thisxa] = [os.path.join(xaastorage, ff)]
 
 
-ct = 0
-CUTS = [1.0, 3.5, 0.9, 0.5] # masym eta dipho iso
-for s in SignalsGenerated:
+  ct = 0
+  for s in SignalsGenerated:
     ct += 1
     saveTree = False
     if s=="X600A3": 
-      PL.MakeFolder("../inputs/Shapes_fromGen/{}/".format(year)+s)
+      PL.MakeFolder("{}/../inputs/Shapes_fromGen/{}/".format(dir_path,year)+s)
       saveTree=True
     #if ct > 1: break
     print(s)
-
-    #thisdir = "../inputs/Shapes_fromGen/{}/{}".format(year,s)
-    #if(os.path.isdir(thisdir)): 
-    #  print("{} already exists. Skipping".format(thisdir))
-    #  continue
 
     (sXr, sX1r, sXvAr) = PL.GetDiphoShapeAnalysis(SignalsGenerated[s], "pico_nom", s, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [0.,0.5], "HLT_DoublePhoton", "puWeight*weight*10.*5.99")
     lA = sXvAr.GetMean(2) - 3.*sXvAr.GetRMS(2)
@@ -212,56 +217,39 @@ for s in SignalsGenerated:
     SaveHists(s, sXr, sX1r, sXvAr, sX, sX1, dX, dX1, dXvA, sX1pu, sX1pd, sX1su, sX1sd)
 
 
-#Now loop through signals created by interpolater
-interp_directory = "../inputs/Interpolations/{}/".format(year)
-interp_signals = [dirs for subdir, dirs, files in os.walk(interp_directory)][0]
-#interp_signals = ["X600A3"]
-#interp_signals = ["X500A7"]
-interp_signals = []
-for sub, dirs, files in os.walk(interp_directory):
-  for dd in dirs:
-    thisxa = dd
-    this_x = int(thisxa[1:thisxa.find("A")])
-    this_phi = float(thisxa[thisxa.find("A")+1:].replace("p","."))
-    if(const_alpha and this_phi / this_x != this_alpha or thisxa.replace(".","p") in SignalsGenerated.keys() ): continue
-    interp_signals.append(thisxa)
+elif(igen == "i"):
+    interp_directory = "{}/../inputs/Interpolations/{}/".format(dir_path,year)
+    isig = signalMass
 
-print(interp_signals)
-print(len(interp_signals))
-ct = 0
-for isig in interp_signals:
-  if (ct % 100 == 0): print("Beginning Signal {} / {}".format(ct+1, len(interp_signals)))
-  print(isig)
-  ct += 1
-  this_dir = interp_directory + isig +""
-  #if(ct > 1): break
+    this_dir = interp_directory + isig +""
 
-  print("{}/{}_nom.root".format(this_dir, isig.replace("A","phi")))
+    print("Working on Signal {}".format(isig))
+    print("{}/{}_nom.root".format(this_dir, isig.replace("A","phi")))
 
-  nom_file = ROOT.TFile("{}/{}_nom.root".format(this_dir, isig.replace("A","phi")), "read")
-  puUp_file = ROOT.TFile("{}/{}_nom_puUp.root".format(this_dir, isig.replace("A","phi")), "read")
-  puDown_file = ROOT.TFile("{}/{}_nom_puDown.root".format(this_dir, isig.replace("A","phi")), "read")
-  scale_up_file = ROOT.TFile("{}/{}_scale_up.root".format(this_dir, isig.replace("A","phi")), "read")
-  scale_down_file = ROOT.TFile("{}/{}_scale_down.root".format(this_dir, isig.replace("A","phi")), "read")
+    nom_file = ROOT.TFile("{}/{}_nom.root".format(this_dir, isig.replace("A","phi")), "read")
+    puUp_file = ROOT.TFile("{}/{}_nom_puUp.root".format(this_dir, isig.replace("A","phi")), "read")
+    puDown_file = ROOT.TFile("{}/{}_nom_puDown.root".format(this_dir, isig.replace("A","phi")), "read")
+    scale_up_file = ROOT.TFile("{}/{}_scale_up.root".format(this_dir, isig.replace("A","phi")), "read")
+    scale_down_file = ROOT.TFile("{}/{}_scale_down.root".format(this_dir, isig.replace("A","phi")), "read")
 
-  # Before 3 sigma alpha cut:
-  sX1r = nom_file.Get("{}_XM_na".format(isig.replace("A","phi")))
-  sXr = PL.RebinReso(sX1r)
-  #After 3 sigma alpha cut
-  sX1 = nom_file.Get("{}_XM".format(isig.replace("A","phi")))
-  sX = PL.RebinReso(sX1)
-  sX1pu = puUp_file.Get("{}_XM".format(isig.replace("A","phi")))
-  sX1pd = puDown_file.Get("{}_XM".format(isig.replace("A","phi")))
-  sX1su = scale_up_file.Get("{}_XM".format(isig.replace("A","phi")))
-  sX1sd = scale_down_file.Get("{}_XM".format(isig.replace("A","phi")))
+    # Before 3 sigma alpha cut:
+    sX1r = nom_file.Get("{}_XM_na".format(isig.replace("A","phi")))
+    sXr = PL.RebinReso(sX1r)
+    #After 3 sigma alpha cut
+    sX1 = nom_file.Get("{}_XM".format(isig.replace("A","phi")))
+    sX = PL.RebinReso(sX1)
+    sX1pu = puUp_file.Get("{}_XM".format(isig.replace("A","phi")))
+    sX1pd = puDown_file.Get("{}_XM".format(isig.replace("A","phi")))
+    sX1su = scale_up_file.Get("{}_XM".format(isig.replace("A","phi")))
+    sX1sd = scale_down_file.Get("{}_XM".format(isig.replace("A","phi")))
 
-  #Before 3 sigma alpha cut
-  sA1 = nom_file.Get("{}_alpha_na".format(isig.replace("A","phi")))
-  sAr = PL.RebinReso_alpha(sA1)
-  #Get alpha mean +/- 3 sigma for making data plots
-  lA = sAr.GetMean() - 3.*sAr.GetRMS()
-  hA = sAr.GetMean() + 3.*sAr.GetRMS()
+    #Before 3 sigma alpha cut
+    sA1 = nom_file.Get("{}_alpha_na".format(isig.replace("A","phi")))
+    sAr = PL.RebinReso_alpha(sA1)
+    #Get alpha mean +/- 3 sigma for making data plots
+    lA = sAr.GetMean() - 3.*sAr.GetRMS()
+    hA = sAr.GetMean() + 3.*sAr.GetRMS()
 
-  (dX, dX1, dXvA) = PL.GetDiphoShapeAnalysis(DATA, "pico_skim", "data", CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "1.")
+    (dX, dX1, dXvA) = PL.GetDiphoShapeAnalysis(DATA, "pico_skim", "data", CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "1.")
 
-  SaveHists_Interpo(isig, sXr, sX1r, sX, sX1, dX, dX1, sX1pu, sX1pd, sX1su, sX1sd)
+    SaveHists_Interpo(isig, sXr, sX1r, sX, sX1, dX, dX1, sX1pu, sX1pd, sX1su, sX1sd)

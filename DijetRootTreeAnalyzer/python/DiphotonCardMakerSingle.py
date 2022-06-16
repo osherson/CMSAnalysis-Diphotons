@@ -7,10 +7,12 @@ def RunDataCardMaker(o):
     box = " -b diphoton"#_" + str(o.SIG)
     if o.FIT != "combine": box += "_%s" % str(o.FIT)
     mass = " --mass " + str(o.SIG).split("X")[1].split("A")[0]
+    savemass = " --savemass " + str(o.SIG)
     output = " -d output"
     xs = " --xsec " + o.XS
 
     yr = str(o.YEAR)
+    year = " --year " + yr
 
     if(os.path.exists("inputs/Shapes_fromGen/" + yr + "/" + str(o.SIG) + "/DATA.root")):
       inputs = " -i output/DijetFitResults_diphoton_dijet.root"
@@ -31,7 +33,7 @@ def RunDataCardMaker(o):
       jerdown = " --jerDown inputs/Shapes_fromInterpo/"+ yr + "/" + str(o.SIG)+"/Sig_PD.root"
 
 
-    dcstring = "python python/WriteDataCard_photons.py" + config + mass + box + output + inputs + jesup + jesdown + jerup + jerdown + xs + lumi
+    dcstring = "python python/WriteDataCard_photons.py" + config + mass + savemass + year + box + output + inputs + jesup + jesdown + jerup + jerdown + xs + lumi
     print(dcstring)
     os.system(dcstring)
 

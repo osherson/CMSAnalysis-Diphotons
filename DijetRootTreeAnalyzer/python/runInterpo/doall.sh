@@ -2,6 +2,8 @@ echo "Deleting condor_logfiles"
 rm condor_logfiles/*
 echo "Deleting CallFiles"
 rm CallFiles/*
+echo "Deleting SingleFiles"
+rm SingleFiles/*
 echo "Making Interpo Script"
 python interpSignalScriptProducer.py $1
 echo "Splitting"
