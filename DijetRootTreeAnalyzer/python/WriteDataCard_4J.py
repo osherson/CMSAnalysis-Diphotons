@@ -47,25 +47,33 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,penalty=False,multi=True,x=None
 
     print 1
      
+### Steven: I don't know what the difference is between using the 4-par and 3-par fit. Seem to give same output for dijet function
     #for bkg fit with 4-par function   
-    #constPars = ['sqrts', 'sqrts5', 'p50_%s'%box, 'sqrtsm', 'p0_%s'%box, 'sqrtsa','sqrtse', 'pa0_%s'%box]
+    constPars = ['sqrts', 'sqrts5', 'p50_%s'%box, 'sqrtsm', 'p0_%s'%box, 'sqrtsa','sqrtse', 'pa0_%s'%box]
 
     #for bkg fit with 3-par function
-    constPars = ['sqrts', 'sqrts5', 'p50_%s'%box, 'sqrtsm', 'p0_%s'%box, 'sqrtsa','sqrtse', 'pa0_%s'%box, 'pm3_%s'%box]
+    #constPars = ['sqrts', 'sqrts5', 'p50_%s'%box, 'sqrtsm', 'p0_%s'%box, 'sqrtsa','sqrtse', 'pa0_%s'%box, 'pm3_%s'%box]
 
     #for s+b fit
     #constPars = ['sqrts', 'sqrts5', 'p50_%s'%box, 'sqrtsm', 'p0_%s'%box, 'sqrtsa','sqrtse', 'pa0_%s'%box, 'p1_%s'%box, 'p2_%s'%box,'pm3_%s'%box]
 
     if w.var('meff_%s'%box).getVal()<0 and w.var('seff_%s'%box).getVal()<0:
+         print("STEVEN if 1")
          #constPars.extend(['meff_%s'%box,'seff_%s'%box, 'p0_%s'%box, 'p1_%s'%box, 'p2_%s'%box,  'pm3_%s'%box,  'pm4_%s'%box])#edw!!!!
-          constPars.extend(['meff_%s'%box,'seff_%s'%box,  'p4_%s'%box,  'pm4_%s'%box, 'pe3_%s'%box, 'pa3_%s'%box,'pa4_%s'%box ,'pe4_%s'%box])
+         #constPars.extend(['meff_%s'%box,'seff_%s'%box,  'p4_%s'%box,  'pm4_%s'%box, 'pe3_%s'%box, 'pa3_%s'%box,'pa4_%s'%box ,'pe4_%s'%box])
+###Steven: This is necessary to use all params in dijet func
+         constPars.extend(['meff_%s'%box,'seff_%s'%box,  'pm4_%s'%box, 'pe3_%s'%box, 'pa3_%s'%box,'pa4_%s'%box ,'pe4_%s'%box])
     if  w.var('pa4_%s'%box)!=None and w.var('pa4_%s'%box).getVal()==0:
+        print("STEVEN if 2")
         constPars.extend(['pa4_%s'%box])
     if  w.var('pm3_%s'%box)!=None and w.var('pm3_%s'%box).getVal()==0:
+        print("STEVEN if 3")
         constPars.extend(['pm3_%s'%box])
     if  w.var('pm4_%s'%box)!=None and w.var('pm4_%s'%box).getVal()==0:
+        print("STEVEN if 4")
         constPars.extend(['pm4_%s'%box])
     if  w.var('p2_%s'%box)!=None and w.var('p2_%s'%box).getVal()==0:
+        print("STEVEN if 5")
         constPars.extend(['p2_%s'%box])
  
     

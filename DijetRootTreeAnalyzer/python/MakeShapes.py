@@ -175,7 +175,9 @@ print(DATA)
 time.sleep(3)
 
 #Analysis Cuts
-CUTS = [1.0, 3.5, 0.9, 0.5] # masym eta dipho iso
+# masym, eta, dipho, iso
+CUTS = [1.0, 3.5, 0.9, 0.5] #Loose
+#CUTS = [0.25, 3.5, 0.9, 0.8] #Analysis Cuts
 
 #################################################
 #Generated Signals 
@@ -201,12 +203,21 @@ if(igen == "g"):
     if s=="X600A3": 
       PL.MakeFolder("{}/../inputs/Shapes_fromGen/{}/".format(dir_path,year)+s)
       saveTree=True
+    else: continue
     #if ct > 1: break
     print(s)
 
     (sXr, sX1r, sXvAr) = PL.GetDiphoShapeAnalysis(SignalsGenerated[s], "pico_nom", s, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [0.,0.5], "HLT_DoublePhoton", "puWeight*weight*10.*5.99")
     lA = sXvAr.GetMean(2) - 3.*sXvAr.GetRMS(2)
     hA = sXvAr.GetMean(2) + 3.*sXvAr.GetRMS(2)
+    print("alpha window")
+    print(lA, hA)
+
+    #Turn off alpha cut
+    print("Disabling Alpha Window")
+    lA = 0.
+    hA = 999.
+
     (sXpu, sX1pu, sXvApu) = PL.GetDiphoShapeAnalysis(SignalsGenerated[s], "pico_nom", s, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeightUp*weight*10.*5.99")
     (sXpd, sX1pd, sXvApd) = PL.GetDiphoShapeAnalysis(SignalsGenerated[s], "pico_nom", s, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeightDown*weight*10.*5.99")
     (sX, sX1, sXvA) = PL.GetDiphoShapeAnalysis(SignalsGenerated[s], "pico_nom", s, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeight*weight*10.*5.99")

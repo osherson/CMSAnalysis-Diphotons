@@ -171,9 +171,13 @@ def calculateChi2AndFillResiduals(data_obs_TGraph_,background_hist_,hist_fit_res
             err_tot_data = err_high_data  
         else:
             err_tot_data = err_low_data
-	#if err_tot_data==0:
-	#    err_tot_data = 0.0000001	#when we have infinite denominator in pulls
-	print 'error = ', err_tot_data     
+        ###
+        #These lines were commented, steven uncommented
+        if err_tot_data==0:
+          print("Manually setting error")
+          err_tot_data = 0.0000001	#when we have infinite denominator in pulls
+        ###
+        print 'error = ', err_tot_data     
         plotRegions = plotRegion.split(',')
         checkInRegions = [xbinCenter>workspace_.var('mjj').getMin(reg) and xbinCenter<workspace_.var('mjj').getMax(reg) for reg in plotRegions]
         if effFit_: checkInRegions = [xbinCenter>workspace_.var('mjj').getMin('Eff') and xbinCenter<workspace_.var('mjj').getMax('Eff')]
@@ -299,8 +303,9 @@ if __name__ == '__main__':
     histoName = cfg.getVariables(box, "histoName")
 
     fitfunc=""
-    if("dijet" in options.config): fitfunc="Dijet"
+    if("dijet" in options.config): fitfunc="Dijet 5p"
     elif("atlas" in options.config): fitfunc="Atlas"
+    elif("power" in options.config): fitfunc="Power"
 
     if options.signalFileName==None:
         signalFileNames = []
@@ -821,10 +826,17 @@ if __name__ == '__main__':
         d.Write()
 
     background_pdf = w.pdf('%s_bkg_unbin'%box)
+    #print(background_pdf)
     background= background_pdf.asTF(rt.RooArgList(w.var("mjj")),rt.RooArgList(w.var('p0_%s'%box)))
+    print("\n\nSTEVEN")
+    print(background)
     int_b = background.Integral(w.var("mjj").getMin(),w.var("mjj").getMax())
     # p0_b = w.var('Ntot_%s_bkg'%box).getVal()
     print 'Ntot_%s_bkg'%box + " <<<<<<<<<"
+    print("int_b: {}".format(int_b))
+    #print("MANUALLY SETTING int_b")
+    #int_b = 1e-10
+    print("lumi: {}".format(lumi))
     p0_b = w.var('Ntot_%s_bkg'%box).getVal() / (int_b * lumi)
     # print("|===> expected bkg integral: ", w.var('Ntot_%s_bkg'%box).getVal())
     background.SetParameter(0,p0_b)

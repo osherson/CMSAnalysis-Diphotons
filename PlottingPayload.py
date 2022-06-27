@@ -435,6 +435,10 @@ def GetDiphoShapeAnalysis(F, T, N, masym, deta, dipho, iso, alpha, trigger, scal
     Rdf         =   RDF(Chain)
     # Make cuts:
     Rdf         =   Rdf.Filter(trigger+" > 0.")
+    #Rdf         =   Rdf.Filter("abs(clu1_eta) < 0.25 && abs(clu2_eta) < 0.25")  #Eta cut, added by Steven
+    #Rdf         =   Rdf.Filter("abs(clu1_eta) < 0.4 && abs(clu2_eta) < 0.4")  #Eta cut, added by Steven
+    #Rdf         =   Rdf.Filter("abs(clu1_eta) > 0.4 && abs(clu1_eta) < 1.0 && abs(clu2_eta) < 0.25 && abs(clu2_eta) < 1.0")  #Eta cut, added by Steven
+    #Rdf         =   Rdf.Filter("abs(clu1_eta) > 1.0 && abs(clu2_eta) > 1.0")  #Eta cut, added by Steven
     Rdf         =   Rdf.Filter("clu1_pt > 90. && clu2_pt > 90. && alpha > " + str(alpha[0]) + " && alpha < " + str(alpha[1]) + " && masym < " + str(masym) + " && deta < " + str(deta) + " && clu1_dipho > " + str(dipho) + " && clu2_dipho > " + str(dipho) + " && clu1_iso > " + str(iso) + " && clu2_iso > " + str(iso))
     Rdf			=	Rdf.Define("fW", scale)
     # Book plots:

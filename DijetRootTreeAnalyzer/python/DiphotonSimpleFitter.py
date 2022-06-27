@@ -6,6 +6,7 @@ def RunFitter(o):
     lumi = " -l " + str(int(float(o.LUM)*1000.))
     year = " -y " + str(o.YEAR)
     box = " -b diphoton"#_" + str(o.SIG)
+    print(box)
     words = " --words " + o.WORDS
     if o.FIT != "combine": box += "_%s" % str(o.FIT)
     input = " ./inputs/Shapes_fromGen/" + str(o.YEAR) + "/"+ str(o.SIG) + "/PLOTS_" + str(o.SIG) + ".root"
