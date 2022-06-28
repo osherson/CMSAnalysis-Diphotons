@@ -3,7 +3,8 @@ import time
 
 def RunFitter(o):
     config = " -c config/diphoton_%s" % (str(o.FIT))+".config"
-    lumi = " -l " + str(int(float(o.LUM)*1000.))
+    #lumi = " -l " + str(int(float(o.LUM)*1000.))
+    lumi = " -l " + str(int(float(o.LUM)))
     year = " -y " + str(o.YEAR)
     box = " -b diphoton"#_" + str(o.SIG)
     print(box)

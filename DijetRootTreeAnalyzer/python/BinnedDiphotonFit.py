@@ -834,8 +834,8 @@ if __name__ == '__main__':
     # p0_b = w.var('Ntot_%s_bkg'%box).getVal()
     print 'Ntot_%s_bkg'%box + " <<<<<<<<<"
     print("int_b: {}".format(int_b))
-    #print("MANUALLY SETTING int_b")
-    #int_b = 1e-10
+    print("MANUALLY SETTING int_b")
+    int_b = 1e-10
     print("lumi: {}".format(lumi))
     p0_b = w.var('Ntot_%s_bkg'%box).getVal() / (int_b * lumi)
     # print("|===> expected bkg integral: ", w.var('Ntot_%s_bkg'%box).getVal())
@@ -951,9 +951,9 @@ if __name__ == '__main__':
     myRebinnedDensityTH1.SetMarkerColor(rt.kWhite)
     myRebinnedDensityTH1.SetLineWidth(0)    
     #Plot mins and maxes
-    myRebinnedDensityTH1.SetMaximum(8e-2)#20
+    myRebinnedDensityTH1.SetMaximum(20)#20
     #myRebinnedDensityTH1.SetMinimum(5e-6)#2e-8
-    myRebinnedDensityTH1.SetMinimum(2e-7)#2e-8
+    myRebinnedDensityTH1.SetMinimum(5e-4)#2e-8
     myRebinnedDensityTH1.Draw("axis")
     
     if options.doTriggerFit or options.doSimultaneousFit or options.doSpectrumFit or options.noFit:
@@ -1010,7 +1010,8 @@ if __name__ == '__main__':
     l.SetTextFont(42)
     l.SetNDC()
     #l.DrawLatex(0.7,0.96,"%i pb^{-1} (%i TeV)"%(lumi,w.var('sqrts').getVal()/1000.))
-    l.DrawLatex(0.72,0.96,"%.1f fb^{-1} (%i TeV)"%(lumi/1000.,w.var('sqrts').getVal()/1000.))
+    #l.DrawLatex(0.72,0.96,"%.1f fb^{-1} (%i TeV)"%(lumi/1000.,w.var('sqrts').getVal()/1000.))
+    l.DrawLatex(0.72,0.96,"%.1f fb^{-1} (%i TeV)"%(lumi,w.var('sqrts').getVal()/1000.))
     # PAS
     #l.SetTextFont(62)
     #l.SetTextSize(0.055)   
