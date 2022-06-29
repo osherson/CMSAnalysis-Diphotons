@@ -725,7 +725,7 @@ if __name__ == '__main__':
             h = histo.Clone('h_eff')
             for i in range(1,histo.GetNbinsX()+1):
                 h.SetBinContent(i,w.var('eff_bin%02d'%(i-1)).getVal())
-            h.SetLineColor(rt.kRed) #
+            h.SetLineColor(rt.kGreen) #Tried
             h.SetLineWidth(2)
             h.Draw("histsame")
         effGraph.Draw('pezsame')
@@ -805,7 +805,7 @@ if __name__ == '__main__':
         h_eff_residual_vs_mass.GetYaxis().SetRangeUser(-6.5,6.5)
         h_eff_residual_vs_mass.GetYaxis().SetNdivisions(210,True)
         h_eff_residual_vs_mass.SetLineWidth(1)
-        h_eff_residual_vs_mass.SetFillColor(rt.kRed) #
+        h_eff_residual_vs_mass.SetFillColor(rt.kRed) #Tried
         h_eff_residual_vs_mass.SetLineColor(rt.kBlack)
         
         h_eff_residual_vs_mass.GetYaxis().SetTitleSize(2*0.06)
@@ -834,8 +834,8 @@ if __name__ == '__main__':
     # p0_b = w.var('Ntot_%s_bkg'%box).getVal()
     print 'Ntot_%s_bkg'%box + " <<<<<<<<<"
     print("int_b: {}".format(int_b))
-    print("MANUALLY SETTING int_b")
-    int_b = 1e-10
+    #print("MANUALLY SETTING int_b")
+    #int_b = 1e-10
     print("lumi: {}".format(lumi))
     p0_b = w.var('Ntot_%s_bkg'%box).getVal() / (int_b * lumi)
     # print("|===> expected bkg integral: ", w.var('Ntot_%s_bkg'%box).getVal())
@@ -952,14 +952,15 @@ if __name__ == '__main__':
     myRebinnedDensityTH1.SetLineWidth(0)    
     #Plot mins and maxes
     myRebinnedDensityTH1.SetMaximum(20)#20
-    #myRebinnedDensityTH1.SetMinimum(5e-6)#2e-8
     myRebinnedDensityTH1.SetMinimum(5e-4)#2e-8
     myRebinnedDensityTH1.Draw("axis")
     
     if options.doTriggerFit or options.doSimultaneousFit or options.doSpectrumFit or options.noFit:
+        #This is the one I'm drawing
+        #background.Draw("c")
         background.Draw("csame")
     else:
-        h_background.SetLineColor(rt.kRed) #
+        h_background.SetLineColor(rt.kRed) #Tried
         h_background.SetLineWidth(2)
         h_background.Draw("histsame")
 
@@ -1115,7 +1116,7 @@ if __name__ == '__main__':
     if options.doTriggerFit or options.doSimultaneousFit or options.doSpectrumFit or options.noFit:
         background.Draw("csame")
     else:
-        h_background.SetLineColor(rt.kRed)#
+        h_background.SetLineColor(rt.kRed) #Tried
         h_background.SetLineWidth(2)
         h_background.Draw("histsame")
     g_data_clone.Draw("zpsame")
