@@ -881,6 +881,14 @@ if __name__ == '__main__':
     h_fit_residual_vs_mass = rt.TH1D("h_fit_residual_vs_mass","h_fit_residual_vs_mass",len(x)-1,x)
     list_chi2AndNdf_background = calculateChi2AndFillResiduals(g_data,h_background,h_fit_residual_vs_mass,w,0)
 
+    #ccc=rt.TCanvas()
+    #ccc.cd()
+    #h_background.SetLineColor(rt.kBlack)
+    #h_background.Draw("e0")
+    #h_fit.SetLineColor(rt.kRed)
+    #h_fit.Draw("same")
+    #ccc.Print("temp.png")
+
     g_data.SetMarkerStyle(20)
     g_data.SetMarkerSize(0.9)
     g_data.SetLineColor(rt.kBlack)
@@ -957,8 +965,21 @@ if __name__ == '__main__':
     
     if options.doTriggerFit or options.doSimultaneousFit or options.doSpectrumFit or options.noFit:
         #This is the one I'm drawing
-        #background.Draw("c")
         background.Draw("csame")
+
+        #####################
+#        #Diphoton function
+#        func = rt.TF1("func","[0]*(TMath::Power( (x/TMath::Sqrt(13000)), [1] + [2] * TMath::Log((x/TMath::Sqrt(13000))) + [3] * TMath::Power(TMath::Log((x/TMath::Sqrt(13    000))),2) + [4] * TMath::Power(TMath::Log((x/TMath::Sqrt(13000))),3)  )) ",300,3110);
+#        #Parameters from bare root fit
+#        func.FixParameter(0, 4.12175);
+#        func.FixParameter(1, 1.50748);
+#        func.FixParameter(2, -2.65006);
+#        func.FixParameter(3,0);
+#        func.FixParameter(4,0);
+#        func.SetLineColor(rt.kBlue)
+#        func.Draw("same")
+        #####################
+
     else:
         h_background.SetLineColor(rt.kRed) #Tried
         h_background.SetLineWidth(2)
