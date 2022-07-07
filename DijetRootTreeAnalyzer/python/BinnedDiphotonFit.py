@@ -968,7 +968,7 @@ if __name__ == '__main__':
         background.Draw("csame")
 
         #####################
-#        #Diphoton function
+        #Diphoton function
 #        func = rt.TF1("func","[0]*(TMath::Power( (x/TMath::Sqrt(13000)), [1] + [2] * TMath::Log((x/TMath::Sqrt(13000))) + [3] * TMath::Power(TMath::Log((x/TMath::Sqrt(13    000))),2) + [4] * TMath::Power(TMath::Log((x/TMath::Sqrt(13000))),3)  )) ",300,3110);
 #        #Parameters from bare root fit
 #        func.FixParameter(0, 4.12175);
