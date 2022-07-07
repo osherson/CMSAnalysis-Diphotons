@@ -826,7 +826,6 @@ if __name__ == '__main__':
         d.Write()
 
     background_pdf = w.pdf('%s_bkg_unbin'%box)
-    #print(background_pdf)
     background= background_pdf.asTF(rt.RooArgList(w.var("mjj")),rt.RooArgList(w.var('p0_%s'%box)))
     print("\n\nSTEVEN")
     print(background)
@@ -834,8 +833,8 @@ if __name__ == '__main__':
     # p0_b = w.var('Ntot_%s_bkg'%box).getVal()
     print 'Ntot_%s_bkg'%box + " <<<<<<<<<"
     print("int_b: {}".format(int_b))
-    #print("MANUALLY SETTING int_b")
-    #int_b = 1e-10
+    print("MANUALLY SETTING int_b")
+    int_b = 1e-10
     print("lumi: {}".format(lumi))
     p0_b = w.var('Ntot_%s_bkg'%box).getVal() / (int_b * lumi)
     # print("|===> expected bkg integral: ", w.var('Ntot_%s_bkg'%box).getVal())
@@ -860,14 +859,18 @@ if __name__ == '__main__':
             L = rt.Math.gamma_quantile(alpha/2,N,1.)
         U = rt.Math.gamma_quantile_c(alpha/2,N+1,1)
 
-        #g_data.SetPointEYlow(i, (N-L))
-        #g_data.SetPointEYhigh(i, (U-N))
-        #g_data.SetPoint(i, g_data.GetX()[i], N)
-        g_data.SetPointEYlow(i, (N-L)/(binWidth * lumi))
-        g_data.SetPointEYhigh(i, (U-N)/(binWidth * lumi))
-        g_data.SetPoint(i, g_data.GetX()[i], N/(binWidth * lumi))
-       
+        g_data.SetPointEYlow(i, (N-L))
+        g_data.SetPointEYhigh(i, (U-N))
+        g_data.SetPoint(i, g_data.GetX()[i], N)
 
+        #g_data.SetPointEYlow(i, (N-L)/(binWidth * lumi))
+        #g_data.SetPointEYhigh(i, (U-N)/(binWidth * lumi))
+        #g_data.SetPoint(i, g_data.GetX()[i], N/(binWidth * lumi))
+
+        #g_data.SetPointEYlow(i, (N-L)/(binWidth))
+        #g_data.SetPointEYhigh(i, (U-N)/(binWidth))
+        #g_data.SetPoint(i, g_data.GetX()[i], N/(binWidth))
+       
         plotRegions = plotRegion.split(',')
         checkInRegions = [g_data.GetX()[i]>w.var('mjj').getMin(reg) and g_data.GetX()[i]<w.var('mjj').getMax(reg) for reg in plotRegions]
         if not any(checkInRegions):
@@ -959,13 +962,14 @@ if __name__ == '__main__':
     myRebinnedDensityTH1.SetMarkerColor(rt.kWhite)
     myRebinnedDensityTH1.SetLineWidth(0)    
     #Plot mins and maxes
-    myRebinnedDensityTH1.SetMaximum(20)#20
-    myRebinnedDensityTH1.SetMinimum(5e-4)#2e-8
-    myRebinnedDensityTH1.Draw("axis")
+    #myRebinnedDensityTH1.SetMaximum(20)#20
+    #myRebinnedDensityTH1.SetMinimum(5e-4)#2e-8
+    #myRebinnedDensityTH1.Draw("axis")
     
     if options.doTriggerFit or options.doSimultaneousFit or options.doSpectrumFit or options.noFit:
         #This is the one I'm drawing
-        background.Draw("csame")
+        #background.Draw("csame")
+        background.Draw("c")
 
         #####################
         #Diphoton function
@@ -1135,11 +1139,14 @@ if __name__ == '__main__':
     #pave_param.Draw("SAME")
     
     if options.doTriggerFit or options.doSimultaneousFit or options.doSpectrumFit or options.noFit:
+        #Drawing this for power function
+        #background.SetLineColor(rt.kGreen)
         background.Draw("csame")
     else:
         h_background.SetLineColor(rt.kRed) #Tried
         h_background.SetLineWidth(2)
         h_background.Draw("histsame")
+    #Drawing this for power function
     g_data_clone.Draw("zpsame")
     g_data.Draw("zpsame")
 
