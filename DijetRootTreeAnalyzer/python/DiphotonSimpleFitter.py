@@ -20,7 +20,7 @@ def RunFitter(o):
     print("Input File: {}".format(input))
     output = " -d output"
 
-    time.sleep(3)
+    #time.sleep(3)
     
     dcstring = "python python/BinnedDiphotonFit.py" + config + year + lumi + box + input + output + " --fit-spectrum --write-fit" + words
     os.system(dcstring)

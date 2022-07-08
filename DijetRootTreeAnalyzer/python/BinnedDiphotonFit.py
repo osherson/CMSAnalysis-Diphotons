@@ -828,15 +828,24 @@ if __name__ == '__main__':
     background_pdf = w.pdf('%s_bkg_unbin'%box)
     background= background_pdf.asTF(rt.RooArgList(w.var("mjj")),rt.RooArgList(w.var('p0_%s'%box)))
     print("\n\nSTEVEN")
+    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    print(box)
     print(background)
     int_b = background.Integral(w.var("mjj").getMin(),w.var("mjj").getMax())
+    print("=============min ",w.var('mjj').getMin())
+    print("=============max ",w.var('mjj').getMax())
+    print("=============intbkg ",int_b)
+    p0_b = w.var('Ntot_%s_bkg'%box).getVal()
     # p0_b = w.var('Ntot_%s_bkg'%box).getVal()
-    print 'Ntot_%s_bkg'%box + " <<<<<<<<<"
+    print("before division p0_b ", p0_b)
     print("int_b: {}".format(int_b))
-    print("MANUALLY SETTING int_b")
-    int_b = 1e-10
+    #print("MANUALLY SETTING int_b") #Do this for power
+    #int_b = 1e-12
+    #int_b =  1e-7	#
+    #int_b =  1e-7	#
     print("lumi: {}".format(lumi))
     p0_b = w.var('Ntot_%s_bkg'%box).getVal() / (int_b * lumi)
+    print("after division p0_b ", p0_b)
     # print("|===> expected bkg integral: ", w.var('Ntot_%s_bkg'%box).getVal())
     background.SetParameter(0,p0_b)
     
@@ -859,13 +868,13 @@ if __name__ == '__main__':
             L = rt.Math.gamma_quantile(alpha/2,N,1.)
         U = rt.Math.gamma_quantile_c(alpha/2,N+1,1)
 
-        g_data.SetPointEYlow(i, (N-L))
-        g_data.SetPointEYhigh(i, (U-N))
-        g_data.SetPoint(i, g_data.GetX()[i], N)
+        #g_data.SetPointEYlow(i, (N-L))
+        #g_data.SetPointEYhigh(i, (U-N))
+        #g_data.SetPoint(i, g_data.GetX()[i], N)
 
-        #g_data.SetPointEYlow(i, (N-L)/(binWidth * lumi))
-        #g_data.SetPointEYhigh(i, (U-N)/(binWidth * lumi))
-        #g_data.SetPoint(i, g_data.GetX()[i], N/(binWidth * lumi))
+        g_data.SetPointEYlow(i, (N-L)/(binWidth * lumi))
+        g_data.SetPointEYhigh(i, (U-N)/(binWidth * lumi))
+        g_data.SetPoint(i, g_data.GetX()[i], N/(binWidth * lumi))
 
         #g_data.SetPointEYlow(i, (N-L)/(binWidth))
         #g_data.SetPointEYhigh(i, (U-N)/(binWidth))
@@ -962,14 +971,14 @@ if __name__ == '__main__':
     myRebinnedDensityTH1.SetMarkerColor(rt.kWhite)
     myRebinnedDensityTH1.SetLineWidth(0)    
     #Plot mins and maxes
-    #myRebinnedDensityTH1.SetMaximum(20)#20
-    #myRebinnedDensityTH1.SetMinimum(5e-4)#2e-8
-    #myRebinnedDensityTH1.Draw("axis")
+    myRebinnedDensityTH1.SetMaximum(20)#20
+    myRebinnedDensityTH1.SetMinimum(5e-4)#2e-8
+    myRebinnedDensityTH1.Draw("axis")
     
     if options.doTriggerFit or options.doSimultaneousFit or options.doSpectrumFit or options.noFit:
         #This is the one I'm drawing
-        #background.Draw("csame")
-        background.Draw("c")
+        background.Draw("csame")
+        #background.Draw("c")
 
         #####################
         #Diphoton function
