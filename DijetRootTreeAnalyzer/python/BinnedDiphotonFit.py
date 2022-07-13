@@ -265,9 +265,10 @@ if __name__ == '__main__':
     histoName = cfg.getVariables(box, "histoName")
 
     fitfunc=""
-    if("dijet" in options.config): fitfunc="Dijet 5p"
+    if("dijet" in options.config): fitfunc="Dijet"
     elif("atlas" in options.config): fitfunc="Atlas"
     elif("power" in options.config): fitfunc="Power"
+    elif("dipho" in options.config): fitfunc="Diphoton"
 
     if options.signalFileName==None:
         signalFileNames = []
@@ -364,7 +365,7 @@ if __name__ == '__main__':
     
     total = extDijetPdf.expectedEvents(rt.RooArgSet(th1x))
     print("TOTAL: {}".format(total))
-    sbkg = extDijetPdf.createHistogram("h_binned_%s" % box, w.var('mjj'), rt.RooFit.Binning(3100,0.,3100.))
+    sbkg = extDijetPdf.createHistogram("h_binned_%s" % box, w.var('th1x'), rt.RooFit.Binning(3100,0.,3100.))
     
     # get signal histo if any
     signalHistos = []
@@ -418,6 +419,7 @@ if __name__ == '__main__':
     #These lines matter
     background= background_pdf.asTF(rt.RooArgList(w.var("mjj")),rt.RooArgList(w.var('p0_%s'%box)))
     #background= background_pdf.asTF(rt.RooArgList(w.var("mjj")),rt.RooArgList(w.var('p0_%s'%box)), rt.RooArgSet(w.var("mjj")))
+    #background = extDijetPdf.createHistogram("h_binned_%s" % box, w.var('th1x'), rt.RooFit.Binning(3100,0.,3100.))
     rrv = w.var("mjj")
     f2 = background_pdf.asTF(rt.RooArgList(rrv), rt.RooArgList(), rt.RooArgSet(rrv) );
     print("rrv",rrv,type(rrv))
@@ -496,30 +498,98 @@ if __name__ == '__main__':
     g_data_clone = g_data.Clone('g_data_clone')
     g_data_clone.SetMarkerSize(0)
 
-    xframe = th1x.frame()
-    #extDijetPdf.plotOn(xframe) #This will plot
-    background_pdf.plotOn(xframe) #this will not; (straight line)
-    #asimov.plotOn(xframe)
-    cv = rt.TCanvas("rfcanv","rfcanv",1000,1000)
-    xframe.Draw()
-    cv.Print("rtemp.png")
-
 #############################################
-    ccc=rt.TCanvas("ctemp","ctemp",1000,1000)
-    ccc.cd()
-    h_background.SetLineColor(rt.kRed)
-    h_background.Draw("e0")
-    g_data.Draw("Psame")
+    myleg = rt.TLegend(0.65,0.75,0.89,0.89)
+    myleg.SetBorderSize(0)
+    myleg.SetTextFont(42)
+    myleg.SetTextSize(0.065)
+    myleg.SetFillColor(rt.kWhite)
+    myleg.SetFillStyle(0)
+    myleg.SetLineWidth(0)
+    myleg.SetLineColor(rt.kWhite)
 
-    #sbkg.SetLineColor(rt.kBlue)
-    #sbkg.SetLineWidth(2)
-    #sbkg.Draw("same")
-    print("H_BACKGROUND: {}".format(type(h_background)))
-    print("G_DATA: {}".format(type(g_data)))
-    print("sbkg: {}".format(type(sbkg)))
-    ccc.SetLogy()
-    ccc.SetLogx()
-    ccc.Print("temp.png")
+    myRealTH1.SetTitle("{} Fit".format(fitfunc))
+    h_th1x.SetTitle("{} Fit".format(fitfunc))
+    myRealTH1.GetYaxis().SetTitleOffset(1)
+    myRealTH1.GetYaxis().SetTitleSize(0.07)
+    myRealTH1.GetYaxis().SetLabelSize(0.05)
+    myRealTH1.GetXaxis().SetLabelOffset(1000)
+    myRealTH1.GetXaxis().SetTitle("Diphoton Mass Bin #")
+    myRealTH1.GetYaxis().SetTitle("Unscaled Entries")
+
+    myRealTH1.SetMarkerColor(rt.kBlack)
+    myRealTH1.SetMarkerStyle(8)
+    myleg.AddEntry(myRealTH1, "Data")
+
+    myRealTH1.Scale(1,"width")
+    h_th1x.Scale(1,"width")
+
+    h_th1x.SetLineColor(rt.kRed)
+    h_th1x.SetLineWidth(2)
+    h_th1x.Scale(lumi)
+    myleg.AddEntry(h_th1x, "{} Fit".format(fitfunc))
+
+    pullplot = myRealTH1.Clone()
+    pullplot.Add(h_th1x, -1)
+
+    for i in range(pullplot.GetNbinsX()):
+      if not myRealTH1.GetBinContent(i+1) == 0:
+        pullplot.SetBinContent(i+1, pullplot.GetBinContent(i+1)/myRealTH1.GetBinError(i+1))
+        pullplot.SetBinError(i+1, 1)
+      else:
+        pullplot.SetBinContent(i+1, 0)
+        pullplot.SetBinError(i+1, 0)
+
+    ccc=rt.TCanvas("ctemp","ctemp",600,700)
+    ccc.Divide(1,2,0,0,0)
+    
+    pd_1 = ccc.GetPad(1)
+    pd_1.SetPad(0.01,0.37,0.99,0.98)
+    pd_1.SetRightMargin(0.05)
+    pd_1.SetTopMargin(0.05)
+    pd_1.SetLeftMargin(0.175)
+    pd_1.SetFillColor(0)
+    pd_1.SetBorderMode(0)
+    pd_1.SetFrameFillStyle(0)
+    pd_1.SetFrameBorderMode(0)
+    
+    pd_2 = ccc.GetPad(2)
+    pd_2.SetLeftMargin(0.175)#0.175
+    pd_2.SetPad(0.01,0.02,0.99,0.37)#0.37
+    pd_2.SetBottomMargin(0.35)
+    pd_2.SetRightMargin(0.05)
+    pd_2.SetGridx()
+    pd_2.SetGridy()
+
+    pd_1.cd()
+    myRealTH1.Draw("e0")
+    h_th1x.Draw("histsame")
+    myleg.Draw("same")
+    pd_1.SetLogy()
+    
+    pd_2.cd()
+    pullplot.GetYaxis().SetRangeUser(-3.5,3.5)
+    pullplot.GetYaxis().SetNdivisions(210,True)
+    pullplot.SetLineWidth(1)
+    pullplot.SetFillColor(rt.kRed)
+    pullplot.SetLineColor(rt.kBlack)
+    
+    pullplot.GetYaxis().SetTitleSize(2*0.06)
+    pullplot.GetYaxis().SetLabelSize(2*0.05)
+    # PAS
+    #pullplot.GetYaxis().SetTitleOffset(0.5)
+    #pullplot.GetYaxis().SetTitle('#frac{(Data-Fit)}{#sigma_{Data}}')
+    # paper
+    pullplot.GetYaxis().SetTitleOffset(0.6)
+    pullplot.GetYaxis().SetTitle('#frac{(Data-Fit)}{Uncertainty}')
+        
+    pullplot.GetXaxis().SetTitleSize(2*0.06)
+    pullplot.GetXaxis().SetLabelSize(2*0.05)
+    pullplot.GetXaxis().SetTitle('Diphoton Mass Bin #')
+    
+    pullplot.Draw("histsame")
+
+    ccc.Print("crudeFitPlot_{}.png".format(box))
 #############################################
     
 
@@ -591,19 +661,6 @@ if __name__ == '__main__':
         #This is the one I'm drawing
         background.Draw("csame")
         #background.Draw("c")
-
-        #####################
-        #Diphoton function
-#        func = rt.TF1("func","[0]*(TMath::Power( (x/TMath::Sqrt(13000)), [1] + [2] * TMath::Log((x/TMath::Sqrt(13000))) + [3] * TMath::Power(TMath::Log((x/TMath::Sqrt(13    000))),2) + [4] * TMath::Power(TMath::Log((x/TMath::Sqrt(13000))),3)  )) ",300,3110);
-#        #Parameters from bare root fit
-#        func.FixParameter(0, 4.12175);
-#        func.FixParameter(1, 1.50748);
-#        func.FixParameter(2, -2.65006);
-#        func.FixParameter(3,0);
-#        func.FixParameter(4,0);
-#        func.SetLineColor(rt.kBlue)
-#        func.Draw("same")
-        #####################
 
     else:
         h_background.SetLineColor(rt.kRed) #Tried
