@@ -266,8 +266,10 @@ if __name__ == '__main__':
 
     fitfunc=""
     if("dijet" in options.config): fitfunc="Dijet"
+    if("moddijet" in options.config): fitfunc="ModDijet"
     elif("atlas" in options.config): fitfunc="Atlas"
     elif("power" in options.config): fitfunc="Power"
+    elif("power6" in options.config): fitfunc="Power6"
     elif("dipho" in options.config): fitfunc="Diphoton"
 
     if options.signalFileName==None:
@@ -561,12 +563,56 @@ if __name__ == '__main__':
     pd_2.SetGridx()
     pd_2.SetGridy()
 
+###################################################################3
+#Drawing on pad1
+
     pd_1.cd()
     myRealTH1.Draw("e0")
-    h_th1x.Draw("histsame")
+    h_th1x.Draw("L histsame")
     myleg.Draw("same")
     pd_1.SetLogy()
+
+    l = rt.TLatex()
+    l.SetTextAlign(11)
+    l.SetTextSize(0.045)
+    l.SetTextFont(42)
+    l.SetNDC()
+    #l.DrawLatex(0.7,0.96,"%i pb^{-1} (%i TeV)"%(lumi,w.var('sqrts').getVal()/1000.))
+    #l.DrawLatex(0.72,0.96,"%.1f fb^{-1} (%i TeV)"%(lumi/1000.,w.var('sqrts').getVal()/1000.))
+    l.DrawLatex(0.72,0.96,"%.1f fb^{-1} (%i TeV)"%(lumi,w.var('sqrts').getVal()/1000.))
+    # PAS
+    #l.SetTextFont(62)
+    #l.SetTextSize(0.055)   
+    #l.DrawLatex(0.2,0.96,"CMS")
+    #l.SetTextFont(52)
+    #l.SetTextSize(0.045)
+    #l.DrawLatex(0.3,0.96,"Preliminary")
+    # paper
+    l.SetTextFont(62)
+    l.SetTextSize(0.065)
+    l.DrawLatex(0.22,0.89,"CMS")
+    l.SetTextFont(52)
+    l.SetTextSize(0.045)
+    l.DrawLatex(0.32,0.89,"Preliminary")
+
+    pave_sel = rt.TPaveText(0.58,0.53,0.75,0.73,"NDC")
+    pave_sel.SetFillColor(0)
+    pave_sel.SetBorderSize(0)
+    pave_sel.SetFillStyle(0)
+    pave_sel.SetTextFont(42)
+    pave_sel.SetTextSize(0.045)
+    pave_sel.SetTextAlign(11)
+    pave_sel.AddText("#chi^{{2}} / ndf = {0:.2f} / {1:d} = {2:.2f}".format(
+                          list_chi2AndNdf_background[4], list_chi2AndNdf_background[5],
+                          list_chi2AndNdf_background[4]/list_chi2AndNdf_background[5]))
+    pave_sel.AddText("Prob. = {0:.2f}".format(rt.TMath.Prob(list_chi2AndNdf_background[4], list_chi2AndNdf_background[5])))
+    #pave_sel.AddText(options.CUTSTRING)
+    pave_sel.Draw("SAME")
+    pd_1.Update()
+
     
+############################################################
+#Drawing on pad2 (residuals)
     pd_2.cd()
     pullplot.GetYaxis().SetRangeUser(-3.5,3.5)
     pullplot.GetYaxis().SetNdivisions(210,True)
@@ -586,6 +632,10 @@ if __name__ == '__main__':
     pullplot.GetXaxis().SetTitleSize(2*0.06)
     pullplot.GetXaxis().SetLabelSize(2*0.05)
     pullplot.GetXaxis().SetTitle('Diphoton Mass Bin #')
+    pullplot.GetXaxis().SetLabelOffset(0.03)
+    pullplot.GetXaxis().SetNoExponent()
+    pullplot.GetXaxis().SetMoreLogLabels()    
+    #pullplot.GetXaxis().SetNdivisions(999)
     
     pullplot.Draw("histsame")
 
