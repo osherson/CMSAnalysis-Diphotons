@@ -26,12 +26,12 @@ public:
    RooPower6ParamBinPdf() {} ;
    RooPower6ParamBinPdf(const char *name, const char *title,
 		    RooAbsReal& _th1x, RooAbsReal& _p1,
-		  RooAbsReal& _p2, RooAbsReal& _p3, RooAbsReal& _p4, RooAbsReal& _p5,
-		  RooAbsReal& _sqrts, RooAbsReal& _meff, RooAbsReal& _seff);
+		    RooAbsReal& _p2, RooAbsReal& _p3, RooAbsReal& _p4, RooAbsReal& _p5,
+		    RooAbsReal& _sqrts, RooAbsReal& _meff, RooAbsReal& _seff);
    RooPower6ParamBinPdf(const char *name, const char *title,
 		    RooAbsReal& _th1x, RooAbsReal& _p1,
-		  RooAbsReal& _p2, RooAbsReal& _p3, RooAbsReal& _p4, RooAbsReal& _p5,
-		  RooAbsReal& _sqrts);
+		    RooAbsReal& _p2, RooAbsReal& _p3, RooAbsReal& _p4, RooAbsReal& _p5,
+		    RooAbsReal& _sqrts);
    RooPower6ParamBinPdf(const RooPower6ParamBinPdf& other,
       const char* name = 0);
    void setTH1Binning(TH1* _Hnominal);
@@ -80,7 +80,7 @@ private:
 public:
    double DoEvalPar(double x,const double* p) const
    {
-     double pdf = p[0]*pow(p[2] + p[3]*x + p[4]*x*x + p[5]*x*x*x, p[1]); 
+     double pdf = p[0]*pow(p[2] + p[3]*x + p[4]*x*x + p[5]*x*x*x, p[1]);
      double eff = 1.;
      //if (p[6]>0) eff = 0.5 * (1.0 + TMath::Erf((x - p[5])/p[6])) ; // Error function
      if (p[7]>0) eff = 1.0/(1.0 + exp(-2.4*(x - p[6])/p[7])) ; // Sigmoid function

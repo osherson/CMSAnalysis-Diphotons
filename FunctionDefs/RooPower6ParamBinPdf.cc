@@ -24,7 +24,7 @@ ClassImp(RooPower6ParamBinPdf)
 RooPower6ParamBinPdf::RooPower6ParamBinPdf(const char *name, const char *title,
 				   RooAbsReal& _th1x,  
 				   RooAbsReal& _p1, RooAbsReal& _p2, 
-			           RooAbsReal& _p3, RooAbsReal& _p4, RooAbsReal& _p5, RooAbsReal& _sqrts,
+				   RooAbsReal& _p3, RooAbsReal& _p4, RooAbsReal& _p5, RooAbsReal& _sqrts,
 			           RooAbsReal& _meff, RooAbsReal& _seff) : RooAbsPdf(name, title), 
 //TH3* _Hnominal) : RooAbsPdf(name, title), 
   th1x("th1x", "th1x Observable", this, _th1x),
@@ -138,7 +138,6 @@ Double_t RooPower6ParamBinPdf::evaluate() const
 
   
   integral = ig.Integral(xLow,xHigh);
-  //integral = func.DoEval((xLow+xHigh)/2.0)*(xHigh-xLow);
   //Double_t total_integral = ig.Integral(xMin,xMax);
 
   if (integral>0.0) {
@@ -171,7 +170,7 @@ Double_t RooPower6ParamBinPdf::analyticalIntegral(Int_t code, const char* rangeN
    params[0] = sqrts;    params[1] = p1;
    params[2] = p2;       params[3] = p3;
    params[4] = p4;       params[5] = p5;
-   params[5] = meff;     params[6] = seff;
+   params[6] = meff;     params[7] = seff;
    func.SetParameters(params);
 
    
@@ -180,29 +179,8 @@ Double_t RooPower6ParamBinPdf::analyticalIntegral(Int_t code, const char* rangeN
     
 
    if (code==1 && iBinMin<=0 && iBinMax>=xBins){
+     integral = ig.Integral(xMin,xMax);
      
-	 integral = ig.Integral(xMin,xMax);
-     //integral = func.DoEval((xMin+xMax)/2.0)*(xMax-xMin);
-    
-	/*
-	for (Int_t iBin=0; iBin<xBins; iBin++){
-        	 
-	 Double_t xLow = xArray[iBin];
-	 Double_t xHigh = xArray[iBin+1];    
-	 integral += ig.Integral(xLow,xHigh);
-     //integral += func.DoEval((xLow+xHigh)/2.0)*(xHigh-xLow);
-            */
-       //}
-     //}
-
-
-
-
-
-
-
-
-	 
    }
    else if(code==1) { 
      for (Int_t iBin=iBinMin; iBin<iBinMax; iBin++){
@@ -214,8 +192,6 @@ Double_t RooPower6ParamBinPdf::analyticalIntegral(Int_t code, const char* rangeN
 	 Double_t xLow = xArray[iBin];
 	 Double_t xHigh = xArray[iBin+1];    
 	 integral += ig.Integral(xLow,xHigh);
-     //integral += func.DoEval((xLow+xHigh)/2.0)*(xHigh-xLow);
- 
        }
      }
    } else {
