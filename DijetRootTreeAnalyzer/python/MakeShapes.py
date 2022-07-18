@@ -214,9 +214,9 @@ if(igen == "g"):
     print(lA, hA)
 
     #Turn off alpha cut
-    print("Disabling Alpha Window")
-    lA = 0.
-    hA = 999.
+    #print("Disabling Alpha Window")
+    #lA = 0.
+    #hA = 999.
 
     (sXpu, sX1pu, sXvApu) = PL.GetDiphoShapeAnalysis(SignalsGenerated[s], "pico_nom", s, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeightUp*weight*10.*5.99")
     (sXpd, sX1pd, sXvApd) = PL.GetDiphoShapeAnalysis(SignalsGenerated[s], "pico_nom", s, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeightDown*weight*10.*5.99")
