@@ -415,53 +415,53 @@ if __name__ == '__main__':
     boxLabel = "%s %s Fit" % (box,fitRegion)
     plotLabel = "%s Projection" % (plotRegion)
 
-    background_pdf = w.pdf('%s_bkg_unbin'%box)
-    print("background_pdf: ", background_pdf)
-    print("type(background_pdf)", type(background_pdf))
-    #These lines matter
-    background= background_pdf.asTF(rt.RooArgList(w.var("mjj")),rt.RooArgList(w.var('p0_%s'%box)))
-    #background= background_pdf.asTF(rt.RooArgList(w.var("mjj")),rt.RooArgList(w.var('p0_%s'%box)), rt.RooArgSet(w.var("mjj")))
-    #background = extDijetPdf.createHistogram("h_binned_%s" % box, w.var('th1x'), rt.RooFit.Binning(3100,0.,3100.))
-    rrv = w.var("mjj")
-    f2 = background_pdf.asTF(rt.RooArgList(rrv), rt.RooArgList(), rt.RooArgSet(rrv) );
-    print("rrv",rrv,type(rrv))
-    print("f2",f2,type(f2))
-    print("\n\nSTEVEN")
-    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    print(box)
-    print(background)
-    print(type(background))
-    int_b = background.Integral(w.var("mjj").getMin(),w.var("mjj").getMax())
-
-    print(background.Integral(0,3000))
-    print(background.Integral(100,300))
-    print(background.Integral(-1000,10000))
-    print(background.Integral(0,1))
+#    background_pdf = w.pdf('%s_bkg_unbin'%box)
+#    print("background_pdf: ", background_pdf)
+#    print("type(background_pdf)", type(background_pdf))
+#    #These lines matter
+#    background= background_pdf.asTF(rt.RooArgList(w.var("mjj")),rt.RooArgList(w.var('p0_%s'%box)))
+#    #background= background_pdf.asTF(rt.RooArgList(w.var("mjj")),rt.RooArgList(w.var('p0_%s'%box)), rt.RooArgSet(w.var("mjj")))
+#    #background = extDijetPdf.createHistogram("h_binned_%s" % box, w.var('th1x'), rt.RooFit.Binning(3100,0.,3100.))
+#    rrv = w.var("mjj")
+#    f2 = background_pdf.asTF(rt.RooArgList(rrv), rt.RooArgList(), rt.RooArgSet(rrv) );
+#    print("rrv",rrv,type(rrv))
+#    print("f2",f2,type(f2))
+#    print("\n\nSTEVEN")
+#    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+#    print(box)
+#    print(background)
+#    print(type(background))
+#    int_b = background.Integral(w.var("mjj").getMin(),w.var("mjj").getMax())
+#
+#    print(background.Integral(0,3000))
+#    print(background.Integral(100,300))
+#    print(background.Integral(-1000,10000))
+#    print(background.Integral(0,1))
+#    
+#    print("=============min ",w.var('mjj').getMin())
+#    print("=============max ",w.var('mjj').getMax())
+#    print("=============intbkg ",int_b)
+#    p0_b = w.var('Ntot_%s_bkg'%box).getVal()
+#    # p0_b = w.var('Ntot_%s_bkg'%box).getVal()
+#    print("before division p0_b ", p0_b)
+#    print("int_b: {}".format(int_b))
+#    #print("MANUALLY SETTING int_b") #Do this for power
+#    #int_b = 1e-12
+#    #int_b =  1e-7	#
+#    print("lumi: {}".format(lumi))
+#    p0_b = w.var('Ntot_%s_bkg'%box).getVal() / (int_b * lumi)
+#    print("after division p0_b ", p0_b)
+#    # print("|===> expected bkg integral: ", w.var('Ntot_%s_bkg'%box).getVal())
+#    background.SetParameter(0,p0_b)
+#
     
-    print("=============min ",w.var('mjj').getMin())
-    print("=============max ",w.var('mjj').getMax())
-    print("=============intbkg ",int_b)
-    p0_b = w.var('Ntot_%s_bkg'%box).getVal()
-    # p0_b = w.var('Ntot_%s_bkg'%box).getVal()
-    print("before division p0_b ", p0_b)
-    print("int_b: {}".format(int_b))
-    #print("MANUALLY SETTING int_b") #Do this for power
-    #int_b = 1e-12
-    #int_b =  1e-7	#
-    print("lumi: {}".format(lumi))
-    p0_b = w.var('Ntot_%s_bkg'%box).getVal() / (int_b * lumi)
-    print("after division p0_b ", p0_b)
-    # print("|===> expected bkg integral: ", w.var('Ntot_%s_bkg'%box).getVal())
-    background.SetParameter(0,p0_b)
-
-    
-    if options.doWriteFit:
-        fnbin = MakeNBinsFromMinToMax(14000, 0., 14000.)
-        hb = rt.TH1F("hb_finebin", ";Average Dijet Mass [GeV];Events", len(fnbin)-1, fnbin)
-        for j in range(1, hb.GetNbinsX()+1): hb.SetBinContent(j, background.Eval(hb.GetXaxis().GetBinCenter(j)))
-        fhb = rt.TFile(options.outDir + "/unbinnedfit_%s.root"%box, "recreate")
-        fhb.cd()
-        hb.Write()
+#    if options.doWriteFit:
+#        fnbin = MakeNBinsFromMinToMax(14000, 0., 14000.)
+#        hb = rt.TH1F("hb_finebin", ";Average Dijet Mass [GeV];Events", len(fnbin)-1, fnbin)
+#        for j in range(1, hb.GetNbinsX()+1): hb.SetBinContent(j, background.Eval(hb.GetXaxis().GetBinCenter(j)))
+#        fhb = rt.TFile(options.outDir + "/unbinnedfit_%s.root"%box, "recreate")
+#        fhb.cd()
+#        hb.Write()
     
     g_data = rt.TGraphAsymmErrors(myRebinnedTH1)
     
