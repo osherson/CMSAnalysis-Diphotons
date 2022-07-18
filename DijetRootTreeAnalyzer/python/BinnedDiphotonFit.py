@@ -11,6 +11,7 @@ import random
 import sys
 import math
 import numpy
+import time
 
 densityCorr = False
 
@@ -37,44 +38,12 @@ def binnedFit(pdf, data, fitRange='Full', useWeight=False):
     
     return fr
 
-def effFit(pdf, data, conditionalObs):    
-    nll = pdf.createNLL(data,rt.RooFit.Range('Eff'),rt.RooFit.Offset(True),rt.RooFit.ConditionalObservables(conditionalObs))
-    m2 = rt.RooMinimizer(nll)
-    m2.setStrategy(2)
-    m2.setMaxFunctionCalls(100000)
-    m2.setMaxIterations(100000)
-    migrad_status = m2.minimize('Minuit2','migrad')
-    improve_status = m2.minimize('Minuit2','improve')
-    hesse_status = m2.minimize('Minuit2','hesse')
-    minos_status = m2.minos()
-    fr = m2.save()
-    return fr
 
 def MakeNBinsFromMinToMax(N,Min,Max):
     BINS = []
     for i in range(N+1):
         BINS.append(Min+(i*(Max-Min)/N))
     return numpy.array(BINS)
-
-def simFit(pdf, data, fitRange, effPdf, effData, conditionalObs):
-    
-    effNll = effPdf.createNLL(effData,rt.RooFit.Range('Eff'),rt.RooFit.Offset(True),rt.RooFit.ConditionalObservables(conditionalObs))
-
-    fitNll = pdf.createNLL(data,rt.RooFit.Range(fitRange),rt.RooFit.Extended(True),rt.RooFit.Offset(True))
-
-    simNll = rt.RooAddition("simNll", "simNll", rt.RooArgList(fitNll, effNll))
-        
-    m2 = rt.RooMinimizer(simNll)
-    m2.setStrategy(2)
-    m2.setMaxFunctionCalls(100000)
-    m2.setMaxIterations(100000)
-    migrad_status = m2.minimize('Minuit2','migrad')
-    improve_status = m2.minimize('Minuit2','improve')
-    hesse_status = m2.minimize('Minuit2','hesse')
-    minos_status = m2.minos()
-    fr = m2.save()
-
-    return fr
 
 def convertSideband(name,w,x):
     if name=="Full":
@@ -138,7 +107,6 @@ def calculateChi2AndFillResiduals(data_obs_TGraph_,background_hist_,hist_fit_res
             nParFit = 4
         else:
             nParFit = 5
-
 
 
     print nParFit
@@ -221,12 +189,6 @@ def calculateChi2AndFillResiduals(data_obs_TGraph_,background_hist_,hist_fit_res
     ndf_PlotRangeNonZero = N_PlotRangeNonZero - nParFit    
     ndf_PlotRangeMinNumEvents = N_PlotRangeMinNumEvents - nParFit    
 
-    #ndf for s+b fit, need to subtract 1 due to signal strength (ndf=Nbin-(N_of_nuisances+1))
-    if w.var('p1_%s'%box).isConstant() and w.var('p2_%s'%box).isConstant():
-    	ndf_FullRangeAll -= 1    
-    	ndf_PlotRangeAll -= 1    
-    	ndf_PlotRangeNonZero -= 1    
-    	ndf_PlotRangeMinNumEvents -=1  
 
     chi2_ndf_FullRangeAll = chi2_FullRangeAll / ndf_FullRangeAll
     chi2_ndf_PlotRangeAll = chi2_PlotRangeAll / ndf_PlotRangeAll
@@ -303,9 +265,12 @@ if __name__ == '__main__':
     histoName = cfg.getVariables(box, "histoName")
 
     fitfunc=""
-    if("dijet" in options.config): fitfunc="Dijet 5p"
+    if("dijet" in options.config): fitfunc="Dijet"
+    if("moddijet" in options.config): fitfunc="ModDijet"
     elif("atlas" in options.config): fitfunc="Atlas"
     elif("power" in options.config): fitfunc="Power"
+    elif("power6" in options.config): fitfunc="Power6"
+    elif("dipho" in options.config): fitfunc="Diphoton"
 
     if options.signalFileName==None:
         signalFileNames = []
@@ -342,27 +307,6 @@ if __name__ == '__main__':
     w = rt.RooWorkspace("w"+box)
 
     paramNames, bkgs = initializeWorkspace(w,cfg,box,multi=options.multi)
-        
-    if options.inputFitFile is not None:
-        inputRootFile = rt.TFile.Open(options.inputFitFile,"r")
-        wIn = inputRootFile.Get("w"+box).Clone("wIn"+box)            
-        if wIn.obj("fitresult_extDijetPdf_data_obs") != None:
-            frIn = wIn.obj("fitresult_extDijetPdf_data_obs")
-        elif wIn.obj("nll_extDijetPdf_data_obs") != None:
-            frIn = wIn.obj("nll_extDijetPdf_data_obs")
-        elif wIn.obj("fitresult_extDijetPdf_data_obs_with_constr") != None:
-            frIn = wIn.obj("fitresult_extDijetPdf_data_obs_with_constr")
-        elif wIn.obj("nll_extDijetPdf_data_obs_with_constr") != None:
-            frIn = wIn.obj("nll_extDijetPdf_data_obs_with_constr")
-        elif wIn.obj("simNll") != None:
-            frIn = wIn.obj("simNll")
-                        
-        print "restoring parameters from fit"
-        frIn.Print("V")
-        for p in rootTools.RootIterator.RootIterator(frIn.floatParsFinal()):
-            w.var(p.GetName()).setVal(p.getVal())
-            w.var(p.GetName()).setError(p.getError())
-
     
     x = array('d', cfg.getBinning(box)[0]) # mjj binning
     
@@ -374,88 +318,6 @@ if __name__ == '__main__':
     triggerData = None
     # Use uncorrected mjj / pT of wide jets
     corr = '_noCorr'
-    if options.triggerDataFile is not None:
-        triggerFile = rt.TFile.Open(options.triggerDataFile)
-        names = [k.GetName() for k in triggerFile.GetListOfKeys()]
-        if 'triggerData' not in names:
-            tree = triggerFile.Get("rootTupleTree/tree")    
-            tree.SetBranchStatus('*',0)        
-            tree.SetBranchStatus('mjj%s'%corr,1)
-            tree.SetBranchStatus('passHLT_CaloScoutingHT250',1)
-            tree.SetBranchStatus('passHLT_CaloJet40_CaloScouting_PFScouting',1)
-            tree.SetBranchStatus('event',1)
-            tree.SetBranchStatus('lumi',1)
-            tree.SetBranchStatus('run',1)
-            tree.SetBranchStatus('PassJSON',1)
-            tree.SetBranchStatus('deltaETAjj',1)
-            tree.SetBranchStatus('deltaPHIjj',1)
-            tree.SetBranchStatus('phiWJ_j1',1)
-            tree.SetBranchStatus('phiWJ_j2',1)
-            tree.SetBranchStatus('etaWJ_j1',1)
-            tree.SetBranchStatus('etaWJ_j2',1)
-            tree.SetBranchStatus('pTWJ_j1%s'%corr,1)
-            tree.SetBranchStatus('pTWJ_j2%s'%corr,1)
-            triggerData = rt.RooDataSet("triggerData","triggerData",rt.RooArgSet(w.var("mjj"),w.cat("cut")))
-            # l1 efficiency:
-            if options.l1Trigger:#edw deltaETAcut!
-                cutString = 'abs(deltaETAjj)<1.1&&abs(etaWJ_j1)<2.5&&abs(etaWJ_j2)<2.5&&pTWJ_j1%s>60&&pTWJ_j2%s>30&&PassJSON&&passHLT_CaloJet40_CaloScouting_PFScouting&&mjj%s>=%i&&mjj%s<%i&&run>=%i&&run<=%i'%(corr,corr,corr,w.var("mjj").getMin("Eff"),corr,w.var("mjj").getMax("Eff"),options.runMin,options.runMax)                
-            # hlt efficiency:
-            else:
-                #cutString = 'abs(deltaETAjj)<1.3&&abs(etaWJ_j1)<2.5&&abs(etaWJ_j2)<2.5&&pTWJ_j1%s>60&&pTWJ_j2%s>30&&PassJSON&&passHLT_L1HTT_CaloScouting_PFScouting&&mjj>=%i&&mjj<%i'%(corr,corr,w.var("mjj").getMin("Eff"),w.var("mjj").getMax("Eff"))
-                cutString = 'abs(deltaETAjj)<1.1&&abs(etaWJ_j1)<2.5&&abs(etaWJ_j2)<2.5&&pTWJ_j1%s>60&&pTWJ_j2%s>30&&PassJSON&&passHLT_CaloJet40_CaloScouting_PFScouting&&mjj%s>=%i&&mjj%s<%i&&run>=%i&&run<=%i'%(corr,corr,corr,w.var("mjj").getMin("Eff"),corr,w.var("mjj").getMax("Eff"),options.runMin,options.runMax)
-            #set the RooArgSet and save
-            tree.Draw('>>elist',cutString,'entrylist')        
-            elist = rt.gDirectory.Get('elist')    
-            entry = -1
-            print 'trigger cut string:', cutString
-            while True:
-                entry = elist.Next()
-                if entry == -1: break
-                tree.GetEntry(entry)          
-                a = rt.RooArgSet(w.var('mjj'),w.cat('cut'))   
-                a.setRealValue('mjj',eval('tree.mjj%s'%corr))
-                # l1 efficiency:
-                if options.l1Trigger:
-                    #a.setCatIndex('cut',min(int(tree.passL1T_HTT125 + tree.passL1T_HTT150 + tree.passL1T_HTT175),1)) # for 2015
-                    #a.setCatIndex('cut',min(int(tree.passL1T_HTT120 + tree.passL1T_HTT170 + tree.passL1T_HTT200),1)) # for 2016
-                    a.setCatIndex('cut',min(int(tree.passL1T_HTT170),1)) # for 2016 ICHEP: variable called L1T_HTT170 is actually L1_HTT240 and L1T_HTT200 is actually L1T_HTT270 due to bug                  
-                # hlt efficiency:
-                else:
-                    a.setCatIndex('cut',int(tree.passHLT_CaloScoutingHT250))
-                
-                triggerData.add(a)
-                
-            triggerOutFile = rt.TFile.Open(options.outDir+"/triggerData.root","recreate")
-            triggerOutFile.cd()
-            triggerData.Write()
-            triggerOutFile.Close()
-        else:            
-            triggerData = triggerFile.Get("triggerData")
-            
-        rootTools.Utils.importToWS(w,triggerData)
-        h_numerator = rt.TH1D('numerator','numerator',len(x)-1,x)
-        h_denominator = rt.TH1D('denominator','denominator',len(x)-1,x)        
-        w.data('triggerData').fillHistogram(h_numerator,rt.RooArgList(w.var('mjj')),'cut==1')
-        w.data('triggerData').fillHistogram(h_denominator,rt.RooArgList(w.var('mjj')))
-        effGraph = rt.TGraphAsymmErrors(h_numerator,h_denominator)
-        for i in range(0,len(x)-1):
-            eff = effGraph.GetY()[i]
-            effUp = effGraph.GetEYhigh()[i]
-            effDown = effGraph.GetEYlow()[i]
-            print "eff [%i, %i] = %f (%+f/, %+f)" %(x[i],x[i+1],eff,effUp,-effDown)
-            if w.var('eff_bin%02d'%(i))!=None:
-                if (eff <= 0 or eff >= 1):
-                    w.var('eff_bin%02d'%(i)).setVal(1)
-                    w.var('eff_bin%02d_Mean'%(i)).setVal(1)
-                    w.var('eff_bin%02d'%(i)).setConstant(True)
-                else:
-                    w.var('eff_bin%02d'%(i)).setVal(eff)
-                    w.var('eff_bin%02d_Mean'%(i)).setVal(eff)                    
-                w.var('eff_bin%02d_SigmaL'%(i)).setVal(effDown)
-                if effUp<=0:
-                    w.var('eff_bin%02d_SigmaR'%(i)).setVal(1e-5)
-                else:
-                    w.var('eff_bin%02d_SigmaR'%(i)).setVal(effUp)
     
     sideband = convertSideband(fitRegion,w,x)
     print 'sideband'
@@ -464,6 +326,9 @@ if __name__ == '__main__':
     plotband = convertSideband(plotRegion,w,x)
 
     extDijetPdf = w.pdf('extDijetPdf')
+    myf = rt.TFile("stuff.root","RECREATE")
+    w.Write()
+    myf.Close()
 
     myTH1.Rebin(len(x)-1,'data_obs_rebin',x)
     myRebinnedTH1 = rt.gDirectory.Get('data_obs_rebin')
@@ -474,136 +339,45 @@ if __name__ == '__main__':
     dataHist = rt.RooDataHist("data_obs","data_obs",rt.RooArgList(th1x), rt.RooFit.Import(myRealTH1))
     dataHist.Print('v')
     
-    
     rootTools.Utils.importToWS(w,dataHist)
 
-    if noFit and options.inputFitFile is not None:
-        fr = frIn
-        fr.Print('v')    
-        rootTools.Utils.importToWS(w,fr)
-    elif noFit:
-        fr = rt.RooFitResult()
-        effFr = rt.RooFitResult()
-    else:        
-        rt.gStyle.SetOptStat(0)
-        corrCanvas = rt.TCanvas('c','c',500,500)
-        corrCanvas.SetRightMargin(0.15)            
-        if not options.doSimultaneousFit:
-            if options.triggerDataFile is not None and options.doTriggerFit:
-                effFr = effFit(w.pdf('effPdf'),w.data('triggerData'),rt.RooArgSet(w.var('mjj')))           
-                rootTools.Utils.importToWS(w,effFr)
-                effFr.Print('v')
-                effFr.covarianceMatrix().Print('v')
-                effFr.correlationMatrix().Print('v')
-                corrHistEff = effFr.correlationHist('correlation_matrix_eff')
-                
-                if options.doSpectrumFit:
-                    # setup two-step fit with  hesse pdf:
-                    hessePdf = effFr.createHessePdf(rt.RooArgSet(w.var('meff_%s'%box),w.var('seff_%s'%box)))
-                    # or create the hesse pdf manually:
-                    #covMatrix = effFr.covarianceMatrix()
-                    #params = rt.RooArgList()
-                    #params.add(w.var('meff_%s'%box))
-                    #params.add(w.var('seff_%s'%box))
-                    #w.factory('meff_centralvalue[%f]'%w.var('meff_%s'%box).getVal())
-                    #w.factory('seff_centralvalue[%f]'%w.var('seff_%s'%box).getVal())
-                    #mu = rt.RooArgList()
-                    #mu.add(w.var('meff_centralvalue'))
-                    #mu.add(w.var('seff_centralvalue'))
-                    #hessePdf = rt.RooMultiVarGaussian('hessePdf','hessePdf',params,mu,covMatrix)
-                    rootTools.Utils.importToWS(w,effFr)
-                    rootTools.Utils.importToWS(w,hessePdf)                
-                    w.factory('PROD::extDijetPdfHesse(extDijetPdf,%s)'%(hessePdf.GetName()))
-                    extDijetPdf = w.pdf('extDijetPdfHesse')
-                    # set up two-step fit with 1D gauss pdfs
-                    #w.var('meff_Mean').setVal(w.var('meff_%s'%box).getVal())
-                    #w.var('seff_Mean').setVal(w.var('seff_%s'%box).getVal())
-                    #w.var('meff_Sigma').setVal(w.var('meff_%s'%box).getError())
-                    #w.var('seff_Sigma').setVal(w.var('seff_%s'%box).getError())
-                    #extDijetPdf = w.pdf('extDijetPdfGaus')
-                
-            if options.doSpectrumFit:
-                fr = binnedFit(extDijetPdf,dataHist,sideband,options.useWeight)
-               # fr = binnedFit(extDijetPdf,dataHist,'6000,7000',options.useWeight)        
-                rootTools.Utils.importToWS(w,fr)     
-                fr.Print('v')
-                fr.Print()
-                fr.covarianceMatrix().Print('v')
-                fr.correlationMatrix().Print('v')
-                corrHist = fr.correlationHist('correlation_matrix')
-                corrHist.Draw('colztext')
-                corrCanvas.Print(options.outDir+'/corrHist.pdf')
-                corrCanvas.Print(options.outDir+'/corrHist.C')
-                
-                ph = extDijetPdf.createHistogram("h_binned_%s" % box, w.var('mjj'), rt.RooFit.Binning(14000,0.,14000.))
-                outtemp = rt.TFile("output/fitted_%s.root" % box, "recreate")
-                outtemp.cd()
-                ph.Write()
-            else:
-                fr = rt.RooFitResult()
-                
-            if options.triggerDataFile is not None and options.doTriggerFit:
-                corrHistEff.Draw('colztext')
-                corrCanvas.Print(options.outDir+'/corrHistEff.pdf')
-                corrCanvas.Print(options.outDir+'/corrHistEff.C')            
-        else:            
-            fr = simFit(extDijetPdf,dataHist,sideband,w.pdf('effPdf'),w.data('triggerData'),rt.RooArgSet(w.var('mjj')))
-            rootTools.Utils.importToWS(w,fr)
-            fr.Print('v')    
+    rt.gStyle.SetOptStat(0)
+    corrCanvas = rt.TCanvas('c','c',500,500)
+    corrCanvas.SetRightMargin(0.15)            
+    if not options.doSimultaneousFit:
+        if options.doSpectrumFit:
+            fr = binnedFit(extDijetPdf,dataHist,sideband,options.useWeight)
+           # fr = binnedFit(extDijetPdf,dataHist,'6000,7000',options.useWeight)        
+            rootTools.Utils.importToWS(w,fr)     
+            fr.Print('v')
+            fr.Print()
             fr.covarianceMatrix().Print('v')
             fr.correlationMatrix().Print('v')
             corrHist = fr.correlationHist('correlation_matrix')
-            rt.gStyle.SetOptStat(0)
-            corrCanvas = rt.TCanvas('c','c',500,500)
-            corrCanvas.SetRightMargin(0.15)
             corrHist.Draw('colztext')
-            corrCanvas.Print(options.outDir+'/corrHistSim.pdf')
-            corrCanvas.Print(options.outDir+'/corrHistSim.C')
-        
-        total = extDijetPdf.expectedEvents(rt.RooArgSet(th1x))
+            corrCanvas.Print(options.outDir+'/corrHist.pdf')
+            corrCanvas.Print(options.outDir+'/corrHist.C')
             
-
+            ph = extDijetPdf.createHistogram("h_binned_%s" % box, w.var('mjj'), rt.RooFit.Binning(14000,0.,14000.))
+            outtemp = rt.TFile("output/fitted_%s.root" % box, "recreate")
+            outtemp.cd()
+            ph.Write()
+        else:
+            fr = rt.RooFitResult()
+    
+    total = extDijetPdf.expectedEvents(rt.RooArgSet(th1x))
+    print("TOTAL: {}".format(total))
+    sbkg = extDijetPdf.createHistogram("h_binned_%s" % box, w.var('th1x'), rt.RooFit.Binning(3100,0.,3100.))
     
     # get signal histo if any
     signalHistos = []
     signalHistosOriginal = []
     signalHistosRebin = []
     signalFiles = []
-    for model, mass, xsec, signalFileName in zip(models,masses,xsecs,signalFileNames):
-        print model, mass, xsec, signalFileName
-        signalFile = rt.TFile.Open(signalFileName)
-        signalFiles.append(signalFile)
-        names = [k.GetName() for k in signalFile.GetListOfKeys()]
-        for name in names:
-            d = signalFile.Get(name)
-            if isinstance(d, rt.TH1):
-               # if name=='h_%s_%i'%(model,float(mass)):
-		if name=='h_FourjetMass1GeV':
-                    print name
-                    d.Scale(float(xsec)*lumi/d.Integral())
-                    if options.triggerDataFile is not None:
-                        if options.doSimultaneousFit:
-                            d_turnon = applyTurnonFunc(d,fr,w)
-                            name+='_turnon'
-                            d = d_turnon
-                        elif not options.noFit and options.doTriggerFit:
-                            d_turnon = applyTurnonFunc(d,effFr,w)
-                            name+='_turnon'
-                            d = d_turnon
-                    d.Rebin(len(x)-1,name+'_rebin',x)
-                    d_rebin = rt.gDirectory.Get(name+'_rebin')
-                    d_rebin.SetDirectory(0)
-                    if options.triggerDataFile is not None and not options.doSimultaneousFit and not options.doTriggerFit:
-                        d_rebin_turnon = applyTurnonGraph(d_rebin,effGraph)
-                        d_rebin = d_rebin_turnon
-    
-                    signalHistosOriginal.append(d)
-                    signalHistosRebin.append(d_rebin)
-    
-                    d_th1x = convertToTh1xHist(d_rebin)
-                    signalHistos.append(d_th1x)        
 
+    #extDijetPdf is RooAddPdf
     asimov = extDijetPdf.generateBinned(rt.RooArgSet(th1x),rt.RooFit.Name('central'),rt.RooFit.Asimov())
+    #asimov is RooDataHist
         
     opt = [rt.RooFit.CutRange(myRange) for myRange in plotband.split(',')]
     asimov_reduce = asimov.reduce(opt[0])
@@ -626,7 +400,7 @@ if __name__ == '__main__':
     # start writing output
     rt.gStyle.SetOptStat(0)
     rt.gStyle.SetOptTitle(0)
-    c = rt.TCanvas('c','c',600,700)
+    canv = rt.TCanvas('c','c',600,700)
     rootFile = rt.TFile.Open(options.outDir + '/' + 'Plots_%s'%box + '.root','recreate')
     tdirectory = rootFile.GetDirectory(options.outDir)
     if tdirectory==None:
@@ -641,213 +415,53 @@ if __name__ == '__main__':
     boxLabel = "%s %s Fit" % (box,fitRegion)
     plotLabel = "%s Projection" % (plotRegion)
 
-    if options.triggerDataFile is not None:        
-        #d = rt.TCanvas('d','d',500,400)       
-        d = rt.TCanvas('d','d',600,700)
-        
-        d.Divide(1,2,0,0,0)
+#    background_pdf = w.pdf('%s_bkg_unbin'%box)
+#    print("background_pdf: ", background_pdf)
+#    print("type(background_pdf)", type(background_pdf))
+#    #These lines matter
+#    background= background_pdf.asTF(rt.RooArgList(w.var("mjj")),rt.RooArgList(w.var('p0_%s'%box)))
+#    #background= background_pdf.asTF(rt.RooArgList(w.var("mjj")),rt.RooArgList(w.var('p0_%s'%box)), rt.RooArgSet(w.var("mjj")))
+#    #background = extDijetPdf.createHistogram("h_binned_%s" % box, w.var('th1x'), rt.RooFit.Binning(3100,0.,3100.))
+#    rrv = w.var("mjj")
+#    f2 = background_pdf.asTF(rt.RooArgList(rrv), rt.RooArgList(), rt.RooArgSet(rrv) );
+#    print("rrv",rrv,type(rrv))
+#    print("f2",f2,type(f2))
+#    print("\n\nSTEVEN")
+#    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+#    print(box)
+#    print(background)
+#    print(type(background))
+#    int_b = background.Integral(w.var("mjj").getMin(),w.var("mjj").getMax())
+#
+#    print(background.Integral(0,3000))
+#    print(background.Integral(100,300))
+#    print(background.Integral(-1000,10000))
+#    print(background.Integral(0,1))
+#    
+#    print("=============min ",w.var('mjj').getMin())
+#    print("=============max ",w.var('mjj').getMax())
+#    print("=============intbkg ",int_b)
+#    p0_b = w.var('Ntot_%s_bkg'%box).getVal()
+#    # p0_b = w.var('Ntot_%s_bkg'%box).getVal()
+#    print("before division p0_b ", p0_b)
+#    print("int_b: {}".format(int_b))
+#    #print("MANUALLY SETTING int_b") #Do this for power
+#    #int_b = 1e-12
+#    #int_b =  1e-7	#
+#    print("lumi: {}".format(lumi))
+#    p0_b = w.var('Ntot_%s_bkg'%box).getVal() / (int_b * lumi)
+#    print("after division p0_b ", p0_b)
+#    # print("|===> expected bkg integral: ", w.var('Ntot_%s_bkg'%box).getVal())
+#    background.SetParameter(0,p0_b)
+#
     
-        pad_1 = d.GetPad(1)
-        pad_1.SetPad(0.01,0.36,0.99,0.98)
-        pad_1.SetRightMargin(0.05)
-        pad_1.SetTopMargin(0.05)
-        pad_1.SetLeftMargin(0.175)
-        pad_1.SetFillColor(0)
-        pad_1.SetBorderMode(0)
-        pad_1.SetFrameFillStyle(0)
-        pad_1.SetFrameBorderMode(0)
-
-        pad_2 = d.GetPad(2)
-        pad_2.SetLeftMargin(0.175)
-        pad_2.SetPad(0.01,0.02,0.99,0.37)
-        pad_2.SetBottomMargin(0.35)
-        pad_2.SetRightMargin(0.05)
-        pad_2.SetGridx()
-        pad_2.SetGridy()
-
-        pad_1.cd()
-        
-        binning = rt.RooBinning(w.var('mjj').getMin('Eff'),w.var('mjj').getMax('Eff'))
-        xEff = array('d',[w.var('mjj').getMin('Eff')])
-        if options.doTriggerFit or options.doSimultaneousFit or options.noFit:
-            #plotForLoop = range(int(x[0])+1,int(x[-1]),1)
-            plotForLoop = x[1:]
-        else:
-            plotForLoop = x[1:-1]
-        for iBin in plotForLoop:
-            if iBin<w.var('mjj').getMax('Eff'):
-                binning.addBoundary(iBin)
-                xEff.append(iBin)
-        xEff.append(w.var('mjj').getMax('Eff'))
-        h_numerator = rt.TH1D('numerator','numerator',len(xEff)-1,xEff)
-        h_denominator = rt.TH1D('denominator','denominator',len(xEff)-1,xEff)        
-        w.data('triggerData').fillHistogram(h_numerator,rt.RooArgList(w.var('mjj')),'cut==1')
-        w.data('triggerData').fillHistogram(h_denominator,rt.RooArgList(w.var('mjj')))
-        effGraph = rt.TGraphAsymmErrors(h_numerator,h_denominator)
-        
-        h_numerator_coarse = rt.TH1D('numerator_coarse','numerator_coarse',len(x)-1,x)
-        h_denominator_coarse = rt.TH1D('denominator_coarse','denominator_coarse',len(x)-1,x)        
-        w.data('triggerData').fillHistogram(h_numerator_coarse,rt.RooArgList(w.var('mjj')),'cut==1')
-        w.data('triggerData').fillHistogram(h_denominator_coarse,rt.RooArgList(w.var('mjj')))
-        effGraph_coarse = rt.TGraphAsymmErrors(h_numerator_coarse,h_denominator_coarse)
-        
-        histo = h_numerator.Clone('empty')
-        for i in range(1,histo.GetNbinsX()+1):
-            histo.SetBinContent(i,0)             
-            histo.SetBinError(i,0)                    
-        histo.Draw()
-        #histo.GetXaxis().SetRangeUser(w.var('mjj').getMin('Eff'),w.var('mjj').getMax('Eff'))
-        if options.l1Trigger:
-            histo.GetXaxis().SetRangeUser(w.var('mjj').getMin('Eff'),x[15])
-        else:            
-            #histo.GetXaxis().SetRangeUser(w.var('mjj').getMin('Eff'),x[7])
-	    histo.GetXaxis().SetRangeUser(w.var('mjj').getMin('Eff'),x[-1])
-        #histo.GetXaxis().SetRangeUser(w.var('mjj').getMin('Eff'),1000)
-        histo.SetMinimum(0.)
-        histo.SetMaximum(1.1)        
-        histo.GetYaxis().SetTitle('Efficiency')
-        histo.GetYaxis().SetTitleOffset(1)
-        histo.GetYaxis().SetTitleSize(0.07)
-        histo.GetYaxis().SetLabelSize(0.05)    
-        histo.SetLineColor(rt.kWhite)
-        histo.SetMarkerColor(rt.kWhite)
-        histo.SetLineWidth(0)
-        effGraph.SetMarkerStyle(20)
-        effGraph.SetMarkerSize(0.5)
-        effGraph.SetMarkerColor(rt.kBlack)
-        effGraph.SetLineColor(rt.kBlack)
-        effGraph.Draw('pezsame')
-    
-        effTF1 = w.function('effFunc').asTF(rt.RooArgList(w.var('mjj')))
-        if options.doTriggerFit or options.doSimultaneousFit:
-            effTF1.Draw("lsame")
-        elif w.var('eff_bin%02d'%(i-1))!=None:
-            h = histo.Clone('h_eff')
-            for i in range(1,histo.GetNbinsX()+1):
-                h.SetBinContent(i,w.var('eff_bin%02d'%(i-1)).getVal())
-            h.SetLineColor(rt.kRed)
-            h.SetLineWidth(2)
-            h.Draw("histsame")
-        effGraph.Draw('pezsame')
-
-        l = rt.TLatex()
-        l.SetTextAlign(11)
-        l.SetTextSize(0.045)
-        l.SetTextFont(42)
-        l.SetNDC()
-        #l.DrawLatex(0.7,0.96,"%i pb^{-1} (%i TeV)"%(lumi,w.var('sqrts').getVal()/1000.))
-        l.DrawLatex(0.73,0.96,"%.1f fb^{-1} (%i TeV)"%(lumi/1000.,w.var('sqrts').getVal()/1000.))     
-        # PAS        
-        #l.SetTextFont(62)
-        #l.SetTextSize(0.055)   
-        #l.DrawLatex(0.175,0.96,"CMS")
-        #l.SetTextFont(52)
-        #l.SetTextSize(0.045)
-        #l.DrawLatex(0.3,0.96,"Preliminary")
-        #paper
-        l.SetTextFont(62)
-        l.SetTextSize(0.065)   
-        l.DrawLatex(0.22,0.89,"CMS")
-        l.SetTextFont(52)
-        l.SetTextSize(0.045)
-        l.DrawLatex(0.32,0.89,"Preliminary")
-        
-        #leg = rt.TLegend(0.7,0.7,0.89,0.88)
-        leg = rt.TLegend(0.7,0.1,0.89,0.28)
-        leg.SetTextFont(42)
-        leg.SetFillColor(rt.kWhite)
-        leg.SetFillStyle(0)
-        leg.SetLineWidth(0)
-        leg.SetLineColor(rt.kWhite)
-        leg.AddEntry(effGraph,"Data","pe") #Not called
-        leg.AddEntry(effTF1,"{} Fit".format(fitfunc),"l")
-        leg.Draw()
-        
-        pave_param = rt.TPaveText(0.45,0.15,0.9,0.25,"NDC")
-        pave_param.SetTextFont(42)
-        pave_param.SetFillColor(0)
-        pave_param.SetBorderSize(0)
-        pave_param.SetFillStyle(0)
-        pave_param.SetTextAlign(11)
-        pave_param.SetTextSize(0.045)
-        if w.var('meff_%s'%box).getVal()>0 and w.var('seff_%s'%box).getVal()>0 and (options.doTriggerFit or options.doSimultaneousFit):
-            pave_param.AddText("m_{eff}"+" = {0:.2f} #pm {1:.2f}".format(w.var('meff_%s'%box).getVal(), (w.var('meff_%s'%box).getErrorHi() - w.var('meff_%s'%box).getErrorLo())/2.0))
-            pave_param.AddText("#sigma_{eff}"+" = {0:.2f} #pm {1:.2f}".format(w.var('seff_%s'%box).getVal(), (w.var('seff_%s'%box).getErrorHi() - w.var('seff_%s'%box).getErrorLo())/2.0))
-        elif w.var('eff_bin%02d'%(0)) != None:         
-            effValList = []
-            effErrHiList = []
-            effErrLoList = []
-            for i in range(0,len(x)-1):
-                if not w.var('eff_bin%02d'%(i)).isConstant():
-                    effValList.append(w.var('eff_bin%02d'%(i)).getVal())
-                    effErrHiList.append(w.var('eff_bin%02d'%(i)).getErrorHi())
-                    effErrLoList.append(w.var('eff_bin%02d'%(i)).getErrorLo())
-
-            valString = ",".join(["%.3f"%(effVal) for effVal in effValList])
-            errString = ",".join(["^{%+.1e}_{%+.1e}"%(effErrHi,effErrLo) for effErrHi,effErrLo in zip(effErrHiList,effErrLoList)])
-            pave_param.SetTextSize(0.025)
-            pave_param.AddText("#epsilon = %s"%valString)
-            pave_param.AddText("#delta#epsilon = %s"%errString)
-            
-        #pave_param.Draw("SAME")
-
-        pad_2.cd()
-        
-        h_eff = convertFunctionToHisto(effTF1,"h_background",len(x)-1,x)        
-        h_eff_residual_vs_mass = rt.TH1D("h_eff_residual_vs_mass","h_eff_residual_vs_mass",len(x)-1,x)
-        list_chi2AndNdf_background = calculateChi2AndFillResiduals(effGraph_coarse,h_eff,h_eff_residual_vs_mass,w,0,True)
-
-        if options.l1Trigger:
-            h_eff_residual_vs_mass.GetXaxis().SetRangeUser(w.var('mjj').getMin('Eff'),x[15])    
-        else:
-            #h_eff_residual_vs_mass.GetXaxis().SetRangeUser(w.var('mjj').getMin('Eff'),x[7])
-            h_eff_residual_vs_mass.GetXaxis().SetRangeUser(w.var('mjj').getMin('Eff'),x[-1])    
-        h_eff_residual_vs_mass.GetYaxis().SetRangeUser(-6.5,6.5)
-        h_eff_residual_vs_mass.GetYaxis().SetNdivisions(210,True)
-        h_eff_residual_vs_mass.SetLineWidth(1)
-        h_eff_residual_vs_mass.SetFillColor(rt.kRed)
-        h_eff_residual_vs_mass.SetLineColor(rt.kBlack)
-        
-        h_eff_residual_vs_mass.GetYaxis().SetTitleSize(2*0.06)
-        h_eff_residual_vs_mass.GetYaxis().SetLabelSize(2*0.05)
-        h_eff_residual_vs_mass.GetYaxis().SetTitleOffset(0.5)
-        h_eff_residual_vs_mass.GetYaxis().SetTitle('#frac{(Data-Fit)}{#sigma_{Data}}')
-        
-        h_eff_residual_vs_mass.GetXaxis().SetTitleSize(2*0.06)
-        h_eff_residual_vs_mass.GetXaxis().SetLabelSize(2*0.05)
-        #h_eff_residual_vs_mass.GetXaxis().SetTitle('m_{jj} [GeV]')
-        h_eff_residual_vs_mass.GetXaxis().SetTitle('Dijet mass [GeV]')
-        
-        h_eff_residual_vs_mass.Draw("histsame")
-    
-        d.Print(options.outDir+"/eff_mjj_%s_%s.pdf"%(fitRegion.replace(',','_'),box))
-        d.Print(options.outDir+"/eff_mjj_%s_%s.C"%(fitRegion.replace(',','_'),box))
-        tdirectory.cd()
-        d.Write()
-
-    background_pdf = w.pdf('%s_bkg_unbin'%box)
-    #print(background_pdf)
-    background= background_pdf.asTF(rt.RooArgList(w.var("mjj")),rt.RooArgList(w.var('p0_%s'%box)))
-    print("\n\nSTEVEN")
-    print(background)
-    int_b = background.Integral(w.var("mjj").getMin(),w.var("mjj").getMax())
-    # p0_b = w.var('Ntot_%s_bkg'%box).getVal()
-    print 'Ntot_%s_bkg'%box + " <<<<<<<<<"
-    print("int_b: {}".format(int_b))
-    #print("MANUALLY SETTING int_b")
-    #int_b = 1e-10
-    print("lumi: {}".format(lumi))
-    p0_b = w.var('Ntot_%s_bkg'%box).getVal() / (int_b * lumi)
-    # print("|===> expected bkg integral: ", w.var('Ntot_%s_bkg'%box).getVal())
-    background.SetParameter(0,p0_b)
-    
-    if options.doWriteFit:
-        fnbin = MakeNBinsFromMinToMax(14000, 0., 14000.)
-        hb = rt.TH1F("hb_finebin", ";Average Dijet Mass [GeV];Events", len(fnbin)-1, fnbin)
-        for j in range(1, hb.GetNbinsX()+1): hb.SetBinContent(j, background.Eval(hb.GetXaxis().GetBinCenter(j)))
-        fhb = rt.TFile(options.outDir + "/unbinnedfit_%s.root"%box, "recreate")
-        fhb.cd()
-        hb.Write()
+#    if options.doWriteFit:
+#        fnbin = MakeNBinsFromMinToMax(14000, 0., 14000.)
+#        hb = rt.TH1F("hb_finebin", ";Average Dijet Mass [GeV];Events", len(fnbin)-1, fnbin)
+#        for j in range(1, hb.GetNbinsX()+1): hb.SetBinContent(j, background.Eval(hb.GetXaxis().GetBinCenter(j)))
+#        fhb = rt.TFile(options.outDir + "/unbinnedfit_%s.root"%box, "recreate")
+#        fhb.cd()
+#        hb.Write()
     
     g_data = rt.TGraphAsymmErrors(myRebinnedTH1)
     
@@ -860,13 +474,9 @@ if __name__ == '__main__':
             L = rt.Math.gamma_quantile(alpha/2,N,1.)
         U = rt.Math.gamma_quantile_c(alpha/2,N+1,1)
 
-        #g_data.SetPointEYlow(i, (N-L))
-        #g_data.SetPointEYhigh(i, (U-N))
-        #g_data.SetPoint(i, g_data.GetX()[i], N)
         g_data.SetPointEYlow(i, (N-L)/(binWidth * lumi))
         g_data.SetPointEYhigh(i, (U-N)/(binWidth * lumi))
         g_data.SetPoint(i, g_data.GetX()[i], N/(binWidth * lumi))
-       
 
         plotRegions = plotRegion.split(',')
         checkInRegions = [g_data.GetX()[i]>w.var('mjj').getMin(reg) and g_data.GetX()[i]<w.var('mjj').getMax(reg) for reg in plotRegions]
@@ -878,6 +488,9 @@ if __name__ == '__main__':
     #h_background = convertFunctionToHisto(background,"h_background",len(x)-1,x)
     h_th1x.Scale(1.0/lumi)
     h_background = convertToMjjHist(h_th1x,x)
+    print("\n\n")
+    print(h_background.Integral())
+    print("\n\n")
     h_fit_residual_vs_mass = rt.TH1D("h_fit_residual_vs_mass","h_fit_residual_vs_mass",len(x)-1,x)
     list_chi2AndNdf_background = calculateChi2AndFillResiduals(g_data,h_background,h_fit_residual_vs_mass,w,0)
 
@@ -887,18 +500,157 @@ if __name__ == '__main__':
     g_data_clone = g_data.Clone('g_data_clone')
     g_data_clone.SetMarkerSize(0)
 
+#############################################
+    myleg = rt.TLegend(0.65,0.75,0.89,0.89)
+    myleg.SetBorderSize(0)
+    myleg.SetTextFont(42)
+    myleg.SetTextSize(0.065)
+    myleg.SetFillColor(rt.kWhite)
+    myleg.SetFillStyle(0)
+    myleg.SetLineWidth(0)
+    myleg.SetLineColor(rt.kWhite)
+
+    myRealTH1.SetTitle("{} Fit".format(fitfunc))
+    h_th1x.SetTitle("{} Fit".format(fitfunc))
+    myRealTH1.GetYaxis().SetTitleOffset(1)
+    myRealTH1.GetYaxis().SetTitleSize(0.07)
+    myRealTH1.GetYaxis().SetLabelSize(0.05)
+    myRealTH1.GetXaxis().SetLabelOffset(1000)
+    myRealTH1.GetXaxis().SetTitle("Diphoton Mass Bin #")
+    myRealTH1.GetYaxis().SetTitle("Unscaled Entries")
+
+    myRealTH1.SetMarkerColor(rt.kBlack)
+    myRealTH1.SetMarkerStyle(8)
+    myleg.AddEntry(myRealTH1, "Data")
+
+    myRealTH1.Scale(1,"width")
+    h_th1x.Scale(1,"width")
+
+    h_th1x.SetLineColor(rt.kRed)
+    h_th1x.SetLineWidth(2)
+    h_th1x.Scale(lumi)
+    myleg.AddEntry(h_th1x, "{} Fit".format(fitfunc))
+
+    pullplot = myRealTH1.Clone()
+    pullplot.Add(h_th1x, -1)
+
+    for i in range(pullplot.GetNbinsX()):
+      if not myRealTH1.GetBinContent(i+1) == 0:
+        pullplot.SetBinContent(i+1, pullplot.GetBinContent(i+1)/myRealTH1.GetBinError(i+1))
+        pullplot.SetBinError(i+1, 1)
+      else:
+        pullplot.SetBinContent(i+1, 0)
+        pullplot.SetBinError(i+1, 0)
+
+    ccc=rt.TCanvas("ctemp","ctemp",600,700)
+    ccc.Divide(1,2,0,0,0)
     
-    #myRebinnedTH1.SetLineColor(rt.kWhite)
-    #myRebinnedTH1.SetMarkerSize(0)
+    pd_1 = ccc.GetPad(1)
+    pd_1.SetPad(0.01,0.37,0.99,0.98)
+    pd_1.SetRightMargin(0.05)
+    pd_1.SetTopMargin(0.05)
+    pd_1.SetLeftMargin(0.175)
+    pd_1.SetFillColor(0)
+    pd_1.SetBorderMode(0)
+    pd_1.SetFrameFillStyle(0)
+    pd_1.SetFrameBorderMode(0)
+    
+    pd_2 = ccc.GetPad(2)
+    pd_2.SetLeftMargin(0.175)#0.175
+    pd_2.SetPad(0.01,0.02,0.99,0.37)#0.37
+    pd_2.SetBottomMargin(0.35)
+    pd_2.SetRightMargin(0.05)
+    pd_2.SetGridx()
+    pd_2.SetGridy()
+
+###################################################################3
+#Drawing on pad1
+
+    pd_1.cd()
+    myRealTH1.Draw("e0")
+    h_th1x.Draw("L histsame")
+    myleg.Draw("same")
+    pd_1.SetLogy()
+
+    l = rt.TLatex()
+    l.SetTextAlign(11)
+    l.SetTextSize(0.045)
+    l.SetTextFont(42)
+    l.SetNDC()
+    #l.DrawLatex(0.7,0.96,"%i pb^{-1} (%i TeV)"%(lumi,w.var('sqrts').getVal()/1000.))
+    #l.DrawLatex(0.72,0.96,"%.1f fb^{-1} (%i TeV)"%(lumi/1000.,w.var('sqrts').getVal()/1000.))
+    l.DrawLatex(0.72,0.96,"%.1f fb^{-1} (%i TeV)"%(lumi,w.var('sqrts').getVal()/1000.))
+    # PAS
+    #l.SetTextFont(62)
+    #l.SetTextSize(0.055)   
+    #l.DrawLatex(0.2,0.96,"CMS")
+    #l.SetTextFont(52)
+    #l.SetTextSize(0.045)
+    #l.DrawLatex(0.3,0.96,"Preliminary")
+    # paper
+    l.SetTextFont(62)
+    l.SetTextSize(0.065)
+    l.DrawLatex(0.22,0.89,"CMS")
+    l.SetTextFont(52)
+    l.SetTextSize(0.045)
+    l.DrawLatex(0.32,0.89,"Preliminary")
+
+    pave_sel = rt.TPaveText(0.58,0.53,0.75,0.73,"NDC")
+    pave_sel.SetFillColor(0)
+    pave_sel.SetBorderSize(0)
+    pave_sel.SetFillStyle(0)
+    pave_sel.SetTextFont(42)
+    pave_sel.SetTextSize(0.045)
+    pave_sel.SetTextAlign(11)
+    pave_sel.AddText("#chi^{{2}} / ndf = {0:.2f} / {1:d} = {2:.2f}".format(
+                          list_chi2AndNdf_background[4], list_chi2AndNdf_background[5],
+                          list_chi2AndNdf_background[4]/list_chi2AndNdf_background[5]))
+    pave_sel.AddText("Prob. = {0:.2f}".format(rt.TMath.Prob(list_chi2AndNdf_background[4], list_chi2AndNdf_background[5])))
+    #pave_sel.AddText(options.CUTSTRING)
+    pave_sel.Draw("SAME")
+    pd_1.Update()
+
+    
+############################################################
+#Drawing on pad2 (residuals)
+    pd_2.cd()
+    pullplot.GetYaxis().SetRangeUser(-3.5,3.5)
+    pullplot.GetYaxis().SetNdivisions(210,True)
+    pullplot.SetLineWidth(1)
+    pullplot.SetFillColor(rt.kRed)
+    pullplot.SetLineColor(rt.kBlack)
+    
+    pullplot.GetYaxis().SetTitleSize(2*0.06)
+    pullplot.GetYaxis().SetLabelSize(2*0.05)
+    # PAS
+    #pullplot.GetYaxis().SetTitleOffset(0.5)
+    #pullplot.GetYaxis().SetTitle('#frac{(Data-Fit)}{#sigma_{Data}}')
+    # paper
+    pullplot.GetYaxis().SetTitleOffset(0.6)
+    pullplot.GetYaxis().SetTitle('#frac{(Data-Fit)}{Uncertainty}')
+        
+    pullplot.GetXaxis().SetTitleSize(2*0.06)
+    pullplot.GetXaxis().SetLabelSize(2*0.05)
+    pullplot.GetXaxis().SetTitle('Diphoton Mass Bin #')
+    pullplot.GetXaxis().SetLabelOffset(0.03)
+    pullplot.GetXaxis().SetNoExponent()
+    pullplot.GetXaxis().SetMoreLogLabels()    
+    #pullplot.GetXaxis().SetNdivisions(999)
+    
+    pullplot.Draw("histsame")
+
+    ccc.Print("crudeFitPlot_{}.png".format(box))
+#############################################
+    
 
     # to remove dot at 0 (make it too high)
     for i in range (0,g_data.GetN()):
         if g_data.GetY()[i]==0:
             g_data.SetPoint(i,g_data.GetX()[i], 99999)
                    
-    c.Divide(1,2,0,0,0)
+    canv.Divide(1,2,0,0,0)
     
-    pad_1 = c.GetPad(1)
+    pad_1 = canv.GetPad(1)
     #PAS
     #pad_1.SetPad(0.01,0.36,0.99,0.98)
     #paper 
@@ -914,7 +666,7 @@ if __name__ == '__main__':
     pad_1.SetFrameFillStyle(0)
     pad_1.SetFrameBorderMode(0)
     
-    pad_2 = c.GetPad(2)
+    pad_2 = canv.GetPad(2)
     pad_2.SetLeftMargin(0.175)#0.175
     pad_2.SetPad(0.01,0.02,0.99,0.37)#0.37
     pad_2.SetBottomMargin(0.35)
@@ -951,57 +703,20 @@ if __name__ == '__main__':
     myRebinnedDensityTH1.SetMarkerColor(rt.kWhite)
     myRebinnedDensityTH1.SetLineWidth(0)    
     #Plot mins and maxes
-    myRebinnedDensityTH1.SetMaximum(8e-2)#20
-    #myRebinnedDensityTH1.SetMinimum(5e-6)#2e-8
-    myRebinnedDensityTH1.SetMinimum(2e-7)#2e-8
+    myRebinnedDensityTH1.SetMaximum(20)#20
+    myRebinnedDensityTH1.SetMinimum(5e-4)#2e-8
     myRebinnedDensityTH1.Draw("axis")
     
     if options.doTriggerFit or options.doSimultaneousFit or options.doSpectrumFit or options.noFit:
+        #This is the one I'm drawing
         background.Draw("csame")
+        #background.Draw("c")
+
     else:
-        h_background.SetLineColor(rt.kRed)
+        h_background.SetLineColor(rt.kRed) #Tried
         h_background.SetLineWidth(2)
         h_background.Draw("histsame")
 
-
-    g_signals = []
-    for model, mass, xsec, signalFileName, sigHist, color, style in zip(models,masses,xsecs,signalFileNames,signalHistosRebin,colors,styles):        
-        g_signal = rt.TGraphAsymmErrors(sigHist)
-        g_signal.SetLineColor(color)
-        g_signal.SetLineStyle(style)
-        g_signal.SetLineWidth(3)
-
-        lastX = 0
-        lastY = 0
-        firstX = 0
-        firstY = 0
-        notSet = True
-        for i in range(0,g_signal.GetN()): 
-            N = g_signal.GetY()[i]
-            binWidth = g_signal.GetEXlow()[i] + g_signal.GetEXhigh()[i]      
-            if g_signal.GetX()[i]>float(mass)*0.2 and notSet:   #was 0.75 edw signal             
-                firstX = g_signal.GetX()[i]
-                firstY = N/(binWidth * lumi)
-                notSet = False
-            
-        for i in range(0,g_signal.GetN()):
-            N = g_signal.GetY()[i]
-            binWidth = g_signal.GetEXlow()[i] + g_signal.GetEXhigh()[i]            
-            if g_signal.GetX()[i]<=float(mass)*0.2: #was 0.75 edw signal
-                g_signal.SetPoint(i,firstX,firstY)
-            else:
-                g_signal.SetPoint(i, g_signal.GetX()[i], N/(binWidth * lumi))
-            g_signal.SetPointEYlow(i, 0)
-            g_signal.SetPointEYhigh(i, 0)            
-            if g_signal.GetX()[i]>float(mass)*1.8:  #was 1.25 edw signal
-                g_signal.SetPoint(i,lastX,lastY)
-            else:                
-                lastX = g_signal.GetX()[i]
-                lastY = g_signal.GetY()[i]
-        g_signals.append(g_signal)
-        g_signal.Draw("cxsame")
-
-    
     rt.gPad.SetLogy()
     
     l = rt.TLatex()
@@ -1010,7 +725,8 @@ if __name__ == '__main__':
     l.SetTextFont(42)
     l.SetNDC()
     #l.DrawLatex(0.7,0.96,"%i pb^{-1} (%i TeV)"%(lumi,w.var('sqrts').getVal()/1000.))
-    l.DrawLatex(0.72,0.96,"%.1f fb^{-1} (%i TeV)"%(lumi/1000.,w.var('sqrts').getVal()/1000.))
+    #l.DrawLatex(0.72,0.96,"%.1f fb^{-1} (%i TeV)"%(lumi/1000.,w.var('sqrts').getVal()/1000.))
+    l.DrawLatex(0.72,0.96,"%.1f fb^{-1} (%i TeV)"%(lumi,w.var('sqrts').getVal()/1000.))
     # PAS
     #l.SetTextFont(62)
     #l.SetTextSize(0.055)   
@@ -1040,15 +756,6 @@ if __name__ == '__main__':
     leg.SetLineColor(rt.kWhite)
     leg.AddEntry(g_data,"Data","pe")
     leg.AddEntry(background,"{} Fit".format(fitfunc),"l")
-    for model, mass, xsec, signalFileName, g_signal in zip(models,masses,xsecs,signalFileNames, g_signals):
-        if 'PF' in box:
-            leg.AddEntry(g_signal,"%s (%.1f TeV)"%(model,float(mass)/1000.),"l")
-        elif 'Calo' in box:
-            if w.var('mjj').getMax() > 1246:
-                leg.AddEntry(g_signal,"%s (%.1f TeV)"%(model,float(mass)/1000.),"l")
-            else:    
-                leg.AddEntry(g_signal,"%s (%.2f TeV)"%(model,float(mass)/1000.),"l")   
-            #leg.AddEntry(None,"%.1f pb"%(float(xsec)),"")         
     leg.Draw()
     #background.Draw("csame")
     #g_data.Draw("pezsame")
@@ -1112,74 +819,21 @@ if __name__ == '__main__':
     #pave_param.Draw("SAME")
     
     if options.doTriggerFit or options.doSimultaneousFit or options.doSpectrumFit or options.noFit:
+        #Drawing this for power function
+        #background.SetLineColor(rt.kGreen)
+        print("Drawing \'background\'")
         background.Draw("csame")
     else:
-        h_background.SetLineColor(rt.kRed)
+        print("Drawing \'h_background\'")
+        h_background.SetLineColor(rt.kRed) #Tried
         h_background.SetLineWidth(2)
         h_background.Draw("histsame")
+    #Drawing this for power function
     g_data_clone.Draw("zpsame")
     g_data.Draw("zpsame")
-
-
-    
-    if 'PF' in box:
-        # paper
-        myRebinnedDensityTH1.GetYaxis().SetTitle('d#sigma/dm_{jj} [pb/TeV]')
-        # PAS
-        #myRebinnedDensityTH1.GetYaxis().SetTitle('d#sigma / dm_{jj} [pb / TeV]')
-        myRebinnedDensityTH1.GetYaxis().SetLabelOffset(1000)
-        yLab = rt.TLatex()
-        yLab.SetTextAlign(32)
-        yLab.SetTextSize(0.05)
-        yLab.SetTextFont(42)
-        xM = 0.
-        yLab.DrawLatex(xM, 100, "10^{5}")
-        yLab.DrawLatex(xM, 10, "10^{4}")
-        yLab.DrawLatex(xM, 1, "10^{3}")
-        yLab.DrawLatex(xM, 0.1, "10^{2}")
-        yLab.DrawLatex(xM, 0.01, "10")
-        yLab.DrawLatex(xM, 0.001, "1")
-        yLab.DrawLatex(xM, 0.0001, "10^{#minus1}")
-        yLab.DrawLatex(xM, 0.00001, "10^{#minus2}")
-        yLab.DrawLatex(xM, 0.000001, "10^{#minus3}")
-        yLab.DrawLatex(xM, 0.0000001, "10^{#minus4}")
-        yLab.DrawLatex(xM, 0.00000001, "10^{#minus5}")
-	yLab.DrawLatex(xM, 0.000000001, "10^{#minus6}")
-	yLab.DrawLatex(xM, 0.0000000001, "10^{#minus7}")
-
-        
-        f_h2_log10_x_axis = rt.TF1("f_h2_log10_x_axis", "log10(x)", myRebinnedDensityTH1.GetXaxis().GetXmin(), myRebinnedDensityTH1.GetXaxis().GetXmax())
-        b = rt.TGaxis(myRebinnedDensityTH1.GetXaxis().GetXmin(), 2e-8,
-                      myRebinnedDensityTH1.GetXaxis().GetXmax(), 2e-8, "f_h2_log10_x_axis", 509, "BS", 0.0)
-        b.SetTickSize(myRebinnedDensityTH1.GetTickLength("X"))
-        b.SetMoreLogLabels()
-        b.SetLabelOffset(1000)
-        b.Draw()
-        
-        rt.gPad.Modified()
-        rt.gPad.Update()
-             
-    if 'Calo' in box:
-        # paper
-        myRebinnedDensityTH1.GetYaxis().SetTitle('d#sigma/dm_{jj} [pb/TeV]')
-        # PAS
-        #myRebinnedDensityTH1.GetYaxis().SetTitle('d#sigma / dm_{jj} [pb / TeV]')
-        myRebinnedDensityTH1.GetYaxis().SetLabelOffset(1000)
-        yLab = rt.TLatex()
-        yLab.SetTextAlign(32)
-        yLab.SetTextSize(0.05)
-        yLab.SetTextFont(42)
-        xM = 434
-        yLab.DrawLatex(xM, 1000, "10^{6}")
-        yLab.DrawLatex(xM, 100, "10^{5}")
-        yLab.DrawLatex(xM, 10, "10^{4}")
-        yLab.DrawLatex(xM, 1, "10^{3}")
-        yLab.DrawLatex(xM, 0.1, "10^{2}")
-        yLab.DrawLatex(xM, 0.01, "10")
-        yLab.DrawLatex(xM, 0.001, "1")
-        yLab.DrawLatex(xM, 0.0001, "10^{#minus1}")
-
-
+    #h_background.SetLineColor(rt.kRed) 
+    #h_background.SetLineWidth(2)
+    #h_background.Draw("histsame")
         
     pad_1.Update()
 
@@ -1210,6 +864,8 @@ if __name__ == '__main__':
     # paper
     h_fit_residual_vs_mass.GetXaxis().SetTitle('Average diphoton mass [TeV]')
 
+    
+    #h_fit_residual_vs_mass.SetLineColor(rt.kGreen)
     h_fit_residual_vs_mass.Draw("histsame")
     
     if 'PF' in box or w.var('mjj').getMax() > 1246:        
@@ -1217,7 +873,7 @@ if __name__ == '__main__':
         #h_fit_residual_vs_mass.GetXaxis().SetTitle('Dijet Mass [TeV]')
         # paper
 #       h_fit_residual_vs_mass.GetXaxis().SetTitle('Dijet mass [TeV]')
-	h_fit_residual_vs_mass.GetXaxis().SetTitle('Average Dijet Mass [TeV]')
+	#h_fit_residual_vs_mass.GetXaxis().SetTitle('Average Dijet Mass [TeV]')
         h_fit_residual_vs_mass.GetXaxis().SetLabelOffset(1000)
         h_fit_residual_vs_mass.GetXaxis().SetNoExponent()
         h_fit_residual_vs_mass.GetXaxis().SetMoreLogLabels()    
@@ -1254,119 +910,13 @@ if __name__ == '__main__':
         rt.gPad.Modified()
         rt.gPad.Update()
     
-    if 'Calo' in box:
-        # PAS
-        #h_fit_residual_vs_mass.GetXaxis().SetTitle('Dijet Mass [TeV]')
-        # paper
-        h_fit_residual_vs_mass.GetXaxis().SetTitle('Dijet mass [TeV]')
-        h_fit_residual_vs_mass.GetXaxis().SetLabelOffset(1000)
-        #h_fit_residual_vs_mass.GetXaxis().SetNoExponent()
-        #h_fit_residual_vs_mass.GetXaxis().SetMoreLogLabels()    
-        xLab = rt.TLatex()
-        xLab.SetTextAlign(22)
-        xLab.SetTextFont(42)
-        xLab.SetTextSize(2*0.05)
-        xLab.DrawLatex(600, -4, "0.6")
-        xLab.DrawLatex(800, -4, "0.8")
-        xLab.DrawLatex(1000, -4, "1")
-        xLab.DrawLatex(1200, -4, "1.2")
-        xLab.DrawLatex(1400, -4, "1.4")
-        xLab.DrawLatex(1600, -4, "1.6")
-        xLab.DrawLatex(1800, -4, "1.8")
-        xLab.DrawLatex(2000, -4, "2")
-
-    sigHistResiduals = []
-    g_signal_residuals = []
-    for model, mass, xsec, signalFileName, sigHist, color, style in zip(models,masses,xsecs,signalFileNames,signalHistosRebin,colors,styles):        
-        sigHistResidual = sigHist.Clone(sigHist.GetName()+"_residual")
-        sigHistResidual.SetLineColor(color)
-        sigHistResidual.SetLineWidth(2)
-        sigHistResidual.SetLineStyle(style)
-        for bin in range (0,g_data.GetN()):
-            value_data = g_data.GetY()[bin]
-            err_tot_data = g_data.GetEYhigh()[bin]
-            binWidth = g_data.GetEXlow()[i] + g_data.GetEXhigh()[i]
-            value_signal = sigHist.GetBinContent(bin+1)/(binWidth*lumi)
-        
-            ## Signal residuals
-            if err_tot_data>0:                
-                sig_residual = (value_signal) / err_tot_data
-            else:
-                sig_residual = 0                                
-    
-            ## Fill histo with residuals
-            sigHistResidual.SetBinContent(bin+1,sig_residual)
-        sigHistResiduals.append(sigHistResidual)
-        #sigHistResidual.Draw("histsame")
-        g_signal_residual = rt.TGraphAsymmErrors(sigHistResidual)
-        g_signal_residual.SetLineColor(color)
-        g_signal_residual.SetLineWidth(3)
-        g_signal_residual.SetLineStyle(style)
-
-        lastX = 0
-        lastY = 0
-        firstX = 0
-        firstY = 0
-        notSet = True
-        for i in range(0,g_signal_residual.GetN()): 
-            N = g_signal_residual.GetY()[i]
-            binWidth = g_signal_residual.GetEXlow()[i] + g_signal_residual.GetEXhigh()[i]      
-            if g_signal_residual.GetX()[i]>float(mass)*0.2 and notSet:  #edw signal              
-                firstX = g_signal_residual.GetX()[i]
-                firstY = N
-                notSet = False
-            
-        for i in range(0,g_signal_residual.GetN()):
-            N = g_signal_residual.GetY()[i]
-            binWidth = g_signal_residual.GetEXlow()[i] + g_signal_residual.GetEXhigh()[i]            
-            if g_signal_residual.GetX()[i]<=float(mass)*0.2:  #edw signal
-                g_signal_residual.SetPoint(i,firstX,firstY)
-            else:
-                g_signal_residual.SetPoint(i, g_signal_residual.GetX()[i], N)
-            g_signal_residual.SetPointEYlow(i, 0)
-            g_signal_residual.SetPointEYhigh(i, 0)            
-            if g_signal_residual.GetX()[i]>float(mass)*1.8:  #edw signal
-                g_signal_residual.SetPoint(i,lastX,lastY)
-            else:                
-                lastX = g_signal_residual.GetX()[i]
-                lastY = g_signal_residual.GetY()[i]
-        g_signal_residuals.append(g_signal_residual)
-        g_signal_residual.Draw("cxsame")
-
-        
-    #c.RedrawAxis() # request from David
-
-    #Plot 1D distribution of pulls
-    #c_pulls_distribution = rt.TCanvas()
-    #c_pulls_distribution.cd()
-    #rt.gStyle.SetOptStat(1)
-    #h_pulls_distribution = rt.TH1D("h_pulls_distribution","", 28,-3.5,3.5)
-    #for i in range(1,h_fit_residual_vs_mass.GetNbinsX()+1):
-    #	if (h_fit_residual_vs_mass.GetBinContent(i)>0 or h_fit_residual_vs_mass.GetBinContent(i)<-0.001):
-    #	pull_value = h_fit_residual_vs_mass.GetBinContent(i)
-    #	h_pulls_distribution.Fill(pull_value)
-    #h_pulls_distribution.GetYaxis().SetTitle("Entries")
-    #h_pulls_distribution.GetXaxis().SetTitle("Pulls")
-    #h_pulls_distribution.SetMarkerStyle(8)
-    #h_pulls_distribution.SetMarkerColor(rt.kBlue)
-    #h_pulls_distribution.SetMarkerSize(0.5)
-    #h_pulls_distribution.Draw()
-    #h_pulls_distribution.Fit('gaus')
-    #rt.gStyle.SetOptFit(1111)
-    #rt.gStyle.SetOptStat(0)
-
-    #c_pulls_distribution.Print(options.outDir+"/Pulls_mjj_%s_%s.png"%(fitRegion.replace(',','_'),box))
-    c.Print(options.outDir+"/fit_mjj_%s_%s_%s.png"%(fitRegion.replace(',','_'),box,year))
-    c.Print(options.outDir+"/fit_mjj_%s_%s_%s.C"%(fitRegion.replace(',','_'),box,year))
-    #c.Print(options.outDir+"/SB_fit_mjj_%s_%s.png"%(fitRegion.replace(',','_'),box))	#for sb fit
-    #c.Print(options.outDir+"/SB_fit_mjj_%s_%s.C"%(fitRegion.replace(',','_'),box))
+    canv.Print(options.outDir+"/fit_mjj_%s_%s_%s.png"%(fitRegion.replace(',','_'),box,year))
+    canv.Print(options.outDir+"/fit_mjj_%s_%s_%s.C"%(fitRegion.replace(',','_'),box,year))
     tdirectory.cd()
-    c.Write()
-    #c_pulls_distribution.Write()
+    canv.Write()
 
-    outFileName = "DijetFitResults_%s_%s.root"%(box,year)
-    #outFileName = "DijetFitResults_sb_%s.root"%(box)	#for sb fit
-    outFile = rt.TFile(options.outDir+"/"+outFileName,'recreate')
-    outFile.cd()
-    w.Write()
-    outFile.Close()
+    #outFileName = "DijetFitResults_%s_%s.root"%(box,year)
+    #outFile = rt.TFile(options.outDir+"/"+outFileName,'recreate')
+    #outFile.cd()
+    #w.Write()
+    #outFile.Close()

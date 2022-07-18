@@ -25,13 +25,16 @@ def Treemaker(folder, Dataset, isData, year):
   oF.Close()
   tree = "flattener/tree"
   Chain = TChain(tree)
+  #fcount=0
   for path, subdirs, files in os.walk(folder):
     for name in files:
       File = os.path.join(path, name)
       if (File.endswith(".root") and "flat" in File):
         if(os.path.getsize(File) > 100):
+          #if(fcount < 3): #For testing
             print os.path.join(path, name)
             Chain.Add(File)
+            #fcount += 1
 
   # File dependent setup:
   if isData:
