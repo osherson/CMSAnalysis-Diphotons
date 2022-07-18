@@ -5,12 +5,15 @@ import os
 import numpy
 import sys
 
+gROOT.SetBatch()
+
 year = sys.argv[1]
 
 LUMI = {}
 LUMI["2016"] = 3.59
 LUMI["2017"] = 4.15
 LUMI["2018"] = 5.99
+LUMI["RunII"] = sum([LUMI[yy] for yy in LUMI.keys()])
 
 def GetTH(fN):
 	
@@ -99,98 +102,113 @@ def makeAFillGraph(listx,listy1,listy2,linecolor, fillcolor, fillstyle):
 
 	return gr
 
+combine_dir = "combineOutput/{}/".format(year)
+alphas = []
+flist = []
+for ff in os.listdir(combine_dir):
+  this_x = int(ff[1:ff.find("A")])
+  this_phi = float(ff[ff.find("A")+1 : ff.find(".root")].replace("p","."))
+  this_alpha = this_phi / float(this_x)
+  alphas.append(this_alpha)
+  flist.append([this_x, this_alpha, os.path.join(combine_dir, ff)])
 
-x = []
-obs = []
-exp = []
-p1 = []
-m1 = []
-p2 = []
-m2 = []
+alphas = set(alphas)
+nflist = numpy.array( [ numpy.array(xi) for xi in flist ] ) #Convert to np array for later selection
 
-xmlist = numpy.linspace(250,3000,(3000-250)//10 + 1)
-xmlist = [int(xx) for xx in xmlist]
+ct = 0
+for alpha in alphas:
+  ct += 1
+  #if (ct > 1) : break
+  print("\nGetting limits for alpha = {}".format(alpha))
+  x = []
+  obs = []
+  exp = []
+  p1 = []
+  m1 = []
+  p2 = []
+  m2 = []
 
-xmlist_have = []
-for xx in xmlist:
-  if(os.path.exists("combineOutput/{}/X{}.root".format(year,xx))):
-    xmlist_have.append(xx)
+  useflist = nflist[ nflist[:,1]==str(alpha) ] #select alpha
+  useflist = [ (int(xx), float(aa), str(ff)) for (xx,aa,ff) in useflist ] #Convert back to python list, convert x, alpha to int, float
+  useflist.sort(key=lambda row: row[0]) #sort by xmass
 
-#for m in ['300', '400', '500', '600', '750', '1000', '1500', '2000', '3000']:
-for m in xmlist_have:
-  F = TFile('combineOutput/{}/X{}.root'.format(year,m))
-  try:
-    T = F.Get("limit")
-    n = T.GetEntries()
-  except AttributeError:
-    print("Trouble with {}, Skipping.".format(F.GetName()))
-    continue
-  if n == 6:
-    x.append(float(m))
-    T.GetEntry(5)
-    obs.append(T.limit)
-    T.GetEntry(0)
-    m2.append(T.limit)
-    T.GetEntry(1)
-    m1.append(T.limit)
-    T.GetEntry(2)
-    exp.append(T.limit)
-    T.GetEntry(3)
-    p1.append(T.limit)
-    T.GetEntry(4)
-    p2.append(T.limit)
+  for [xx,aa,ff] in useflist:
+    if(aa != alpha): continue
 
-#LimitPlot = TH2F("LP", ";Four-Photon Resonance Mass (GeV);(pp #rightarrow X #rightarrow #phi#phi #rightarrow (#gamma#gamma)(#gamma#gamma)) #sigma #times B (fb)", 100, 300, 3000, 100, 0.005, 50.)
-LimitPlot = TH2F("LP", ";Four-Photon Resonance Mass (GeV);(pp #rightarrow X #rightarrow #phi#phi #rightarrow (#gamma#gamma)(#gamma#gamma)) #sigma #times B (fb)", 100, 300, 2000, 100, 0.5, 50.)
-LimitPlot.SetStats(0)
+    #F = TFile('combineOutput/{}/X{}.root'.format(year,m))
+    F = TFile(ff)
+    try:
+      T = F.Get("limit")
+      n = T.GetEntries()
+    except AttributeError:
+      print("Trouble with {}, Skipping.".format(F.GetName()))
+      continue
+    if n == 6:
+      x.append(float(xx))
+      T.GetEntry(5)
+      obs.append(T.limit)
+      T.GetEntry(0)
+      m2.append(T.limit)
+      T.GetEntry(1)
+      m1.append(T.limit)
+      T.GetEntry(2)
+      exp.append(T.limit)
+      T.GetEntry(3)
+      p1.append(T.limit)
+      T.GetEntry(4)
+      p2.append(T.limit)
 
-LimitPlot.GetXaxis().SetMoreLogLabels(ROOT.kTRUE)
+  #LimitPlot = TH2F("LP", ";Four-Photon Resonance Mass (GeV);(pp #rightarrow X #rightarrow #phi#phi #rightarrow (#gamma#gamma)(#gamma#gamma)) #sigma #times B (fb)", 100, 300, 3000, 100, 0.005, 50.)
+  LimitPlot = TH2F("LP", ";Four-Photon Resonance Mass (GeV);(pp #rightarrow X #rightarrow #phi#phi #rightarrow (#gamma#gamma)(#gamma#gamma)) #sigma #times B (fb)", 100, 300, 2000, 100, 0.5, 50.)
+  LimitPlot.SetStats(0)
 
-TH1 = GetTH(1)
-TH3 = GetTH(3)
-TH9 = GetTH(9)
+  LimitPlot.GetXaxis().SetMoreLogLabels(ROOT.kTRUE)
 
-Obs = TGraph(len(x), numpy.array(x), numpy.array(obs))
-Exp = TGraph(len(x), numpy.array(x), numpy.array(exp))
-Exp.SetLineStyle(2)
-TH1.SetLineStyle(4)
-TH1.SetLineColor(kBlue)
-TH3.SetLineStyle(5)
-TH3.SetLineColor(kBlue)
-TH9.SetLineStyle(6)
-TH9.SetLineColor(kBlue)
-Obs.SetLineColor(kBlack)
-Obs.SetMarkerStyle(20)
-Obs.SetMarkerSize(0.6666)
-Onesig = makeAFillGraph(x,m1,p1,kGreen,kGreen, 1001)
-Twosig = makeAFillGraph(x,m2,p2,kYellow,kYellow, 1001)
+  TH1 = GetTH(1)
+  TH3 = GetTH(3)
+  TH9 = GetTH(9)
 
-L = TLegend(0.52,0.52,0.89,0.89)
-L.SetLineColor(0)
-L.SetFillColor(0)
-L.SetHeader("95% CL Limits")
-L.AddEntry(Obs, "observed", "PL")
-L.AddEntry(Exp, "expected", "PL")
-L.AddEntry(Onesig, "expected #pm 1#sigma", "F")
-L.AddEntry(Twosig, "expected #pm 2#sigma", "F")
-L.AddEntry(TH1, "X #rightarrow #phi#phi #rightarrow (#gamma#gamma)(#gamma#gamma) [f/N = 1]", "L")
-L.AddEntry(TH3, "X #rightarrow #phi#phi #rightarrow (#gamma#gamma)(#gamma#gamma) [f/N = 3]", "L")
-L.AddEntry(TH9, "X #rightarrow #phi#phi #rightarrow (#gamma#gamma)(#gamma#gamma) [f/N = 9]", "L")
+  Obs = TGraph(len(x), numpy.array(x), numpy.array(obs))
+  Exp = TGraph(len(x), numpy.array(x), numpy.array(exp))
+  Exp.SetLineStyle(2)
+  TH1.SetLineStyle(4)
+  TH1.SetLineColor(kBlue)
+  TH3.SetLineStyle(5)
+  TH3.SetLineColor(kBlue)
+  TH9.SetLineStyle(6)
+  TH9.SetLineColor(kBlue)
+  Obs.SetLineColor(kBlack)
+  Obs.SetMarkerStyle(20)
+  Obs.SetMarkerSize(0.6666)
+  Onesig = makeAFillGraph(x,m1,p1,kGreen,kGreen, 1001)
+  Twosig = makeAFillGraph(x,m2,p2,kYellow,kYellow, 1001)
 
-C = TCanvas()
-C.cd()
-C.SetLogy()
-C.SetLogx()
-LimitPlot.Draw()
-Twosig.Draw("Fsames")
-Onesig.Draw("Fsames")
-TH1.Draw("Lsame")
-TH3.Draw("Lsame")
-TH9.Draw("Lsame")
-Exp.Draw("Lsame")
-Obs.Draw("LPsame")
-L.Draw("same")
-AddCMSLumi(gPad, str(LUMI[year]), "Preliminary")
-savename="combineOutput/LimitPlots/Lim_{}.png".format(year)
-print("Saving plot as: {}".format(savename))
-C.Print(savename)
+  L = TLegend(0.52,0.52,0.89,0.89)
+  L.SetLineColor(0)
+  L.SetFillColor(0)
+  L.SetHeader("95% CL Limits")
+  L.AddEntry(Obs, "observed", "PL")
+  L.AddEntry(Exp, "expected", "PL")
+  L.AddEntry(Onesig, "expected #pm 1#sigma", "F")
+  L.AddEntry(Twosig, "expected #pm 2#sigma", "F")
+  L.AddEntry(TH1, "X #rightarrow #phi#phi #rightarrow (#gamma#gamma)(#gamma#gamma) [f/N = 1]", "L")
+  L.AddEntry(TH3, "X #rightarrow #phi#phi #rightarrow (#gamma#gamma)(#gamma#gamma) [f/N = 3]", "L")
+  L.AddEntry(TH9, "X #rightarrow #phi#phi #rightarrow (#gamma#gamma)(#gamma#gamma) [f/N = 9]", "L")
+
+  C = TCanvas()
+  C.cd()
+  C.SetLogy()
+  C.SetLogx()
+  LimitPlot.Draw()
+  Twosig.Draw("Fsames")
+  Onesig.Draw("Fsames")
+  TH1.Draw("Lsame")
+  TH3.Draw("Lsame")
+  TH9.Draw("Lsame")
+  Exp.Draw("Lsame")
+  Obs.Draw("LPsame")
+  L.Draw("same")
+  AddCMSLumi(gPad, str(LUMI["RunII"]), "Preliminary")
+  savename="combineOutput/LimitPlots/Lim_{}_alpha{}.png".format(year,str(alpha).replace(".","p"))
+  #print("Saving plot as: {}".format(savename))
+  C.Print(savename)

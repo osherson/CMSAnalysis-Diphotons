@@ -4,7 +4,8 @@
 *.pyc
 *.root
 *.swp
-DijetRootTreeAnalyzer/inputs/Interpolations/*
+*.png
+DijetRoot_reeAnalyzer/inputs/Interpolations/*
 DijetRootTreeAnalyzer/python/runInterpo/Call*
 DijetRootTreeAnalyzer/python/runInterpo/single*
 DijetRootTreeAnalyzer/python/runInterpo/CallFiles/
@@ -23,6 +24,11 @@ DijetRootTreeAnalyzer/output/*.png
 DijetRootTreeAnalyzer/output/*.root
 combine_logger.out
 DijetRootTreeAnalyzer/FindEvent/RucluAODs
-
-
+DijetRootTreeAnalyzer/python/RunMakeShapes/CallFiles/
+DijetRootTreeAnalyzer/python/RunMakeShapes/runFiles/
+DijetRootTreeAnalyzer/python/RunMakeShapes/condor_logfiles/
+DijetRootTreeAnalyzer/python/RunMakeShapes/condor_submitFiles/
+DijetRootTreeAnalyzer/LimitMaker_Condor/condor_submitFiles/
+DijetRootTreeAnalyzer/LimitMaker_Condor/condor_logfiles/
+DijetRootTreeAnalyzer/LimitMaker_Condor/CallFiles/
 

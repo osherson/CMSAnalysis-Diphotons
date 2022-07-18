@@ -3,9 +3,11 @@ import time
 
 def RunFitter(o):
     config = " -c config/diphoton_%s" % (str(o.FIT))+".config"
-    lumi = " -l " + str(int(float(o.LUM)*1000.))
+    #lumi = " -l " + str(int(float(o.LUM)*1000.))
+    lumi = " -l " + str(int(float(o.LUM)))
     year = " -y " + str(o.YEAR)
     box = " -b diphoton"#_" + str(o.SIG)
+    print(box)
     words = " --words " + o.WORDS
     if o.FIT != "combine": box += "_%s" % str(o.FIT)
     input = " ./inputs/Shapes_fromGen/" + str(o.YEAR) + "/"+ str(o.SIG) + "/PLOTS_" + str(o.SIG) + ".root"
@@ -18,7 +20,7 @@ def RunFitter(o):
     print("Input File: {}".format(input))
     output = " -d output"
 
-    time.sleep(3)
+    #time.sleep(3)
     
     dcstring = "python python/BinnedDiphotonFit.py" + config + year + lumi + box + input + output + " --fit-spectrum --write-fit" + words
     os.system(dcstring)

@@ -3,6 +3,7 @@ import sys
 
 sys.path.append("../")
 import Treemaker
+import applyJson
 
 year = sys.argv[1]
 
@@ -41,3 +42,6 @@ elif("18" in year):
 for run in RunList:
   Treemaker.Treemaker("/cms/sclark-2/RUCLU_Outputs/{}/{}/{}/".format(dname,year,run), run, True, year)
   os.remove("./{}_{}.root".format(run, year))
+
+  if("17" in year):
+    applyJson.ApplyJson("/cms/xaastorage-2/DiPhotonsTrees/{}_{}.root".format(run,year),["pico_skim","pico_full"])

@@ -434,6 +434,10 @@ if __name__ == '__main__':
                   help="signal model name")
     parser.add_option('--mass',dest="mass", default=750,type="float",
                   help="mass of resonance")
+    parser.add_option('--savemass',dest="savemass", default=750,type="string",
+                  help="mass of both resonances to save outputfiles")
+    parser.add_option('--year',dest="year", default=2016,type="string",
+                  help="RunII Analysis year")
     parser.add_option('--xsec',dest="xsec", default=1,type="float",
                   help="xsec of resonance")
     parser.add_option('--no-signal-sys',dest="noSignalSys",default=False,action='store_true',
@@ -464,6 +468,8 @@ if __name__ == '__main__':
     signalFileName = ''
     model = options.model
     massPoint = options.mass
+    saveMassPoint = options.savemass
+    year = options.year
     histoName = cfg.getVariables(box, "histoName")
 
     myTH1 = None
@@ -739,7 +745,7 @@ if __name__ == '__main__':
         rootTools.Utils.importToWS(w,mcDataHist_mjj)
 
  
-    outFile = 'dijet_combine_%s_%i_lumi-%.3f_%s.root'%(model,massPoint,lumi/1000.,box)  
+    outFile = 'dijet_combine_%s_%s_lumi-%.3f_%s_%s.root'%(model,saveMassPoint,lumi/1000.,year,box)  
     outputFile = rt.TFile.Open(options.outDir+"/"+outFile,"recreate")
     print bkgs
     if options.mcFile is not None:
