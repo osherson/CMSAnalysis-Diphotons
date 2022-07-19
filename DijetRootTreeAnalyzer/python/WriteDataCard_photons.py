@@ -57,8 +57,10 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,penalty=False,multi=True,x=None
     #constPars = ['sqrts', 'sqrts5', 'p50_%s'%box, 'sqrtsm', 'p0_%s'%box, 'sqrtsa','sqrtse', 'pa0_%s'%box, 'p1_%s'%box, 'p2_%s'%box,'pm3_%s'%box]
 
     if w.var('meff_%s'%box).getVal()<0 and w.var('seff_%s'%box).getVal()<0:
-         #constPars.extend(['meff_%s'%box,'seff_%s'%box, 'p0_%s'%box, 'p1_%s'%box, 'p2_%s'%box,  'pm3_%s'%box,  'pm4_%s'%box])#edw!!!!
-          constPars.extend(['meff_%s'%box,'seff_%s'%box,  'p4_%s'%box,  'pm4_%s'%box, 'pe3_%s'%box, 'pa3_%s'%box,'pa4_%s'%box ,'pe4_%s'%box])
+        #constPars.extend(['meff_%s'%box,'seff_%s'%box, 'p0_%s'%box, 'p1_%s'%box, 'p2_%s'%box,  'pm3_%s'%box,  'pm4_%s'%box])#edw!!!!
+        #constPars.extend(['meff_%s'%box,'seff_%s'%box,  'p4_%s'%box,  'pm4_%s'%box, 'pe3_%s'%box, 'pa3_%s'%box,'pa4_%s'%box ,'pe4_%s'%box])
+        constPars.extend(['meff_%s'%box,'seff_%s'%box,   'pm4_%s'%box, 'pe3_%s'%box, 'pa3_%s'%box,'pa4_%s'%box ,'pe4_%s'%box]) #Steven changed to this
+        #This is important
     if  w.var('pa4_%s'%box)!=None and w.var('pa4_%s'%box).getVal()==0:
         constPars.extend(['pa4_%s'%box])
     if  w.var('pm3_%s'%box)!=None and w.var('pm3_%s'%box).getVal()==0:
@@ -210,7 +212,14 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,fixed,shapes=[
         print box
         #print 'Ntot_%s_%s'%(bkgs,box)
        # rates.extend([w.var('Ntot_%s_%s'%(bkg,box)).getVal() for bkg in bkgs])
-        rates.extend([w.var('Ntot_%s'%(bkg)).getVal() for bkg in bkgs])
+        #rates.extend([w.var('Ntot_%s'%(bkg)).getVal() for bkg in bkgs])
+        #Naming of Ntot_ constants is a bit different in config file, loop below is necessary for getting the Ntot_diphoton_envelope const
+        for bkg in bkgs:
+          print('Ntot_%s'%bkg)
+          if("multi" in bkg):
+            rates.extend([w.var('Ntot_multi_diphoton_envelope').getVal()])
+          else:
+            rates.extend([w.var('Ntot_%s'%bkg).getVal()])
        # processes.extend(["%s_%s"%(box,bkg) for bkg in bkgs])
         processes.extend(["%s"%(bkg) for bkg in bkgs])
         lumiErrs.extend([1.00 for bkg in bkgs])
@@ -458,11 +467,10 @@ if __name__ == '__main__':
     
     cfg = Config.Config(options.config)
 
-
     box = options.box
+    if(box[-1]=="_"): box=box[:-1]
     lumi = options.lumi
 
-    
     signalXsec = options.xsec
 
     signalFileName = ''
@@ -557,7 +565,13 @@ if __name__ == '__main__':
     # initialize fit parameters (b-only fit)
     if options.inputFitFile is not None:
         inputRootFile = rt.TFile.Open(options.inputFitFile,"r")
+        print("\n\n")
+        print(options.inputFitFile)
+        print("\n\n")
         wIn = inputRootFile.Get("w"+box).Clone("wIn"+box)            
+        print("\n\n")
+        print(wIn)
+        print("\n\n")
         if wIn.obj("fitresult_extDijetPdf_data_obs") != None:
             frIn = wIn.obj("fitresult_extDijetPdf_data_obs")
         elif wIn.obj("nll_extDijetPdf_data_obs") != None:
