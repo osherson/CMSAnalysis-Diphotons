@@ -23,6 +23,7 @@ def RunFitter(o):
     #time.sleep(3)
     
     dcstring = "python python/BinnedDiphotonFit.py" + config + year + lumi + box + input + output + " --fit-spectrum --write-fit" + words
+    print(dcstring)
     os.system(dcstring)
 
 if __name__ == "__main__":
