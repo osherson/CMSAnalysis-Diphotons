@@ -5,7 +5,8 @@ from framework import Config
 from array import *
 from itertools import *
 from operator import *
-from WriteDataCard_4J import initializeWorkspace,convertToTh1xHist,convertToMjjHist,applyTurnonFunc,applyTurnonGraph
+#from WriteDataCard_4J import initializeWorkspace,convertToTh1xHist,convertToMjjHist,applyTurnonFunc,applyTurnonGraph
+from WriteDataCard_photons import initializeWorkspace,convertToTh1xHist,convertToMjjHist,applyTurnonFunc,applyTurnonGraph
 import os
 import random
 import sys
@@ -326,7 +327,7 @@ if __name__ == '__main__':
     plotband = convertSideband(plotRegion,w,x)
 
     extDijetPdf = w.pdf('extDijetPdf')
-    myf = rt.TFile("stuff.root","RECREATE")
+    myf = rt.TFile("stuff.root","RECREATE") #This is necessary? 
     w.Write()
     myf.Close()
 
@@ -415,46 +416,46 @@ if __name__ == '__main__':
     boxLabel = "%s %s Fit" % (box,fitRegion)
     plotLabel = "%s Projection" % (plotRegion)
 
-#    background_pdf = w.pdf('%s_bkg_unbin'%box)
-#    print("background_pdf: ", background_pdf)
-#    print("type(background_pdf)", type(background_pdf))
-#    #These lines matter
-#    background= background_pdf.asTF(rt.RooArgList(w.var("mjj")),rt.RooArgList(w.var('p0_%s'%box)))
-#    #background= background_pdf.asTF(rt.RooArgList(w.var("mjj")),rt.RooArgList(w.var('p0_%s'%box)), rt.RooArgSet(w.var("mjj")))
-#    #background = extDijetPdf.createHistogram("h_binned_%s" % box, w.var('th1x'), rt.RooFit.Binning(3100,0.,3100.))
-#    rrv = w.var("mjj")
-#    f2 = background_pdf.asTF(rt.RooArgList(rrv), rt.RooArgList(), rt.RooArgSet(rrv) );
-#    print("rrv",rrv,type(rrv))
-#    print("f2",f2,type(f2))
-#    print("\n\nSTEVEN")
-#    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-#    print(box)
-#    print(background)
-#    print(type(background))
-#    int_b = background.Integral(w.var("mjj").getMin(),w.var("mjj").getMax())
-#
-#    print(background.Integral(0,3000))
-#    print(background.Integral(100,300))
-#    print(background.Integral(-1000,10000))
-#    print(background.Integral(0,1))
-#    
-#    print("=============min ",w.var('mjj').getMin())
-#    print("=============max ",w.var('mjj').getMax())
-#    print("=============intbkg ",int_b)
-#    p0_b = w.var('Ntot_%s_bkg'%box).getVal()
-#    # p0_b = w.var('Ntot_%s_bkg'%box).getVal()
-#    print("before division p0_b ", p0_b)
-#    print("int_b: {}".format(int_b))
-#    #print("MANUALLY SETTING int_b") #Do this for power
-#    #int_b = 1e-12
-#    #int_b =  1e-7	#
-#    print("lumi: {}".format(lumi))
-#    p0_b = w.var('Ntot_%s_bkg'%box).getVal() / (int_b * lumi)
-#    print("after division p0_b ", p0_b)
-#    # print("|===> expected bkg integral: ", w.var('Ntot_%s_bkg'%box).getVal())
-#    background.SetParameter(0,p0_b)
-#
+    """
+    background_pdf = w.pdf('%s_bkg_unbin'%box)
+    print("background_pdf: ", background_pdf)
+    print("type(background_pdf)", type(background_pdf))
+    #These lines matter
+    background= background_pdf.asTF(rt.RooArgList(w.var("mjj")),rt.RooArgList(w.var('p0_%s'%box)))
+    rrv = w.var("mjj")
+    f2 = background_pdf.asTF(rt.RooArgList(rrv), rt.RooArgList(), rt.RooArgSet(rrv) );
+    print("rrv",rrv,type(rrv))
+    print("f2",f2,type(f2))
+    print("\n\nSTEVEN")
+    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    print(box)
+    print(background)
+    print(type(background))
+    int_b = background.Integral(w.var("mjj").getMin(),w.var("mjj").getMax())
+
+    print(background.Integral(0,3000))
+    print(background.Integral(100,300))
+    print(background.Integral(-1000,10000))
+    print(background.Integral(0,1))
     
+    print("=============min ",w.var('mjj').getMin())
+    print("=============max ",w.var('mjj').getMax())
+    print("=============intbkg ",int_b)
+    p0_b = w.var('Ntot_%s_bkg'%box).getVal()
+    # p0_b = w.var('Ntot_%s_bkg'%box).getVal()
+    print("before division p0_b ", p0_b)
+    print("int_b: {}".format(int_b))
+    #print("MANUALLY SETTING int_b") #Do this for power
+    #int_b = 1e-12
+    #int_b =  1e-7	#
+    print("lumi: {}".format(lumi))
+    p0_b = w.var('Ntot_%s_bkg'%box).getVal() / (int_b * lumi)
+    print("after division p0_b ", p0_b)
+    # print("|===> expected bkg integral: ", w.var('Ntot_%s_bkg'%box).getVal())
+    background.SetParameter(0,p0_b)
+    """
+
+   
 #    if options.doWriteFit:
 #        fnbin = MakeNBinsFromMinToMax(14000, 0., 14000.)
 #        hb = rt.TH1F("hb_finebin", ";Average Dijet Mass [GeV];Events", len(fnbin)-1, fnbin)
@@ -707,15 +708,18 @@ if __name__ == '__main__':
     myRebinnedDensityTH1.SetMinimum(5e-4)#2e-8
     myRebinnedDensityTH1.Draw("axis")
     
-    if options.doTriggerFit or options.doSimultaneousFit or options.doSpectrumFit or options.noFit:
-        #This is the one I'm drawing
-        background.Draw("csame")
-        #background.Draw("c")
-
-    else:
-        h_background.SetLineColor(rt.kRed) #Tried
-        h_background.SetLineWidth(2)
-        h_background.Draw("histsame")
+#    if options.doTriggerFit or options.doSimultaneousFit or options.doSpectrumFit or options.noFit:
+#        #This is the one I'm drawing
+#        background.Draw("csame")
+#        #background.Draw("c")
+#
+#    else:
+#        h_background.SetLineColor(rt.kRed) #Tried
+#        h_background.SetLineWidth(2)
+#        h_background.Draw("histsame")
+    h_background.SetLineColor(rt.kRed) #Tried
+    h_background.SetLineWidth(2)
+    h_background.Draw("histsame")
 
     rt.gPad.SetLogy()
     
@@ -755,7 +759,7 @@ if __name__ == '__main__':
     leg.SetLineWidth(0)
     leg.SetLineColor(rt.kWhite)
     leg.AddEntry(g_data,"Data","pe")
-    leg.AddEntry(background,"{} Fit".format(fitfunc),"l")
+    #leg.AddEntry(background,"{} Fit".format(fitfunc),"l")
     leg.Draw()
     #background.Draw("csame")
     #g_data.Draw("pezsame")
@@ -775,14 +779,14 @@ if __name__ == '__main__':
     #pave_sel.AddText(options.CUTSTRING)
     pave_sel.Draw("SAME")
     
-    list_parameter = [p0_b, p0_b*(w.var('Ntot_%s_bkg'%box).getErrorHi() - w.var('Ntot_%s_bkg'%box).getErrorLo())/(2.0*w.var('Ntot_%s_bkg'%box).getVal()),                      
-                      w.var('p1_%s'%box).getVal(), (w.var('p1_%s'%box).getErrorHi() - w.var('p1_%s'%box).getErrorLo())/2.0,
-                      w.var('p2_%s'%box).getVal(), (w.var('p2_%s'%box).getErrorHi() - w.var('p2_%s'%box).getErrorLo())/2.0,
-                      #w.var('pm3_%s'%box).getVal(), (w.var('pm3_%s'%box).getErrorHi() - w.var('pm3_%s'%box).getErrorLo())/2.0,
-                      #w.var('pm4_%s'%box).getVal(), (w.var('pm4_%s'%box).getErrorHi() - w.var('pm4_%s'%box).getErrorLo())/2.0,
-                      # w.var('p5_%s'%box).getVal(), (w.var('p5_%s'%box).getErrorHi() - w.var('_%s'%box).getErrorLo())/2.0,
-                      w.var('meff_%s'%box).getVal(), (w.var('meff_%s'%box).getErrorHi() - w.var('meff_%s'%box).getErrorLo())/2.0,
-                      w.var('seff_%s'%box).getVal(), (w.var('seff_%s'%box).getErrorHi() - w.var('seff_%s'%box).getErrorLo())/2.0]
+#    list_parameter = [p0_b, p0_b*(w.var('Ntot_%s_bkg'%box).getErrorHi() - w.var('Ntot_%s_bkg'%box).getErrorLo())/(2.0*w.var('Ntot_%s_bkg'%box).getVal()),                      
+#                      w.var('p1_%s'%box).getVal(), (w.var('p1_%s'%box).getErrorHi() - w.var('p1_%s'%box).getErrorLo())/2.0,
+#                      w.var('p2_%s'%box).getVal(), (w.var('p2_%s'%box).getErrorHi() - w.var('p2_%s'%box).getErrorLo())/2.0,
+#                      #w.var('pm3_%s'%box).getVal(), (w.var('pm3_%s'%box).getErrorHi() - w.var('pm3_%s'%box).getErrorLo())/2.0,
+#                      #w.var('pm4_%s'%box).getVal(), (w.var('pm4_%s'%box).getErrorHi() - w.var('pm4_%s'%box).getErrorLo())/2.0,
+#                      # w.var('p5_%s'%box).getVal(), (w.var('p5_%s'%box).getErrorHi() - w.var('_%s'%box).getErrorLo())/2.0,
+#                      w.var('meff_%s'%box).getVal(), (w.var('meff_%s'%box).getErrorHi() - w.var('meff_%s'%box).getErrorLo())/2.0,
+#                      w.var('seff_%s'%box).getVal(), (w.var('seff_%s'%box).getErrorHi() - w.var('seff_%s'%box).getErrorLo())/2.0]
 # w.var('p3_%s'%box).getVal(), (w.var('p3_%s'%box).getErrorHi() - w.var('p3_%s'%box).getErrorLo())/2.0,
 
 
@@ -793,41 +797,44 @@ if __name__ == '__main__':
     pave_param.SetFillStyle(0)
     pave_param.SetTextAlign(11)
     pave_param.SetTextSize(0.045)
-    pave_param.AddText("p_{0}"+" = {0:.2g} #pm {1:.2g}".format(list_parameter[0], list_parameter[1]))
-    pave_param.AddText("p_{1}"+" = {0:.2f} #pm {1:.2f}".format(list_parameter[2], list_parameter[3]))
-    pave_param.AddText("p_{2}"+" = {0:.2f} #pm {1:.2f}".format(list_parameter[4], list_parameter[5]))
-    pave_param.AddText("p_{3}"+" = {0:.2f} #pm {1:.2f}".format(list_parameter[6], list_parameter[7]))
-    if w.var('meff_%s'%box).getVal()>0 and w.var('seff_%s'%box).getVal()>0 and (options.doTriggerFit or options.doSimultaneousFit):
-        pave_param.AddText("m_{eff}"+" = {0:.2f} #pm {1:.2f}".format(list_parameter[8], list_parameter[9]))
-        pave_param.AddText("#sigma_{eff}"+" = {0:.2f} #pm {1:.2f}".format(list_parameter[10], list_parameter[11]))
-    elif w.var('eff_bin%02d'%(0)) != None:
-        effValList = []
-        effErrHiList = []
-        effErrLoList = []
-        for i in range(0,len(x)-1):
-            if not w.var('eff_bin%02d'%(i)).isConstant():
-                effValList.append(w.var('eff_bin%02d'%(i)).getVal())
-                effErrHiList.append(w.var('eff_bin%02d'%(i)).getErrorHi())
-                effErrLoList.append(w.var('eff_bin%02d'%(i)).getErrorLo())
-
-        valString = ",".join(["%.3f"%(effVal) for effVal in effValList])
-        errString = ",".join(["^{%+.1e}_{%+.1e}"%(effErrHi,effErrLo) for effErrHi,effErrLo in zip(effErrHiList,effErrLoList)])
-        pave_param.SetTextSize(0.025)
-        pave_param.AddText("#epsilon = %s"%valString)
-        pave_param.AddText("#delta#epsilon = %s"%errString)
+#    pave_param.AddText("p_{0}"+" = {0:.2g} #pm {1:.2g}".format(list_parameter[0], list_parameter[1]))
+#    pave_param.AddText("p_{1}"+" = {0:.2f} #pm {1:.2f}".format(list_parameter[2], list_parameter[3]))
+#    pave_param.AddText("p_{2}"+" = {0:.2f} #pm {1:.2f}".format(list_parameter[4], list_parameter[5]))
+#    pave_param.AddText("p_{3}"+" = {0:.2f} #pm {1:.2f}".format(list_parameter[6], list_parameter[7]))
+#    if w.var('meff_%s'%box).getVal()>0 and w.var('seff_%s'%box).getVal()>0 and (options.doTriggerFit or options.doSimultaneousFit):
+#        pave_param.AddText("m_{eff}"+" = {0:.2f} #pm {1:.2f}".format(list_parameter[8], list_parameter[9]))
+#        pave_param.AddText("#sigma_{eff}"+" = {0:.2f} #pm {1:.2f}".format(list_parameter[10], list_parameter[11]))
+#    elif w.var('eff_bin%02d'%(0)) != None:
+#        effValList = []
+#        effErrHiList = []
+#        effErrLoList = []
+#        for i in range(0,len(x)-1):
+#            if not w.var('eff_bin%02d'%(i)).isConstant():
+#                effValList.append(w.var('eff_bin%02d'%(i)).getVal())
+#                effErrHiList.append(w.var('eff_bin%02d'%(i)).getErrorHi())
+#                effErrLoList.append(w.var('eff_bin%02d'%(i)).getErrorLo())
+#
+#        valString = ",".join(["%.3f"%(effVal) for effVal in effValList])
+#        errString = ",".join(["^{%+.1e}_{%+.1e}"%(effErrHi,effErrLo) for effErrHi,effErrLo in zip(effErrHiList,effErrLoList)])
+#        pave_param.SetTextSize(0.025)
+#        pave_param.AddText("#epsilon = %s"%valString)
+#        pave_param.AddText("#delta#epsilon = %s"%errString)
             
     #pave_param.Draw("SAME")
     
-    if options.doTriggerFit or options.doSimultaneousFit or options.doSpectrumFit or options.noFit:
-        #Drawing this for power function
-        #background.SetLineColor(rt.kGreen)
-        print("Drawing \'background\'")
-        background.Draw("csame")
-    else:
-        print("Drawing \'h_background\'")
-        h_background.SetLineColor(rt.kRed) #Tried
-        h_background.SetLineWidth(2)
-        h_background.Draw("histsame")
+#    if options.doTriggerFit or options.doSimultaneousFit or options.doSpectrumFit or options.noFit:
+#        #Drawing this for power function
+#        #background.SetLineColor(rt.kGreen)
+#        print("Drawing \'background\'")
+#        background.Draw("csame")
+#    else:
+#        print("Drawing \'h_background\'")
+#        h_background.SetLineColor(rt.kRed) #Tried
+#        h_background.SetLineWidth(2)
+#        h_background.Draw("histsame")
+    h_background.SetLineColor(rt.kRed) #Tried
+    h_background.SetLineWidth(2)
+    h_background.Draw("histsame")
     #Drawing this for power function
     g_data_clone.Draw("zpsame")
     g_data.Draw("zpsame")
@@ -915,8 +922,8 @@ if __name__ == '__main__':
     tdirectory.cd()
     canv.Write()
 
-    #outFileName = "DijetFitResults_%s_%s.root"%(box,year)
-    #outFile = rt.TFile(options.outDir+"/"+outFileName,'recreate')
-    #outFile.cd()
-    #w.Write()
-    #outFile.Close()
+    outFileName = "DijetFitResults_%s_%s.root"%(box,year)
+    outFile = rt.TFile(options.outDir+"/"+outFileName,'recreate')
+    outFile.cd()
+    w.Write()
+    outFile.Close()

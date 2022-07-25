@@ -15,7 +15,7 @@ def RunDataCardMaker(o):
     year = " --year " + yr
 
     if(os.path.exists("inputs/Shapes_fromGen/" + yr + "/" + str(o.SIG) + "/DATA.root")):
-      inputs = " -i output/DijetFitResults_diphoton_dijet.root"
+      inputs = " -i output/DijetFitResults_diphoton_{}_{}.root".format(str(o.FIT),yr)
       inputs += " inputs/Shapes_fromGen/" + yr + "/" + str(o.SIG) + "/DATA.root"
       inputs += " inputs/Shapes_fromGen/"+ yr + "/" + str(o.SIG)+"/Sig_nominal.root"
       jesup = " --jesUp inputs/Shapes_fromGen/"+ yr + "/" + str(o.SIG)+"/Sig_SU.root"
@@ -24,14 +24,13 @@ def RunDataCardMaker(o):
       jerdown = " --jerDown inputs/Shapes_fromGen/"+ yr + "/" + str(o.SIG)+"/Sig_PD.root"
 
     else:
-      inputs = " -i output/DijetFitResults_diphoton_dijet.root"
+      inputs = " -i output/DijetFitResults_diphoton_{}_{}.root".format(str(o.FIT),yr)
       inputs += " inputs/Shapes_fromInterpo/" + yr + "/" + str(o.SIG) + "/DATA.root"
       inputs += " inputs/Shapes_fromInterpo/"+ yr + "/" + str(o.SIG)+"/Sig_nominal.root"
       jesup = " --jesUp inputs/Shapes_fromInterpo/"+ yr + "/" + str(o.SIG)+"/Sig_SU.root"
       jesdown = " --jesDown inputs/Shapes_fromInterpo/"+ yr + "/" + str(o.SIG)+"/Sig_SD.root"
       jerup = " --jerUp inputs/Shapes_fromInterpo/"+ yr + "/" + str(o.SIG)+"/Sig_PU.root"
       jerdown = " --jerDown inputs/Shapes_fromInterpo/"+ yr + "/" + str(o.SIG)+"/Sig_PD.root"
-
 
     dcstring = "python python/WriteDataCard_photons.py" + config + mass + savemass + year + box + output + inputs + jesup + jesdown + jerup + jerdown + xs + lumi
     print(dcstring)
