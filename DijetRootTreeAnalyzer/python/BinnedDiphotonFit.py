@@ -327,7 +327,7 @@ if __name__ == '__main__':
     plotband = convertSideband(plotRegion,w,x)
 
     extDijetPdf = w.pdf('extDijetPdf')
-    myf = rt.TFile("stuff.root","RECREATE")
+    myf = rt.TFile("stuff.root","RECREATE") #This is necessary? 
     w.Write()
     myf.Close()
 
