@@ -22,8 +22,8 @@ xaastorage = "/cms/xaastorage-2/DiPhotonsTrees/"
 const_alpha = False #Use this to get signals at one alpha val
 this_alpha = 0.01 #Set this to the alpha you want. If const_alpha = False, this does nothing
 
-def doOneInput(N, h, H, S, norm = False):
-    toF = TFile("{}/../inputs/Shapes_fromGen/{}/".format(dir_path,year)+N+"/"+S+".root", "recreate")
+def doOneInput(N, h, H, S, aidx, norm = False):
+    toF = TFile("{}/../inputs/Shapes_fromGen/alpha1/{}{}/".format(dir_path,aidx,N)+S+".root", "recreate")
     if norm:
         h.Scale(1./h.Integral())
     toF.cd()
@@ -33,16 +33,6 @@ def doOneInput(N, h, H, S, norm = False):
     toF.Save()
     toF.Close()
 
-def doOneInputInterpo(N, h, H, S, norm = False):
-    toF = TFile("{}/../inputs/Shapes_fromInterpo/{}/".format(dir_path,year)+N+"/"+S+".root", "recreate")
-    if norm:
-        h.Scale(1./h.Integral())
-    toF.cd()
-    h.SetName(H)
-    h.Write()
-    toF.Write()
-    toF.Save()
-    toF.Close()
 
 LH = []
 f = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/Diphoton-Treemaker/HelperFiles/Signal_NEvents_{}.csv".format(year)
@@ -69,12 +59,12 @@ def SaveHists(N, lA, hA, abinidx, sXr, sX1r, sXvAr, sX, sX1, dX, dX1, dXvA, sX1p
         rg.write("{},{}".format(lA,hA))
     os.system('mv ' + N + '.txt {}/.'.format(header))
     os.system('mv range.txt {}/.'.format(header))
-    doOneInput(N, sX1, "h_AveDijetMass_1GeV", "Sig_nominal", True)
-    doOneInput(N, sX1pu, "h_AveDijetMass_1GeV", "Sig_PU", True)
-    doOneInput(N, sX1pd, "h_AveDijetMass_1GeV", "Sig_PD", True)
-    doOneInput(N, sX1su, "h_AveDijetMass_1GeV", "Sig_SU", True)
-    doOneInput(N, sX1sd, "h_AveDijetMass_1GeV", "Sig_SD", True)
-    doOneInput(N, dX1, "data_XM1", "DATA")
+    doOneInput(N, sX1, "h_AveDijetMass_1GeV", "Sig_nominal", abinidx, True)
+    doOneInput(N, sX1pu, "h_AveDijetMass_1GeV", "Sig_PU", abinidx, True)
+    doOneInput(N, sX1pd, "h_AveDijetMass_1GeV", "Sig_PD", abinidx, True)
+    doOneInput(N, sX1su, "h_AveDijetMass_1GeV", "Sig_SU", abinidx, True)
+    doOneInput(N, sX1sd, "h_AveDijetMass_1GeV", "Sig_SD", abinidx, True)
+    doOneInput(N, dX1, "data_XM1", "DATA", abinidx,)
     AE = str(sX.Integral()/sXr.Integral())
     for h in [sXr, sX1r]:
         h.SetFillColor(0)
@@ -180,8 +170,8 @@ if(igen == "g"):
   for s in SignalsGenerated:
     ct += 1
     saveTree = False
-    #if s=="X600A3": 
-    if s=="X1000A10": 
+    if s=="X600A3": 
+    #if s=="X1000A10": 
       saveTree=False
     else: continue
     #if ct > 1: break
@@ -211,6 +201,7 @@ if(igen == "g"):
         hA += 2*alphaRMS
         alphaBin += 1
         continue
+
       (sXsu, sX1su, sXvAsu) = PL.GetDiphoShapeAnalysis(SignalsGenerated[s], "pico_scale_up", s, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "weight*10.*5.99")
       (sXsd, sX1sd, sXvAsd) = PL.GetDiphoShapeAnalysis(SignalsGenerated[s], "pico_scale_down", s, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "weight*10.*5.99")
       (dX, dX1, dXvA) = PL.GetDiphoShapeAnalysis(DATA, "pico_skim", "data", CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "1.", saveTree, year+"/"+s)
