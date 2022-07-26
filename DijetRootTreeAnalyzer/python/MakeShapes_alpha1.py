@@ -12,8 +12,10 @@ sys.path.append(dir_path+"/../../.")
 import PlottingPayload as PL
 gROOT.SetBatch()
 
-year = sys.argv[1]
+year = "2018"
 igen = "g"
+
+alpha_slices = [0.0015, 0.003, 0.0045, 0.006, 0.0075, 0.01, 0.0125, 0.015, 0.0175, 0.020, 0.025, 0.03, 0.035, 0.04, 0.045, 0.05, 0.06]
 
 try: signalMass = sys.argv[3] #signal mass point, XxxxAaaa, only use for interpolated
 except IndexError: print("Getting all generated signal shapes")
@@ -170,7 +172,7 @@ if(igen == "g"):
   for s in SignalsGenerated:
     ct += 1
     saveTree = False
-    if s=="X600A3": 
+    if s=="X1000A10": 
     #if s=="X1000A10": 
       saveTree=False
     else: continue
@@ -181,12 +183,12 @@ if(igen == "g"):
     alphaRMS = sXvAr.GetRMS(2)
     print(alphaRMS)
 
-    lA = 0
-    hA = 2*alphaRMS
+    for ii in range(0,len(alpha_slices)-1):
+      lA = alpha_slices[ii]
+      hA = alpha_slices[ii+1]
 
-    alphaBin=0
+      alphaBin=ii
 
-    while lA < 0.03:
       print("Beginning alpha window {} - {}".format(lA, hA))
 
       (sXpu, sX1pu, sXvApu) = PL.GetDiphoShapeAnalysis(SignalsGenerated[s], "pico_nom", s, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeightUp*weight*10.*5.99")
@@ -195,11 +197,9 @@ if(igen == "g"):
       (sX, sX1, sXvA) = PL.GetDiphoShapeAnalysis(SignalsGenerated[s], "pico_nom", s, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeight*weight*10.*5.99")
       print("SIGNAL N Events: {}".format(sX.GetEntries()))
       print("SIGNAL SX1 Integral : {}".format(sX1.Integral()))
+      continue
       if(sX.GetEntries() == 0 or sX1.GetEntries() == 0 or sX1.Integral() < 0.001): 
         print("No Signal")
-        lA = hA
-        hA += 2*alphaRMS
-        alphaBin += 1
         continue
 
       (sXsu, sX1su, sXvAsu) = PL.GetDiphoShapeAnalysis(SignalsGenerated[s], "pico_scale_up", s, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "weight*10.*5.99")
@@ -208,8 +208,5 @@ if(igen == "g"):
       print("DATA N Events: {}".format(dX.GetEntries()))
       print("DATA SX1 Integral : {}".format(dX1.Integral()))
       #(dX, dX1, dXvA) = PL.GetDiphoShapeAnalysis(DATA, "pico_skim", "data", CUTS[0], CUTS[1], CUTS[2], CUTS[3], [0.,0.5], "HLT_DoublePhoton", "1.")
-      lA = hA
-      hA += 2*alphaRMS
-      alphaBin += 1
 
       SaveHists(s, lA, hA, alphaBin, sXr, sX1r, sXvAr, sX, sX1, dX, dX1, dXvA, sX1pu, sX1pd, sX1su, sX1sd)
