@@ -194,7 +194,11 @@ def calculateChi2AndFillResiduals(data_obs_TGraph_,background_hist_,hist_fit_res
     chi2_ndf_FullRangeAll = chi2_FullRangeAll / ndf_FullRangeAll
     chi2_ndf_PlotRangeAll = chi2_PlotRangeAll / ndf_PlotRangeAll
     chi2_ndf_PlotRangeNonZero = chi2_PlotRangeNonZero / ndf_PlotRangeNonZero
-    chi2_ndf_PlotRangeMinNumEvents = chi2_PlotRangeMinNumEvents / ndf_PlotRangeMinNumEvents
+    try:
+      chi2_ndf_PlotRangeMinNumEvents = chi2_PlotRangeMinNumEvents / ndf_PlotRangeMinNumEvents
+    except ZeroDivisionError:
+      print("Zero division error")
+      chi2_ndf_PlotRangeMinNumEvents = 9999.
 
     return [chi2_FullRangeAll, ndf_FullRangeAll, chi2_PlotRangeAll, ndf_PlotRangeAll, chi2_PlotRangeNonZero, ndf_PlotRangeNonZero, chi2_PlotRangeMinNumEvents, ndf_PlotRangeMinNumEvents]
 

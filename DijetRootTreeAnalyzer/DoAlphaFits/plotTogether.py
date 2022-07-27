@@ -3,13 +3,14 @@ from array import *
 import numpy as np
 import os
 
-#xasig = "X600A3"
-xasig = "X1000A10"
-outdir = "./output/{}".format(xasig)
+outdir = "./output"
 functions = []
 
-
 dirs = []
+
+def MakeFolder(N):
+    if not os.path.exists(N):
+     os.makedirs(N)
 
 for dd in os.listdir(outdir):
   if("alpha" in dd):
@@ -17,7 +18,7 @@ for dd in os.listdir(outdir):
 
     anum = int(myd[myd.rfind("_")+1:])
 
-    rfile=open(os.path.join(myd,"range.txt"))
+    rfile=open(os.path.join(myd,"arange.txt"))
     rr = rfile.readline().rstrip()
     lA =float(rr.split(",")[0])
     hA =float(rr.split(",")[-1])
@@ -31,7 +32,6 @@ for dd in os.listdir(outdir):
 
 #functions = functions[0:4]
 #functions = ["myexp"]
-functions.remove("csch")
 
 lumi = 13.7 ##Check this
 sqrts=np.sqrt(13000)
@@ -65,7 +65,11 @@ def getHistFromWorkspace(thisDir,ff,inh,dataHist,ph):
   w = thisFile.Get("wdiphoton_{}".format(ff))
   #w.Print()
 
-  th1x = w.var('th1x')
+  try:
+    th1x = w.var('th1x')
+  except AttributeError:
+    print("Problem with {}, likely doesn't exits".format(thisDir))
+    return 0
   nBins = (len(x)-1)
   th1x.setBins(nBins)
 
@@ -142,7 +146,8 @@ def makePlotTogether(hdir, anum, functions, lA, hA):
   leg.SetLineColor(kWhite)
 
   #####################################################################################
-  bkgFile = TFile("../inputs/Shapes_fromGen/alpha1/{}_2Sigma_pt90/{}{}/PLOTS_{}.root".format(xasig,anum,xasig,xasig))
+  bkgFile = TFile("../inputs/Shapes_fromGen/alphaBinning/{}/PLOTS_{}.root".format(anum,anum))
+
   #myTH1=bkgFile.Get("data_XM1")
   myTH1=bkgFile.Get("data_XM")
   myTH1.Rebin(len(x)-1,'data_obs_rebin',x)
@@ -191,7 +196,8 @@ def makePlotTogether(hdir, anum, functions, lA, hA):
   for (ii,fit) in enumerate(functions):
     th = TH1D("{}".format(fit),"{}".format(fit),len(x)-1, x)
     ph = TH1D("{}_pull".format(fit),"{}_pull".format(fit),len(x)-1, x)
-    getHistFromWorkspace(hdir,fit,th, myRealTH1, ph)
+    a=getHistFromWorkspace(hdir,fit,th, myRealTH1, ph)
+    if(a==0): return
     histlist.append(th)
     pulllist.append(ph)
 
@@ -234,8 +240,9 @@ def makePlotTogether(hdir, anum, functions, lA, hA):
     if(ii==0): pp.Draw("hist")
     else: pp.Draw("histsame")
 
-  canv.Print("Plots/{}/fitTogether_{}.png".format(xasig,anum))
+  canv.Print("Plots/fitTogether_{}.png".format(anum,anum))
 
 for (dd,anum,lA,hA) in dirs:
+  if(anum != 6): continue
   #if("alpha_2" not in dd): continue
   makePlotTogether(dd,anum,functions,lA,hA)
