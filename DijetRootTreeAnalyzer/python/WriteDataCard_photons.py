@@ -564,6 +564,7 @@ if __name__ == '__main__':
 
     # initialize fit parameters (b-only fit)
     if options.inputFitFile is not None:
+        print("\n\n I AM HERE \n\n")
         inputRootFile = rt.TFile.Open(options.inputFitFile,"r")
         print("\n\n")
         print(options.inputFitFile)

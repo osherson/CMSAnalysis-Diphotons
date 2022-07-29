@@ -66,6 +66,12 @@ def MakeNBinsFromMinToMax(N,Min,Max):
         BINS.append(Min+(i*(Max-Min)/N))
     return numpy.array(BINS)
 
+def Make1BinsFromMinToMax(Min,Max):
+    BINS = []
+    for i in range(int(Max-Min)+1):
+        BINS.append(Min+i)
+    return numpy.array(BINS)
+
 def GoodPlotFormat(H, *args): # Handy little script for color/line/fill/point/etc...
     try: H.SetStats(0)
     except: print " ------------ [  No stats box found!  ]"
@@ -429,7 +435,8 @@ XB = [297.0, 303.0, 310.0, 317.0, 324.0, 331.0, 338.0, 345.0, 352.0, 360.0, 368.
 #X1B = MakeNBinsFromMinToMax(2860, 250., 3110.)
 #X1B = MakeNBinsFromMinToMax(2920, 190., 3110.)
 #X1B = MakeNBinsFromMinToMax(2810, 300., 3110.)
-X1B = MakeNBinsFromMinToMax(1399, 300., 1696.)
+#X1B = MakeNBinsFromMinToMax(1399, 300., 1696.)
+X1B = Make1BinsFromMinToMax(297., 1696.)
 AB = [0.0, 0.001, 0.002, 0.003, 0.004, 0.005, 0.006, 0.007, 0.008, 0.009, 0.01, 0.011, 0.012, 0.013, 0.014, 0.015, 0.016, 0.017, 0.018, 0.019, 0.02, 0.021, 0.022, 0.023, 0.024, 0.025, 0.027, 0.029, 0.031, 0.033, 0.035]
 def GetDiphoShapeAnalysis(F, T, N, masym, deta, dipho, iso, alpha, trigger, scale, saveTree=False, saveSignal=""):
     # Load files:

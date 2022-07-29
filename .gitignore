@@ -16,6 +16,7 @@ DijetRootTreeAnalyzer/InterpoPlotter/OutFiles
 DijetRootTreeAnalyzer/inputs/Shapes_fromInterpo/*
 DijetRootTreeAnalyzer/inputs/Shapes_fromGen/*
 DijetRootTreeAnalyzer/InterpoPlotter/FineScanAnalysis/Plots
+/DijetRootTreeAnalyzer/DoAlphaFits/output/
 DijetRootTreeAnalyzer/combineOutput/*
 DijetRootTreeAnalyzer/output/*.txt
 DijetRootTreeAnalyzer/output/*.C

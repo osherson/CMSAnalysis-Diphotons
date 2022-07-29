@@ -19,8 +19,8 @@ xaastorage = "/cms/xaastorage-2/DiPhotonsTrees/"
 const_alpha = False #Use this to get signals at one alpha val
 this_alpha = 0.005 #Set this to the alpha you want. If const_alpha = False, this does nothing
 
-def doOneInput(N, h, H, S, norm = False):
-    toF = TFile("{}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path)+N+"/"+S+".root", "recreate")
+def doOneInput(N, sig, h, H, S, norm = False):
+    toF = TFile("{}/../inputs/Shapes_fromGen/alphaBinning/{}/{}/{}.root".format(dir_path,N,sig,S), "recreate")
     if norm:
         h.Scale(1./h.Integral())
     toF.cd()
@@ -55,7 +55,7 @@ def lookup(N):
         if r[0] == X and r[1] == A: return r[2]
 
 def SaveHists(N, sig, sXr, sX1r, sXvAr, sX, sX1, dX, dX1, dXvA, sX1pu, sX1pd, sX1su, sX1sd):
-    header = "{}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path)+N
+    header = "{}/../inputs/Shapes_fromGen/alphaBinning/{}/{}/".format(dir_path,N,sig)
     PL.MakeFolder(header)
     with open(sig+".txt", 'w') as eff:
         E = sX1.GetEntries()
@@ -63,12 +63,12 @@ def SaveHists(N, sig, sXr, sX1r, sXvAr, sX, sX1, dX, dX1, dXvA, sX1pu, sX1pd, sX
         print "eff ("+sig+")---> " + str(float(E)/float(G))
         eff.write(str(float(E)/float(G)))
     os.system('mv ' + sig + '.txt {}/.'.format(header))
-    doOneInput(N, sX1, "h_AveDijetMass_1GeV", "Sig_nominal", True)
-    doOneInput(N, sX1pu, "h_AveDijetMass_1GeV", "Sig_PU", True)
-    doOneInput(N, sX1pd, "h_AveDijetMass_1GeV", "Sig_PD", True)
-    doOneInput(N, sX1su, "h_AveDijetMass_1GeV", "Sig_SU", True)
-    doOneInput(N, sX1sd, "h_AveDijetMass_1GeV", "Sig_SD", True)
-    doOneInput(N, dX1, "data_XM1", "DATA")
+    doOneInput(N, sig, sX1, "h_AveDijetMass_1GeV", "Sig_nominal", True)
+    doOneInput(N, sig, sX1pu, "h_AveDijetMass_1GeV", "Sig_PU", True)
+    doOneInput(N, sig, sX1pd, "h_AveDijetMass_1GeV", "Sig_PD", True)
+    doOneInput(N, sig, sX1su, "h_AveDijetMass_1GeV", "Sig_SU", True)
+    doOneInput(N, sig, sX1sd, "h_AveDijetMass_1GeV", "Sig_SD", True)
+    doOneInput(N, sig, dX1, "data_XM1", "DATA")
     AE = str(sX.Integral()/sXr.Integral())
     for h in [sXr, sX1r]:
         h.SetFillColor(0)
@@ -145,7 +145,7 @@ for ff in os.listdir(xaastorage):
   if("Run" in ff and "20" in ff): #All Run II Data
     DATA.append(os.path.join(xaastorage,ff))
 
-#DATA = [DATA[-1]]
+DATA = [DATA[-1]]
 print(DATA)
 time.sleep(1)
 
@@ -156,18 +156,51 @@ CUTS = [1.0, 3.5, 0.9, 0.5] #Loose
 
 #################################################
 
-AlphaBins = [0., 0.00422263, 0.00469758, 0.00517253, 0.00605263,
-             0.00710526, 0.00815789, 0.0093758 , 0.00978903, 0.01020225,
-             0.01131579, 0.01236842, 0.01334154, 0.01417077, 0.015,
-             0.01552632, 0.01657895, 0.01763158, 0.01901665, 0.01963444,
-             0.02025223, 0.02078947, 0.02184211, 0.0231082 , 0.02414009,
-             0.02517198, 0.03]
+#AlphaBins = [0., 0.00422263, 0.00469758, 0.00517253, 0.00605263,
+#             0.00710526, 0.00815789, 0.0093758 , 0.00978903, 0.01020225,
+#             0.01131579, 0.01236842, 0.01334154, 0.01417077, 0.015,
+#             0.01552632, 0.01657895, 0.01763158, 0.01901665, 0.01963444,
+#             0.02025223, 0.02078947, 0.02184211, 0.0231082 , 0.02414009,
+#             0.02517198, 0.03]
+AlphaBins = [
+             0.0,
+             0.00428571428571,
+             0.00467532467532,
+             0.00506493506494,
+             0.005689655172413793,
+             0.006379310344827587,
+             0.00706896551724138,
+             0.007758620689655172,
+             0.008448275862068966,
+             0.00935064935065,
+             0.00974025974026,
+             0.0101298701299,
+             0.01120689655172414,
+             0.011896551724137932,
+             0.0128571428571,
+             0.0139285714286,
+             0.015,
+#             0.01603448275862069,
+#             0.016724137931034482,
+#             0.017413793103448278,
+#             0.01810344827586207,
+#             0.0189795918367,
+#             0.0195918367347,
+#             0.0202040816327,
+#             0.020862068965517244,
+#             0.021551724137931036,
+#             0.02224137931034483,
+#             0.0232258064516,
+#             0.0241935483871,
+#             0.0251612903226,
+             0.03
+             ]
 
 
 #Get just X1000 signals for now
 SignalsGenerated = {}
 for ff in os.listdir(xaastorage):
-  if(ff[0]=="X" and "X1000A" in ff and year in ff):
+  if(ff[0]=="X" and "X400A" in ff and year in ff):
     thisxa = ff[ : ff.find("_")]
     this_x = int(thisxa[1:thisxa.find("A")])
     this_phi = float(thisxa[thisxa.find("A")+1:].replace("p","."))
@@ -200,12 +233,13 @@ for abin_num in range(0,len(AlphaBins)-1):
   saveTree = False
   newd = "{}/../inputs/Shapes_fromGen/alphaBinning/{}/".format(dir_path,abin_num)
   PL.MakeFolder(newd)
-  rfile = open("{}arange.txt".format(newd),"w")
-  rfile.write("{},{}".format(lA,hA))
 
   nearestAlpha = getNearestAlpha((lA+hA)/2)
   whichSig = SignalsGenerated[nearestAlpha][0].split("/")[-1]
   whichSig = whichSig[0 : whichSig.find("_")]
+  PL.MakeFolder("{}{}/".format(newd,whichSig))
+  rfile = open("{}{}/arange.txt".format(newd,whichSig),"w")
+  rfile.write("{},{}".format(lA,hA))
 
   (sXr, sX1r, sXvAr) = PL.GetDiphoShapeAnalysis(SignalsGenerated[nearestAlpha], "pico_nom", str(abin_num), CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeight*weight*10.*5.99")
   print("Signal Entries: {}".format(sX1r.GetEntries()))
