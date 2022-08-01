@@ -4,7 +4,7 @@ import sys
 clean=False
 goLim = False
 
-xmass = '400'
+xmass = '600'
 
 if ('clean' in sys.argv):
   clean=True

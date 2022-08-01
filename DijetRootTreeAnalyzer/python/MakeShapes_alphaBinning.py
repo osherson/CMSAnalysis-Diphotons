@@ -145,7 +145,7 @@ for ff in os.listdir(xaastorage):
   if("Run" in ff and "20" in ff): #All Run II Data
     DATA.append(os.path.join(xaastorage,ff))
 
-DATA = [DATA[-1]]
+#DATA = [DATA[-1]]
 print(DATA)
 time.sleep(1)
 
@@ -156,12 +156,6 @@ CUTS = [1.0, 3.5, 0.9, 0.5] #Loose
 
 #################################################
 
-#AlphaBins = [0., 0.00422263, 0.00469758, 0.00517253, 0.00605263,
-#             0.00710526, 0.00815789, 0.0093758 , 0.00978903, 0.01020225,
-#             0.01131579, 0.01236842, 0.01334154, 0.01417077, 0.015,
-#             0.01552632, 0.01657895, 0.01763158, 0.01901665, 0.01963444,
-#             0.02025223, 0.02078947, 0.02184211, 0.0231082 , 0.02414009,
-#             0.02517198, 0.03]
 AlphaBins = [
              0.0,
              0.00428571428571,
@@ -197,10 +191,26 @@ AlphaBins = [
              ]
 
 
-#Get just X1000 signals for now
+#Get signals for one x mass
+
+genXs = [200,300,400,500,600,750,1000,1500,2000,3000]
+
+xmass = 1000
+if( len(sys.argv) >= 1):
+  if("X" in sys.argv[1]):
+    xmass = sys.argv[1]
+    xmass = int(xmass[1:])
+
+if(xmass not in genXs):
+  print("Not a generated X Mass. Quitting")
+  exit()
+
+print("Using X = {} GeV Signals".format(xmass))
+time.sleep(1)
+
 SignalsGenerated = {}
 for ff in os.listdir(xaastorage):
-  if(ff[0]=="X" and "X400A" in ff and year in ff):
+  if(ff[0]=="X" and "X{}A".format(xmass) in ff and year in ff):
     thisxa = ff[ : ff.find("_")]
     this_x = int(thisxa[1:thisxa.find("A")])
     this_phi = float(thisxa[thisxa.find("A")+1:].replace("p","."))
