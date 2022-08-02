@@ -23,6 +23,10 @@ DijetRootTreeAnalyzer/output/*.C
 DijetRootTreeAnalyzer/output/*.pdf
 DijetRootTreeAnalyzer/output/*.png
 DijetRootTreeAnalyzer/output/*.root
+DijetRootTreeAnalyzer/PostFit/*.root
+DijetRootTreeAnalyzer/PostFit/*.out
+DijetRootTreeAnalyzer/PostFit/output
+DijetRootTreeAnalyzer/PostFit/combineOutput
 combine_logger.out
 DijetRootTreeAnalyzer/FindEvent/RucluAODs
 DijetRootTreeAnalyzer/python/RunMakeShapes/CallFiles/
