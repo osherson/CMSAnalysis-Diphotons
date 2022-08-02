@@ -7,7 +7,7 @@
 #include <cmath>
 #include <math.h>
 
-#include "../interface/RooMyExpBinPdf.h"
+#include "../interface/RooDipho5ParamBinPdf.h"
 #include "RooRealVar.h"
 #include "RooConstVar.h"
 #include "Math/Functor.h"
@@ -19,18 +19,19 @@
 using namespace std;
 using namespace RooFit;
 
-ClassImp(RooMyExpBinPdf)
+ClassImp(RooDipho5ParamBinPdf)
 //---------------------------------------------------------------------------
-RooMyExpBinPdf::RooMyExpBinPdf(const char *name, const char *title,
+RooDipho5ParamBinPdf::RooDipho5ParamBinPdf(const char *name, const char *title,
 				   RooAbsReal& _th1x,  
 				   RooAbsReal& _p1, RooAbsReal& _p2, 
-			           RooAbsReal& _p3, RooAbsReal& _sqrts,
+				   RooAbsReal& _p3, RooAbsReal& _p4, RooAbsReal& _sqrts,
 			           RooAbsReal& _meff, RooAbsReal& _seff) : RooAbsPdf(name, title), 
 //TH3* _Hnominal) : RooAbsPdf(name, title), 
   th1x("th1x", "th1x Observable", this, _th1x),
   p1("p1", "p1", this, _p1),
   p2("p2", "p2", this, _p2),
   p3("p3", "p3", this, _p3),
+  p4("p4", "p4", this, _p4),
   sqrts("sqrts", "sqrts", this, _sqrts),
   meff("meff", "meff", this, _meff),
   seff("seff", "seff", this, _seff),
@@ -43,15 +44,16 @@ RooMyExpBinPdf::RooMyExpBinPdf(const char *name, const char *title,
   memset(&xArray, 0, sizeof(xArray));
 }
 //---------------------------------------------------------------------------
-RooMyExpBinPdf::RooMyExpBinPdf(const char *name, const char *title,
+RooDipho5ParamBinPdf::RooDipho5ParamBinPdf(const char *name, const char *title,
 				   RooAbsReal& _th1x,  
 				   RooAbsReal& _p1, RooAbsReal& _p2, 
-				   RooAbsReal& _p3, RooAbsReal& _sqrts) : RooAbsPdf(name, title), 
+				   RooAbsReal& _p3, RooAbsReal& _p4, RooAbsReal& _sqrts) : RooAbsPdf(name, title), 
 //TH3* _Hnominal) : RooAbsPdf(name, title), 
   th1x("th1x", "th1x Observable", this, _th1x),
   p1("p1", "p1", this, _p1),
   p2("p2", "p2", this, _p2),
   p3("p3", "p3", this, _p3),
+  p4("p4", "p4", this, _p4),
   sqrts("sqrts", "sqrts", this, _sqrts),
   meff("meff", "meff", this, RooConst(-1) ),
   seff("seff", "seff", this, RooConst(-1) ),
@@ -64,12 +66,13 @@ RooMyExpBinPdf::RooMyExpBinPdf(const char *name, const char *title,
   memset(&xArray, 0, sizeof(xArray));
 }
 //---------------------------------------------------------------------------
-RooMyExpBinPdf::RooMyExpBinPdf(const RooMyExpBinPdf& other, const char* name) :
+RooDipho5ParamBinPdf::RooDipho5ParamBinPdf(const RooDipho5ParamBinPdf& other, const char* name) :
    RooAbsPdf(other, name), 
    th1x("th1x", this, other.th1x),  
    p1("p1", this, other.p1),
    p2("p2", this, other.p2),
    p3("p3", this, other.p3),
+   p4("p4", this, other.p4),
    sqrts("sqrts", this, other.sqrts),
    meff("meff", this, other.meff),
    seff("seff", this, other.seff),
@@ -85,7 +88,7 @@ RooMyExpBinPdf::RooMyExpBinPdf(const RooMyExpBinPdf& other, const char* name) :
   }
 }
 //---------------------------------------------------------------------------
-void RooMyExpBinPdf::setTH1Binning(TH1* _Hnominal){
+void RooDipho5ParamBinPdf::setTH1Binning(TH1* _Hnominal){
   xBins = _Hnominal->GetXaxis()->GetNbins();
   xMin = _Hnominal->GetXaxis()->GetBinLowEdge(1);
   xMax = _Hnominal->GetXaxis()->GetBinUpEdge(xBins);
@@ -95,15 +98,15 @@ void RooMyExpBinPdf::setTH1Binning(TH1* _Hnominal){
   }
 }
 //---------------------------------------------------------------------------
-void RooMyExpBinPdf::setRelTol(double _relTol){
+void RooDipho5ParamBinPdf::setRelTol(double _relTol){
   relTol = _relTol;
 }
 //---------------------------------------------------------------------------
-void RooMyExpBinPdf::setAbsTol(double _absTol){
+void RooDipho5ParamBinPdf::setAbsTol(double _absTol){
   absTol = _absTol;
 }
 //---------------------------------------------------------------------------
-Double_t RooMyExpBinPdf::evaluate() const
+Double_t RooDipho5ParamBinPdf::evaluate() const
 {
   Double_t integral = 0.0;
   
@@ -119,11 +122,12 @@ Double_t RooMyExpBinPdf::evaluate() const
   Double_t xHigh = xArray[iBin+1];
     
   // define the function to be integrated numerically
-  MyExpFunction func;
-  double params[6];
+  Dipho5ParamFunction func;
+  double params[7];
   params[0] = sqrts;    params[1] = p1;
   params[2] = p2;       params[3] = p3;
-  params[4] = meff;     params[5] = seff;
+  params[4] = p4;
+  params[5] = meff;     params[6] = seff;
   func.SetParameters(params);
 
   ROOT::Math::Integrator ig(ROOT::Math::IntegrationOneDim::kADAPTIVE,absTol,relTol);
@@ -131,7 +135,6 @@ Double_t RooMyExpBinPdf::evaluate() const
 
   
   integral = ig.Integral(xLow,xHigh);
-  //integral = func.DoEval((xLow+xHigh)/2.0)*(xHigh-xLow);
   //Double_t total_integral = ig.Integral(xMin,xMax);
 
   if (integral>0.0) {
@@ -141,13 +144,13 @@ Double_t RooMyExpBinPdf::evaluate() const
 }
 
 // //---------------------------------------------------------------------------
-Int_t RooMyExpBinPdf::getAnalyticalIntegral(RooArgSet& allVars, RooArgSet& analVars, const char* rangeName) const{
+Int_t RooDipho5ParamBinPdf::getAnalyticalIntegral(RooArgSet& allVars, RooArgSet& analVars, const char* rangeName) const{
   if (matchArgs(allVars, analVars, th1x)) return 1;
   return 0;
 }
 
 // //---------------------------------------------------------------------------
-Double_t RooMyExpBinPdf::analyticalIntegral(Int_t code, const char* rangeName) const{
+Double_t RooDipho5ParamBinPdf::analyticalIntegral(Int_t code, const char* rangeName) const{
 
    Double_t th1xMin = th1x.min(rangeName); Double_t th1xMax = th1x.max(rangeName);
    Int_t iBinMin = (Int_t) th1xMin; Int_t iBinMax = (Int_t) th1xMax;
@@ -159,11 +162,12 @@ Double_t RooMyExpBinPdf::analyticalIntegral(Int_t code, const char* rangeName) c
 
    
    // define the function to be integrated numerically  
-   MyExpFunction func;
-   double params[6];
+   Dipho5ParamFunction func;
+   double params[7];
    params[0] = sqrts;    params[1] = p1;
    params[2] = p2;       params[3] = p3;
-   params[4] = meff;     params[5] = seff;
+   params[4] = p4;
+   params[5] = meff;     params[6] = seff;
    func.SetParameters(params);
 
    
@@ -172,29 +176,8 @@ Double_t RooMyExpBinPdf::analyticalIntegral(Int_t code, const char* rangeName) c
     
 
    if (code==1 && iBinMin<=0 && iBinMax>=xBins){
+     integral = ig.Integral(xMin,xMax);
      
-	 integral = ig.Integral(xMin,xMax);
-     //integral = func.DoEval((xMin+xMax)/2.0)*(xMax-xMin);
-    
-	/*
-	for (Int_t iBin=0; iBin<xBins; iBin++){
-        	 
-	 Double_t xLow = xArray[iBin];
-	 Double_t xHigh = xArray[iBin+1];    
-	 integral += ig.Integral(xLow,xHigh);
-     //integral += func.DoEval((xLow+xHigh)/2.0)*(xHigh-xLow);
-            */
-       //}
-     //}
-
-
-
-
-
-
-
-
-	 
    }
    else if(code==1) { 
      for (Int_t iBin=iBinMin; iBin<iBinMax; iBin++){
@@ -206,12 +189,10 @@ Double_t RooMyExpBinPdf::analyticalIntegral(Int_t code, const char* rangeName) c
 	 Double_t xLow = xArray[iBin];
 	 Double_t xHigh = xArray[iBin+1];    
 	 integral += ig.Integral(xLow,xHigh);
-     //integral += func.DoEval((xLow+xHigh)/2.0)*(xHigh-xLow);
- 
        }
      }
    } else {
-     cout << "WARNING IN RooMyExpBinPdf: integration code is not correct" << endl;
+     cout << "WARNING IN RooDipho5ParamBinPdf: integration code is not correct" << endl;
      cout << "                           what are you integrating on?" << endl;
      return 1.0;
    }

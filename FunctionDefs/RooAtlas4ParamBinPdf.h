@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
-#ifndef HiggsAnalysis_CombinedLimit_RooMyExpBinPdf_h
-#define HiggsAnalysis_CombinedLimit_RooMyExpBinPdf_h
+#ifndef HiggsAnalysis_CombinedLimit_RooAtlas4ParamBinPdf_h
+#define HiggsAnalysis_CombinedLimit_RooAtlas4ParamBinPdf_h
 //---------------------------------------------------------------------------
 #include "RooAbsPdf.h"
 #include "RooConstVar.h"
@@ -20,25 +20,21 @@ class RooAbsReal;
 #include "Math/Integrator.h"
 
 //---------------------------------------------------------------------------
-class RooMyExpBinPdf : public RooAbsPdf
+class RooAtlas4ParamBinPdf : public RooAbsPdf
 {
 public:
-   RooMyExpBinPdf() {} ;
-   RooMyExpBinPdf(const char *name, const char *title,
+   RooAtlas4ParamBinPdf() {} ;
+   RooAtlas4ParamBinPdf(const char *name, const char *title,
 		    RooAbsReal& _th1x, RooAbsReal& _p1,
-		  RooAbsReal& _p2, RooAbsReal& _p3,
-		  RooAbsReal& _sqrts, RooAbsReal& _meff, RooAbsReal& _seff);
-   RooMyExpBinPdf(const char *name, const char *title,
-		    RooAbsReal& _th1x, RooAbsReal& _p1,
-		  RooAbsReal& _p2, RooAbsReal& _p3,
+		RooAbsReal& _p2, RooAbsReal& _p3,
 		  RooAbsReal& _sqrts);
-   RooMyExpBinPdf(const RooMyExpBinPdf& other,
+   RooAtlas4ParamBinPdf(const RooAtlas4ParamBinPdf& other,
       const char* name = 0);
    void setTH1Binning(TH1* _Hnominal);
    void setAbsTol(double _absTol);
    void setRelTol(double _relTol);
-   virtual TObject* clone(const char* newname) const { return new RooMyExpBinPdf(*this,newname); }
-   inline virtual ~RooMyExpBinPdf() { }
+   virtual TObject* clone(const char* newname) const { return new RooAtlas4ParamBinPdf(*this,newname); }
+   inline virtual ~RooAtlas4ParamBinPdf() { }
 
    Int_t getAnalyticalIntegral(RooArgSet& allVars, RooArgSet& analVars, const char* rangeName=0) const;
    Double_t analyticalIntegral(Int_t code, const char* rangeName=0) const;
@@ -50,8 +46,6 @@ protected:
    RooRealProxy p2;        // p2
    RooRealProxy p3;        // p3
    RooRealProxy sqrts;        // sqrts
-   RooRealProxy meff;        // meff
-   RooRealProxy seff;        // seff
    Int_t xBins;        // X bins
    Double_t xArray[2000]; // xArray[xBins+1]
    Double_t xMax;        // X max
@@ -61,7 +55,7 @@ protected:
 
    Double_t evaluate() const;
 private:
-   ClassDef(RooMyExpBinPdf,1) // RazorMyExpBinPdf function
+   ClassDef(RooAtlas4ParamBinPdf,1) // RazorAtlasBinPdf function
     
 };
 //---------------------------------------------------------------------------
@@ -70,7 +64,7 @@ private:
 #include "Math/IFunction.h"
 #include "Math/IParamFunction.h"
  
-class MyExpFunction: public ROOT::Math::IParametricFunctionOneDim
+class Atlas4ParamFunction: public ROOT::Math::IParametricFunctionOneDim
 {
 private:
    const double *pars;
@@ -78,24 +72,18 @@ private:
 public:
    double DoEvalPar(double x,const double* p) const
    {
-     double pdf = pow(p[1], p[2]*(x/p[0]) + p[3]/(x/p[0]));
-     double eff = 1.;
-     if (p[5]>0) eff = 1.0/(1.0 + exp(-2.4*(x - p[4])/p[5])) ; // Sigmoid function
-     return pdf*eff;
+     double pdf = exp(-p[2]*x/p[0]-p[3]*x*x/p[0]/p[0])/pow(x/p[0],p[1]);
+     return pdf;
    }
-   
    double DoEval(double x) const
    {
-     double pdf = pow(pars[1], pars[2]*(x/pars[0]) + pars[3]/(x/pars[0]));
-     double eff = 1.;
-     //if (pars[6]>0) eff = 0.5 * (1.0 + TMath::Erf((x - pars[5])/pars[6])); // Error function     
-     if (pars[5]>0) eff = 1.0/(1.0 + exp(-2.4*(x - pars[4])/pars[5])); // Sigmoid function
-     return pdf*eff;
+     double pdf = exp(-pars[2]*x/pars[0]-pars[3]*x*x/pars[0]/pars[0])/pow(x/pars[0],pars[1]);
+     return pdf;
    }
  
    ROOT::Math::IBaseFunctionOneDim* Clone() const
    {
-      return new MyExpFunction();
+      return new Atlas4ParamFunction();
    }
  
    const double* Parameters() const
@@ -110,6 +98,6 @@ public:
  
    unsigned int NPar() const
    {
-      return 6;
+      return 4;
    }
 };

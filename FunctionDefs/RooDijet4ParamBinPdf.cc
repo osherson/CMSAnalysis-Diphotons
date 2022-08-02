@@ -7,7 +7,7 @@
 #include <cmath>
 #include <math.h>
 
-#include "../interface/RooMyExpBinPdf.h"
+#include "../interface/RooDijet4ParamBinPdf.h"
 #include "RooRealVar.h"
 #include "RooConstVar.h"
 #include "Math/Functor.h"
@@ -19,9 +19,9 @@
 using namespace std;
 using namespace RooFit;
 
-ClassImp(RooMyExpBinPdf)
+ClassImp(RooDijet4ParamBinPdf)
 //---------------------------------------------------------------------------
-RooMyExpBinPdf::RooMyExpBinPdf(const char *name, const char *title,
+RooDijet4ParamBinPdf::RooDijet4ParamBinPdf(const char *name, const char *title,
 				   RooAbsReal& _th1x,  
 				   RooAbsReal& _p1, RooAbsReal& _p2, 
 			           RooAbsReal& _p3, RooAbsReal& _sqrts,
@@ -43,7 +43,7 @@ RooMyExpBinPdf::RooMyExpBinPdf(const char *name, const char *title,
   memset(&xArray, 0, sizeof(xArray));
 }
 //---------------------------------------------------------------------------
-RooMyExpBinPdf::RooMyExpBinPdf(const char *name, const char *title,
+RooDijet4ParamBinPdf::RooDijet4ParamBinPdf(const char *name, const char *title,
 				   RooAbsReal& _th1x,  
 				   RooAbsReal& _p1, RooAbsReal& _p2, 
 				   RooAbsReal& _p3, RooAbsReal& _sqrts) : RooAbsPdf(name, title), 
@@ -64,7 +64,7 @@ RooMyExpBinPdf::RooMyExpBinPdf(const char *name, const char *title,
   memset(&xArray, 0, sizeof(xArray));
 }
 //---------------------------------------------------------------------------
-RooMyExpBinPdf::RooMyExpBinPdf(const RooMyExpBinPdf& other, const char* name) :
+RooDijet4ParamBinPdf::RooDijet4ParamBinPdf(const RooDijet4ParamBinPdf& other, const char* name) :
    RooAbsPdf(other, name), 
    th1x("th1x", this, other.th1x),  
    p1("p1", this, other.p1),
@@ -85,7 +85,7 @@ RooMyExpBinPdf::RooMyExpBinPdf(const RooMyExpBinPdf& other, const char* name) :
   }
 }
 //---------------------------------------------------------------------------
-void RooMyExpBinPdf::setTH1Binning(TH1* _Hnominal){
+void RooDijet4ParamBinPdf::setTH1Binning(TH1* _Hnominal){
   xBins = _Hnominal->GetXaxis()->GetNbins();
   xMin = _Hnominal->GetXaxis()->GetBinLowEdge(1);
   xMax = _Hnominal->GetXaxis()->GetBinUpEdge(xBins);
@@ -95,15 +95,15 @@ void RooMyExpBinPdf::setTH1Binning(TH1* _Hnominal){
   }
 }
 //---------------------------------------------------------------------------
-void RooMyExpBinPdf::setRelTol(double _relTol){
+void RooDijet4ParamBinPdf::setRelTol(double _relTol){
   relTol = _relTol;
 }
 //---------------------------------------------------------------------------
-void RooMyExpBinPdf::setAbsTol(double _absTol){
+void RooDijet4ParamBinPdf::setAbsTol(double _absTol){
   absTol = _absTol;
 }
 //---------------------------------------------------------------------------
-Double_t RooMyExpBinPdf::evaluate() const
+Double_t RooDijet4ParamBinPdf::evaluate() const
 {
   Double_t integral = 0.0;
   
@@ -119,7 +119,7 @@ Double_t RooMyExpBinPdf::evaluate() const
   Double_t xHigh = xArray[iBin+1];
     
   // define the function to be integrated numerically
-  MyExpFunction func;
+  Dijet4ParamFunction func;
   double params[6];
   params[0] = sqrts;    params[1] = p1;
   params[2] = p2;       params[3] = p3;
@@ -141,13 +141,13 @@ Double_t RooMyExpBinPdf::evaluate() const
 }
 
 // //---------------------------------------------------------------------------
-Int_t RooMyExpBinPdf::getAnalyticalIntegral(RooArgSet& allVars, RooArgSet& analVars, const char* rangeName) const{
+Int_t RooDijet4ParamBinPdf::getAnalyticalIntegral(RooArgSet& allVars, RooArgSet& analVars, const char* rangeName) const{
   if (matchArgs(allVars, analVars, th1x)) return 1;
   return 0;
 }
 
 // //---------------------------------------------------------------------------
-Double_t RooMyExpBinPdf::analyticalIntegral(Int_t code, const char* rangeName) const{
+Double_t RooDijet4ParamBinPdf::analyticalIntegral(Int_t code, const char* rangeName) const{
 
    Double_t th1xMin = th1x.min(rangeName); Double_t th1xMax = th1x.max(rangeName);
    Int_t iBinMin = (Int_t) th1xMin; Int_t iBinMax = (Int_t) th1xMax;
@@ -159,8 +159,8 @@ Double_t RooMyExpBinPdf::analyticalIntegral(Int_t code, const char* rangeName) c
 
    
    // define the function to be integrated numerically  
-   MyExpFunction func;
-   double params[6];
+   Dijet4ParamFunction func;
+   double params[7];
    params[0] = sqrts;    params[1] = p1;
    params[2] = p2;       params[3] = p3;
    params[4] = meff;     params[5] = seff;
@@ -211,7 +211,7 @@ Double_t RooMyExpBinPdf::analyticalIntegral(Int_t code, const char* rangeName) c
        }
      }
    } else {
-     cout << "WARNING IN RooMyExpBinPdf: integration code is not correct" << endl;
+     cout << "WARNING IN RooDijet4ParamBinPdf: integration code is not correct" << endl;
      cout << "                           what are you integrating on?" << endl;
      return 1.0;
    }
