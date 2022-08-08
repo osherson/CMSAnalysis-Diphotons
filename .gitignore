@@ -7,6 +7,7 @@
 *.png
 DijetRoot_reeAnalyzer/inputs/Interpolations/*
 DijetRootTreeAnalyzer/python/runInterpo/Call*
+DijetRootTreeAnalyzer/python/FTestPlots/
 DijetRootTreeAnalyzer/python/runInterpo/single*
 DijetRootTreeAnalyzer/python/runInterpo/CallFiles/
 DijetRootTreeAnalyzer/python/runInterpo/SingleFiles/
