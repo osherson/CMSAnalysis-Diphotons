@@ -170,6 +170,7 @@ sP.Draw("histsame")
 gPad.SetTicks(1,1)
 gPad.RedrawAxis()
 C.Print("{}/PostFits_{}_{}_{}.png".format(newDir,an,mm,fit))
+C.Print("{}/PostFits_{}_{}_{}.root".format(newDir,an,mm,fit))
 
 os.system("combine "+sys.argv[1]+" -M GoodnessOfFit --algo=saturated")
 KS_Fs = TFile("higgsCombineTest.GoodnessOfFit.mH120.root")
@@ -218,6 +219,7 @@ L2.Draw("same")
 gPad.SetTicks(1,1)
 gPad.RedrawAxis()
 C_KS.Print("{}/GoF_{}_{}_{}.png".format(newDir,an,mm,fit))
+C_KS.Print("{}/GoF_{}_{}_{}.root".format(newDir,an,mm,fit))
 
 for i,j in zip(Lc,Ln):
 	os.system("combine "+sys.argv[1]+" -M GenerateOnly -t 500 --saveToys --toysFrequentist  --expectSignal "+str(i)+" -n "+j+" --bypassFrequentistFit")
@@ -225,7 +227,8 @@ for i,j in zip(Lc,Ln):
 	F = ROOT.TFile("fitDiagnostics"+j+".root")
 	T = F.Get("tree_fit_sb")
 	H = ROOT.TH1F("Bias Test, injected r="+j, ";(#mu_{measured} - #mu_{injected})/#sigma_{#mu};toys", 50, -5., 5.)
-	T.Draw("(r-%f)"%i+"/rErr>>Bias Test, injected r=" + j, "fit_status == 0")
+	T.Draw("(r-%f)"%i+"/rErr>>Bias Test, injected r=" + j)
+	#T.Draw("(r-%f)"%i+"/rErr>>Bias Test, injected r=" + j, "fit_status == 0")
 	G = ROOT.TF1("f", "gaus(0)", -5.,5.)
 	H.Fit(G)
 	ROOT.gStyle.SetOptFit(1111)
@@ -233,5 +236,6 @@ for i,j in zip(Lc,Ln):
 	C_B.cd()
 	H.Draw("e0")
 	C_B.Print(newDir+"/"+j+"_{}_{}_{}.png".format(an,mm,fit))
+	C_B.Print(newDir+"/"+j+"_{}_{}_{}.root".format(an,mm,fit))
 
 #os.system("mv *.png {}/.".format(newDir))

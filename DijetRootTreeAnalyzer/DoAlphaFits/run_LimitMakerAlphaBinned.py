@@ -44,6 +44,7 @@ def makeThisLimit(xmass):
 
   for dd in os.listdir(data_dir):
     anum = int(dd)
+    #if(anum != 6): continue
     for xx in os.listdir(os.path.join(data_dir,dd)):
       if("X{}A".format(xmass) in xx):
         sig=xx
@@ -58,11 +59,11 @@ def makeThisLimit(xmass):
     os.system("cp {}{}/{}/arange.txt output/alpha_{}/{}/.".format(data_dir,dd,sig,anum,sig))
 
 
-  dirs = [dirs[0]]
+  #dirs = [dirs[6]]
 
-  #fitfuncs = ["dijet","moddijet","atlas","dipho"]#,"myexp"]
+  fitfuncs = ["dijet","moddijet","atlas","dipho"]#,"myexp"]
   fitfuncs = ["dijet","atlas","dipho"]#,"myexp"]
-  fitfuncs=[fitfuncs[0]]
+  #fitfuncs=[fitfuncs[1]]
   #fitfuncs=["myexp"]
 
   for (dd,anum,la,ha) in dirs:
@@ -121,7 +122,7 @@ def makeThisLimit(xmass):
 
 
 #xmasslist=[xmasslist[0]]
-xmasslist=["500"]
+#xmasslist=["1500"]
 for xm in xmasslist:
   print(xm)
   print("\n\nStarting X Mass {}\n\n".format(xm))

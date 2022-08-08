@@ -2,8 +2,6 @@ import os
 import sys
 import time
 
-#CARD_alpha9_X500A5_dijet.txt
-
 xmass = sys.argv[1]
 
 for ff in os.listdir("./output"):
@@ -14,10 +12,11 @@ for ff in os.listdir("./output"):
     fit = cps[3]
     fit = fit[ :fit.find(".")]
 
-    if os.path.exists("combineOutput/{}_{}_{}".format(an,mm,fit)):
-      print("Directory exists, signal already processed. Moving on.")
-      continue
+    #if os.path.exists("combineOutput/{}_{}_{}".format(an,mm,fit)):
+    #  print("Directory exists, signal already processed. Moving on.")
+    #  continue
 
     print("python PlotPostFits.py output/{} diphoton_{}".format(ff, fit))
     time.sleep(3)
     os.system("python PlotPostFits.py output/{} diphoton_{}".format(ff, fit))
+    #exit()

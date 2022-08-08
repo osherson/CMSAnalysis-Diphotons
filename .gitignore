@@ -27,6 +27,7 @@ DijetRootTreeAnalyzer/PostFit/*.root
 DijetRootTreeAnalyzer/PostFit/*.out
 DijetRootTreeAnalyzer/PostFit/output
 DijetRootTreeAnalyzer/PostFit/combineOutput
+DijetRootTreeAnalyzer/PostFit/condor_logfiles
 combine_logger.out
 DijetRootTreeAnalyzer/FindEvent/RucluAODs
 DijetRootTreeAnalyzer/python/RunMakeShapes/CallFiles/

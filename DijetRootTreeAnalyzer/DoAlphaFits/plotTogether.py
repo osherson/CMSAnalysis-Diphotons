@@ -4,7 +4,18 @@ import numpy as np
 import os
 import sys
 
-outdir = "./output"
+outdir = "./saveOutput/"
+xmass = sys.argv[1]
+nparams = sys.argv[2]
+
+if(nparams=="3"):
+  outdir += "ThreeParams/"
+elif(nparams=="4"):
+  outdir += "FourParams/"
+elif(nparams=="5"):
+  outdir += "FiveParams/"
+elif(nparams=="6"):
+  outdir += "SixParams/"
 functions = []
 
 dirs = []
@@ -16,28 +27,31 @@ def MakeFolder(N):
     if not os.path.exists(N):
      os.makedirs(N)
 
+MakeFolder("Plots/{}Params/X{}/".format(nparams,xmass))
 
 for dd in os.listdir(outdir):
   if("alpha" in dd):
-    myd = os.path.join(outdir,dd)
+    for xd in os.listdir(os.path.join(outdir,dd)):
+      if("X{}A".format(xmass) not in xd): continue
+      myd = os.path.join(outdir,dd,xd)
 
-    anum = int(myd[myd.rfind("_")+1:])
+      anum = int( myd.split("/")[-2][len("alpha_") :])
 
-    rfile=open(os.path.join(myd,"arange.txt"))
-    rr = rfile.readline().rstrip()
-    lA =float(rr.split(",")[0])
-    hA =float(rr.split(",")[-1])
+      rfile=open(os.path.join(myd,"arange.txt"))
+      rr = rfile.readline().rstrip()
+      lA =float(rr.split(",")[0])
+      hA =float(rr.split(",")[-1])
 
-    dirs.append((myd,anum,lA,hA))
+      dirs.append((myd,anum,lA,hA))
 
-    for ff in os.listdir(os.path.join(outdir,dd)):
-      if(ff.endswith(".png")):
-        fitfunc = ff[ff.find("diphoton_")+9 : ff.find("_2018")]
-        if fitfunc not in functions: functions.append(fitfunc)
+      for ff in os.listdir(myd):
+        if(ff.endswith(".png")):
+          fitfunc = ff.split("_")[-2]
+          if fitfunc not in functions: functions.append(fitfunc)
 
-functions = [functions[0]]
-#functions = functions[0:4]
-#functions = ["myexp"]
+functions = functions[0:4]
+print(functions)
+#functions = [functions[0]]
 
 lumi = 13.7 ##Check this
 sqrts=np.sqrt(13000)
@@ -68,15 +82,18 @@ def convertToTh1xHist(hist):
 
 def getHistFromWorkspace(thisDir,ff,inh,dataHist,ph):
   global x
-  print("{}/DijetFitResults_diphoton_{}_2018.root".format(thisDir,ff))
-  thisFile = TFile("{}/DijetFitResults_diphoton_{}_2018.root".format(thisDir,ff))
+  for fil in os.listdir(thisDir):
+     if(fil.startswith("Dijet") and ff+"_" in fil):
+       thisFName = os.path.join(thisDir, fil)
+       break
+  thisFile = TFile(thisFName,"READ")
   w = thisFile.Get("wdiphoton_{}".format(ff))
   #w.Print()
 
   try:
     th1x = w.var('th1x')
   except AttributeError:
-    print("Problem with {}, likely doesn't exits".format(thisDir))
+    print("Problem with {}, likely doesn't exits".format(thisFName))
     return 0
   nBins = (len(x)-1)
   th1x.setBins(nBins)
@@ -110,6 +127,8 @@ def getHistFromWorkspace(thisDir,ff,inh,dataHist,ph):
   for ii in range(pullplot.GetNbinsX()):
     ph.SetBinContent(ii,pullplot.GetBinContent(ii))
   ph.SetName("{}_pull".format(ff))
+
+  thisFile.Close()
 
   return 
 
@@ -155,7 +174,10 @@ def makePlotTogether(hdir, anum, functions, lA, hA):
   leg.SetLineColor(kWhite)
 
   #####################################################################################
-  bkgFile = TFile("../inputs/Shapes_fromGen/alphaBinning/{}/PLOTS_{}.root".format(anum,anum))
+  bkgDir = "../inputs/Shapes_fromGen/alphaBinning/{}/".format(anum)
+  for ff in os.listdir(bkgDir):
+    if("X{}A".format(xmass) in ff):
+      bkgFile = TFile(os.path.join(bkgDir, ff)+"/PLOTS_{}.root".format(anum))
 
   #myTH1=bkgFile.Get("data_XM1")
   myTH1=bkgFile.Get("data_XM")
@@ -210,7 +232,9 @@ def makePlotTogether(hdir, anum, functions, lA, hA):
     ph = TH1D("{}_pull".format(fit),"{}_pull".format(fit),len(x)-1, x)
     #a=getHistFromWorkspace(hdir,fit,th, myRealTH1, ph)
     a=getHistFromWorkspace(hdir,fit,th, myRebinnedTH1, ph)
-    if(a==0): return
+    if(a==0): 
+      print("Bad fit at {}, skipping".format(fit))
+      return
     histlist.append(th)
     pulllist.append(ph)
 
@@ -253,9 +277,9 @@ def makePlotTogether(hdir, anum, functions, lA, hA):
     if(ii==0): pp.Draw("hist")
     else: pp.Draw("histsame")
 
-  canv.Print("Plots/fitTogether_{}.png".format(anum,anum))
+  canv.Print("Plots/{}Params/X{}/fitTogether_alpha{}_X{}.png".format(nparams,xmass,anum,xmass))
 
 for (dd,anum,lA,hA) in dirs:
-  if(anum != 0): continue
+  #if(anum != 0): continue
   #if("alpha_2" not in dd): continue
   makePlotTogether(dd,anum,functions,lA,hA)
