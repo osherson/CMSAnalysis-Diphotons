@@ -13,6 +13,7 @@ DijetRootTreeAnalyzer/python/runInterpo/CallFiles/
 DijetRootTreeAnalyzer/python/runInterpo/SingleFiles/
 DijetRootTreeAnalyzer/python/runInterpo/condor_logfiles/
 DijetRootTreeAnalyzer/inputs/X*
+DijetRootTreeAnalyzer/FTestPlots/Plots
 DijetRootTreeAnalyzer/InterpoPlotter/OutFiles
 DijetRootTreeAnalyzer/inputs/Shapes_fromInterpo/*
 DijetRootTreeAnalyzer/inputs/Shapes_fromGen/*

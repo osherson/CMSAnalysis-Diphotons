@@ -66,7 +66,7 @@ def GetRSS(D, H):
             N += (D.GetBinContent(i) - H.GetBinContent(i))**2
     return N
 
-def DoFTest(CH, nH, CL, nL):
+def DoFTest(CH, nH, CL, nL, FITFUNC):
 
 
   os.system("combine "+CH+" -M FitDiagnostics --saveShapes -n HIGH")
@@ -90,10 +90,10 @@ def DoFTest(CH, nH, CL, nL):
 
 
   FH = TFile("fitDiagnosticsHIGH.root")
-  data = convertAsymGraph(FH.Get("shapes_prefit/diphoton_dijet/data"), Template, "data")
-  bH = convertBinNHist(FH.Get("shapes_fit_b/diphoton_dijet/total_background"), Template, "b")
+  data = convertAsymGraph(FH.Get("shapes_prefit/diphoton_{}/data".format(FITFUNC)), Template, "data")
+  bH = convertBinNHist(FH.Get("shapes_fit_b/diphoton_{}/total_background".format(FITFUNC)), Template, "b")
   FL = TFile("fitDiagnosticsLOW.root")
-  bL = convertBinNHist(FL.Get("shapes_fit_b/diphoton_dijet/total_background"), Template, "b")
+  bL = convertBinNHist(FL.Get("shapes_fit_b/diphoton_{}/total_background".format(FITFUNC)), Template, "b")
 
   data.SetMarkerStyle(20)
   data.SetMarkerSize(0.65)
