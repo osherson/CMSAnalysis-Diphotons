@@ -6,6 +6,7 @@ goLim = False
 
 xmasslist = ['300','400','500','600','750','1000','1500','2000']
 
+
 if ('clean' in sys.argv):
   clean=True
 
@@ -61,10 +62,12 @@ def makeThisLimit(xmass):
 
   #dirs = [dirs[6]]
 
-  fitfuncs = ["dijet","moddijet","atlas","dipho"]#,"myexp"]
-  fitfuncs = ["dijet","atlas","dipho"]#,"myexp"]
+  #fitfuncs = ["dijet","moddijet","atlas","dipho"]#,"myexp"]
+  #fitfuncs = ["moddijet","myexp"]
+  #fitfuncs = ["dijet","atlas","dipho"]#,"myexp"]
   #fitfuncs=[fitfuncs[1]]
   #fitfuncs=["myexp"]
+  fitfuncs=["moddijet"]
 
   for (dd,anum,la,ha) in dirs:
     sig = dd.split("/")[-1]
@@ -91,6 +94,7 @@ def makeThisLimit(xmass):
 
       lcommand = "python ../python/DiphotonCardMakerAlphaBinSingle.py -f {} -l {} -y {} -a {} -s {} -x {}".format(ff,lumi/10, year, abin_num, sig, eff)
       print(lcommand)
+      exit()
       MakeFolder("output/combineCards")
       os.system(lcommand)
       cname = "output/dijet_combine_gg_{}_lumi-1.370_2018_diphoton_{}".format(sig,ff)
@@ -122,7 +126,7 @@ def makeThisLimit(xmass):
 
 
 #xmasslist=[xmasslist[0]]
-#xmasslist=["1500"]
+xmasslist=["600"]
 for xm in xmasslist:
   print(xm)
   print("\n\nStarting X Mass {}\n\n".format(xm))

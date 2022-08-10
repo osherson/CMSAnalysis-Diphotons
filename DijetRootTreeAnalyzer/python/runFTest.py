@@ -13,21 +13,20 @@ anum=1
 
 anums = range(0,16)
 functions = ["dijet","atlas","dipho","moddijet"]
-#functions=["moddijet"]
+functions=["moddijet"]
 
 pValue = 0.05
-bestFits = []
 
 if("append" in sys.argv):
   saveFile = open("FTestResults.txt","a")
 else:
   saveFile = open("FTestResults.txt","w")
 
-for anum in anums:
-  #if(anum != 2): continue
-  #if(anum > 1): break
-  for function in functions:
-    found=False
+for function in functions:
+  for anum in anums:
+    #if(anum < 8): continue
+    #if(anum > 1): break
+    c21=0
 
     for ii in range(len(sNparams)-1):
       (S,NL) = sNparams[ii]
@@ -52,21 +51,20 @@ for anum in anums:
       print("\n")
 
       #c21 = FTest.DoFTest(cardH, NH, cardL, NL, function)
+      c21_prev = c21
       try: 
         c21 = FTest.DoFTest(cardH, NH, cardL, NL, function)
       except AttributeError:
         print("FIT FAILED, Moving on")
         if(NH==6):
-          saveFile.write("{},{},999,999".format(anum,function))
+          saveFile.write("{},{},999,999,0".format(anum,function))
         continue
       os.system("mv FTest.png FTestPlots/FTest_alpha{}_{}_{}{}.png".format(anum, function, NH, NL))
 
       if(c21 > pValue or NH==6):
-        bestFits.append((anum, function, c21, NL))
-        saveFile.write("{},{},{},{}\n".format(anum,function,c21,NL))
+        saveFile.write("{},{},{},{},{}\n".format(anum,function,c21,NL,c21_prev))
         Found=True
         break
 
-print(bestFits)
 saveFile.close()
 

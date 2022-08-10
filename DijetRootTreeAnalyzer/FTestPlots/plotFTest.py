@@ -93,9 +93,9 @@ for plotfunc in functions:
   hist4.Draw("barsame")
   hist5.Draw("barsame")
   hist6.Draw("barsame")
-  hist_p.Draw("P0same")
+  #hist_p.Draw("P0same")
   leg.Draw("same")
-  c1.SetLogy()
+  #c1.SetLogy()
   c1.Print("Plots/{}_c21.png".format(plotfunc))
 
 
