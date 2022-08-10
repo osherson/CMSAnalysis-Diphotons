@@ -1,8 +1,19 @@
 import os
 import sys
 
+dir_path = os.path.dirname(os.path.realpath(__file__))
+
 def RunDataCardMaker(o):
-    config = " -c ../config/diphoton_%s" % (str(o.FIT))+".config"
+    env=False
+    if("envelope" in o.FIT):
+      env=True
+    print(env)
+
+    if(env):
+      config = " -c {}/../config/envelope/diphoton_{}".format(dir_path,str(o.FIT)) + ".config"
+    else:
+      config = " -c {}/../config/diphoton_{}".format(dir_path,str(o.FIT)) + ".config"
+
     lumi = " --lumi " + str(int(float(o.LUM)*1000.))
     box = " -b diphoton"#_" + str(o.SIG)
     if o.FIT != "combine": box += "_%s" % str(o.FIT)
@@ -17,14 +28,14 @@ def RunDataCardMaker(o):
     abin = str(o.ABIN)
     sig = str(o.SIG)
 
-    if(os.path.exists("../inputs/Shapes_fromGen/alphaBinning/" + abin + "/" + str(o.SIG) + "/DATA.root")):
+    if(os.path.exists(dir_path + "/../inputs/Shapes_fromGen/alphaBinning/" + abin + "/" + str(o.SIG) + "/DATA.root")):
       inputs = " -i output/alpha_{}/{}/DijetFitResults_diphoton_{}_{}_alpha{}.root".format(abin,sig,sig,str(o.FIT),abin)
-      inputs += " ../inputs/Shapes_fromGen/alphaBinning/" + abin+"/"+sig+ "/DATA.root"
-      inputs += " ../inputs/Shapes_fromGen/alphaBinning/"+ abin +"/"+sig+"/Sig_nominal.root"
-      jesup = " --jesUp ../inputs/Shapes_fromGen/alphaBinning/"+ abin +"/"+sig+"/Sig_SU.root"
-      jesdown = " --jesDown ../inputs/Shapes_fromGen/alphaBinning/"+ abin +"/"+sig+"/Sig_SD.root"
-      jerup = " --jerUp ../inputs/Shapes_fromGen/alphaBinning/"+ abin +"/"+sig+"/Sig_PU.root"
-      jerdown = " --jerDown ../inputs/Shapes_fromGen/alphaBinning/"+ abin +"/"+sig+"/Sig_PD.root"
+      inputs += " {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path)  + abin+"/"+sig+ "/DATA.root"
+      inputs += " {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_nominal.root"
+      jesup = " --jesUp {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_SU.root"
+      jesdown = " --jesDown {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_SD.root"
+      jerup = " --jerUp {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_PU.root"
+      jerdown = " --jerDown {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_PD.root"
 
     else:
       print("IN ELSE LOOP")
@@ -37,7 +48,7 @@ def RunDataCardMaker(o):
       jerup = " --jerUp inputs/Shapes_fromInterpo/"+ yr + "/" + str(o.SIG)+"/Sig_PU.root"
       jerdown = " --jerDown inputs/Shapes_fromInterpo/"+ yr + "/" + str(o.SIG)+"/Sig_PD.root"
 
-    dcstring = "python ../python/WriteDataCard_photons.py" + config + mass + savemass + year + box + output + inputs + jesup + jesdown + jerup + jerdown + xs + lumi
+    dcstring = "python {}/../python/WriteDataCard_photons.py".format(dir_path) + config + mass + savemass + year + box + output + inputs + jesup + jesdown + jerup + jerdown + xs + lumi
     print(dcstring)
     os.system(dcstring)
 
