@@ -217,7 +217,9 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,fixed,shapes=[
         for bkg in bkgs:
           print('Ntot_%s'%bkg)
           if("multi" in bkg):
-            rates.extend([w.var('Ntot_multi_diphoton_envelope').getVal()])
+            ccc = options.config.split("/")[-1].split("_")[-1]
+            anum = ccc[len("alpha") : ccc.find(".")]
+            rates.extend([w.var('Ntot_multi_diphoton_envelope_alpha{}'.format(anum)).getVal()]) 
           else:
             rates.extend([w.var('Ntot_%s'%bkg).getVal()])
        # processes.extend(["%s_%s"%(box,bkg) for bkg in bkgs])

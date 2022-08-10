@@ -7,7 +7,6 @@ def RunDataCardMaker(o):
     env=False
     if("envelope" in o.FIT):
       env=True
-    print(env)
 
     if(env):
       config = " -c {}/../config/envelope/diphoton_{}".format(dir_path,str(o.FIT)) + ".config"
