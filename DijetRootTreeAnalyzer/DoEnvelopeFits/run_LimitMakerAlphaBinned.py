@@ -4,7 +4,7 @@ import sys
 clean=False
 goLim = False
 
-xmasslist = ['300','400','500','600','750','1000','1500','2000']
+xmasslist = ['600','400','500','300','750','1000','1500','2000']
 
 
 if ('clean' in sys.argv):
@@ -77,7 +77,7 @@ def makeThisLimit(xmass):
     os.system(mycommand)
     os.system("mv output/fit_mjj_Full_diphoton_envelope_alpha{}_2018.png output/alpha_{}/{}/fit_mjj_Full_diphoton_{}_{}.png ".format(abin_num,abin_num,sig,sig,abin_num))
     os.system("mv output/fit_mjj_Full_diphoton_envelope_alpha{}_2018.C output/alpha_{}/{}/fit_mjj_Full_diphoton_{}_{}.C ".format(abin_num,abin_num,sig,sig,abin_num))
-    os.system("mv output/DijetFitResults_diphoton_envelope_alpha{}_2018.root output/alpha_{}/{}/DijetFitResults_diphoton_{}_alpha{}.root ".format(abin_num,abin_num,sig,sig,abin_num))
+    os.system("mv output/DijetFitResults_diphoton_envelope_alpha{}_2018.root output/alpha_{}/{}/DijetFitResults_diphoton_{}_diphoton_envelope_alpha{}.root ".format(abin_num,abin_num,sig,sig,abin_num))
     if clean:
       os.system("mv output/*.* output/alpha_{}/{}/.".format(abin_num,sig))
 
@@ -85,10 +85,9 @@ def makeThisLimit(xmass):
     print(lcommand)
     MakeFolder("output/combineCards")
     os.system(lcommand)
-    exit()
-    cname = "output/dijet_combine_gg_{}_lumi-1.370_2018_diphoton_{}".format(sig,ff)
-    ocname = "output/combineCards/CARD_alpha{}_{}_{}".format(abin_num,sig,ff)
-    fpname = "{}/output/combineCards/CARD_alpha{}_{}_{}".format(os.getcwd(),abin_num,sig,ff)
+    cname = "output/dijet_combine_gg_{}_lumi-1.370_2018_diphoton_envelope_alpha{}".format(sig,abin_num)
+    ocname = "output/combineCards/CARD_envelope_alpha{}_{}".format(abin_num,sig)
+    fpname = "{}/output/combineCards/CARD_envelope_alpha{}_{}".format(os.getcwd(),abin_num,sig)
 
     with open('{}.txt'.format(cname), 'r') as input_file, open('{}.txt'.format(ocname), 'w') as output_file:
       print("File successfully opened")
@@ -115,8 +114,7 @@ def makeThisLimit(xmass):
 
 
 #xmasslist=[xmasslist[0]]
-xmasslist=["600"]
+#xmasslist=["600"]
 for xm in xmasslist:
-  print(xm)
-  print("\n\nStarting X Mass {}\n\n".format(xm))
+  print("\nStarting X Mass {}\n".format(xm))
   makeThisLimit(xm)

@@ -19,4 +19,4 @@ for ff in os.listdir("./output"):
     print("python PlotPostFits.py output/{} diphoton_{}".format(ff, fit))
     time.sleep(3)
     os.system("python PlotPostFits.py output/{} diphoton_{}".format(ff, fit))
-    #exit()
+    exit()

@@ -9,13 +9,14 @@ def RunDataCardMaker(o):
       env=True
 
     if(env):
-      config = " -c {}/../config/envelope/diphoton_{}".format(dir_path,str(o.FIT)) + ".config"
+      config = " -c {}/../config/envelope/{}".format(dir_path,str(o.FIT)) + ".config"
+      box=" -b "
     else:
       config = " -c {}/../config/diphoton_{}".format(dir_path,str(o.FIT)) + ".config"
+      box = " -b diphoton_"
 
     lumi = " --lumi " + str(int(float(o.LUM)*1000.))
-    box = " -b diphoton"#_" + str(o.SIG)
-    if o.FIT != "combine": box += "_%s" % str(o.FIT)
+    if o.FIT != "combine": box += "%s" % str(o.FIT)
     mass = " --mass " + str(o.SIG).split("X")[1].split("A")[0]
     savemass = " --savemass " + str(o.SIG)
     output = " -d output"
@@ -28,7 +29,10 @@ def RunDataCardMaker(o):
     sig = str(o.SIG)
 
     if(os.path.exists(dir_path + "/../inputs/Shapes_fromGen/alphaBinning/" + abin + "/" + str(o.SIG) + "/DATA.root")):
-      inputs = " -i output/alpha_{}/{}/DijetFitResults_diphoton_{}_{}_alpha{}.root".format(abin,sig,sig,str(o.FIT),abin)
+      if(env):
+        inputs = " -i output/alpha_{}/{}/DijetFitResults_diphoton_{}_{}.root".format(abin,sig,sig,str(o.FIT))
+      else:
+        inputs = " -i output/alpha_{}/{}/DijetFitResults_diphoton_{}_{}_alpha{}.root".format(abin,sig,sig,str(o.FIT),abin)
       inputs += " {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path)  + abin+"/"+sig+ "/DATA.root"
       inputs += " {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_nominal.root"
       jesup = " --jesUp {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_SU.root"
