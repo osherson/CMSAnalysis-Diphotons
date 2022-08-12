@@ -21,6 +21,7 @@ DijetRootTreeAnalyzer/InterpoPlotter/FineScanAnalysis/Plots
 /DijetRootTreeAnalyzer/DoAlphaFits/output/
 /DijetRootTreeAnalyzer/DoAlphaFits/saveOutput/
 /DijetRootTreeAnalyzer/DoEnvelopeFits/output/
+/DijetRootTreeAnalyzer/DoEnvelopeFits/saveCards/
 DijetRootTreeAnalyzer/combineOutput/*
 DijetRootTreeAnalyzer/output/*.txt
 DijetRootTreeAnalyzer/output/*.C
