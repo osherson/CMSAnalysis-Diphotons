@@ -10,6 +10,7 @@ year = sys.argv[1]
 if("16" in year):
   dname="DoubleEG"
   RunList = [
+            "Run_B_ver1",
             "Run_B_ver2",
             "Run_C",
             "Run_D",
