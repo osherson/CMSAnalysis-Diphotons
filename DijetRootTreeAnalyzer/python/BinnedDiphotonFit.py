@@ -253,12 +253,16 @@ if __name__ == '__main__':
                   help="save fit as a 1 GeV-binned histogram")
     parser.add_option('--words', dest="CUTSTRING", default=" ~~~~ ~~~~~ ", action='store_true',
                   help="what to write on canvas")
+    parser.add_option('--lowA',dest="lA", default=0. ,type="float",
+                  help="alphaLow")
+    parser.add_option('--hiA',dest="hA", default=0.3,type="float",
+                  help="alphaHigh")
 
     rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.FATAL)
     rt.gStyle.SetPaintTextFormat('+.2f')
 
     (options,args) = parser.parse_args()
-    
+
     cfg = Config.Config(options.config)
     
     box = options.box
@@ -749,6 +753,11 @@ if __name__ == '__main__':
     l.SetTextFont(52)
     l.SetTextSize(0.045)
     l.DrawLatex(0.32,0.89,"Preliminary")
+
+    if(options.lA is not None and options.hA is not None):
+      l.SetTextFont(62)
+      l.SetTextSize(0.055)
+      l.DrawLatex(0.22,0.75,"{} #leq #alpha < {}".format(options.lA, options.hA))
         
     if options.signalFileName!=None:
         if 'Calo' in box:

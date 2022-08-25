@@ -5,6 +5,7 @@
 *.root
 *.swp
 *.png
+*.json
 DijetRoot_reeAnalyzer/inputs/Interpolations/*
 DijetRootTreeAnalyzer/python/runInterpo/Call*
 DijetRootTreeAnalyzer/python/FTestPlots/
@@ -35,6 +36,9 @@ DijetRootTreeAnalyzer/PostFit/combineOutput
 DijetRootTreeAnalyzer/PostFit/combineOutputEnvelope
 DijetRootTreeAnalyzer/PostFit/condor_logfiles
 DijetRootTreeAnalyzer/PostFit/envelopeCards
+DijetRootTreeAnalyzer/humpFinder/Plots
+DijetRootTreeAnalyzer/humpFinder/NPlots
+DijetRootTreeAnalyzer/humpFinder/FemtoTrees
 combine_logger.out
 DijetRootTreeAnalyzer/FindEvent/RucluAODs
 DijetRootTreeAnalyzer/python/RunMakeShapes/CallFiles/

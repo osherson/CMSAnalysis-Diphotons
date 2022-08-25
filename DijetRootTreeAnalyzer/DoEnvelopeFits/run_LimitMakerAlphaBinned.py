@@ -3,9 +3,16 @@ import sys
 
 clean=False
 goLim = False
+fast=False
+fnum=999
 
 xmasslist = ['600','400','500','300','750','1000','1500','2000']
 
+for arg in sys.argv:
+  if 'fast' in arg:
+    fnum = int(arg[4:])
+    fast=True
+    print("Only doing alpha bin {}".format(fnum))
 
 if ('clean' in sys.argv):
   clean=True
@@ -45,7 +52,7 @@ def makeThisLimit(xmass):
 
   for dd in os.listdir(data_dir):
     anum = int(dd)
-    #if(anum != 6): continue
+    if(fast and anum!=fnum): continue
     for xx in os.listdir(os.path.join(data_dir,dd)):
       if("X{}A".format(xmass) in xx):
         sig=xx
@@ -56,7 +63,7 @@ def makeThisLimit(xmass):
         dirs.append(("{}{}/{}".format(data_dir,dd,sig), anum,la,ha))
 
     MakeFolder("output/alpha_{}/{}".format(anum,sig))
-    if(goLim): MakeFolder("combineOutput/alpha_{}/{}/".format(anum,sig))
+    if(goLim): MakeFolder("combineOutput")
     os.system("cp {}{}/{}/arange.txt output/alpha_{}/{}/.".format(data_dir,dd,sig,anum,sig))
 
   for (dd,anum,la,ha) in dirs:
@@ -90,12 +97,13 @@ def makeThisLimit(xmass):
     fpname = "{}/output/combineCards/CARD_envelope_alpha{}_{}".format(os.getcwd(),abin_num,sig)
 
     with open('{}.txt'.format(cname), 'r') as input_file, open('{}.txt'.format(ocname), 'w') as output_file:
-      print("File successfully opened")
+      print("File successfully opened: {}.txt".format(cname))
       for line in input_file:
         if line.startswith('shapes') and cname in line:
           output_file.write(line.replace(cname,fpname))
         else:
           output_file.write(line)
+      print("Saving card as: {}.txt".format(ocname))
 
     os.system("mv {}.root {}.root".format(cname, ocname))
     os.system("rm {}.txt ".format(cname))
@@ -104,17 +112,17 @@ def makeThisLimit(xmass):
     os.system("rm stuff*")
     os.system("rm output/corr*")
 
+    print(goLim)
     if goLim:
-      for of in os.listdir("output/alpha_{}".format(abin_num)):
-        if( of.endswith(".root") and "dijet_combine" in of and ff in of):
-          comb_command = "combine output/alpha_{}/{} -M AsymptoticLimits -n _{}_{}".format(abin_num, of, year,sig)
+      for of in os.listdir("output/combineCards"):
+        if( os.path.join("output/combineCards",of)=="{}.txt".format(ocname)):
+          comb_command = "combine {} -M AsymptoticLimits -n _alpha{}_{}".format(os.path.join("output/combineCards",of), abin_num, sig)
           print(comb_command)
           os.system(comb_command)
-          os.system("mv higgsCombine_{}_{}.AsymptoticLimits.mH120.root combineOutput/alpha_{}/higgsCombine_{}_{}.root".format(year,sig,abin_num,ff,sig))
-
+          os.system("mv higgsCombine_alpha{}_{}.AsymptoticLimits.mH120.root combineOutput/higgsCombine_envelope_alpha{}_{}.root".format(abin_num,sig,abin_num,sig))
 
 #xmasslist=[xmasslist[0]]
-#xmasslist=["600"]
+xmasslist=["600"]
 for xm in xmasslist:
   print("\nStarting X Mass {}\n".format(xm))
   makeThisLimit(xm)
