@@ -12,7 +12,7 @@ import Helper
 dir_path = os.path.dirname(os.path.realpath(__file__)) #Get directory where this Treemaker.py is located
 gInterpreter.Declare('#include "{}/RDF_Functions.h"'.format(dir_path))
 
-saveTreeFolder = "/cms/sclark-2/DiPhotonsTrees/" 
+saveTreeFolder = "/cms/sclark-2/DiPhotonsTrees/GJets/" 
 
 #ROOT.ROOT.EnableImplicitMT()
 RDF = ROOT.ROOT.RDataFrame
@@ -25,11 +25,14 @@ def Treemaker(folder, Dataset, isData, year):
   oF.Close()
   tree = "flattenerMatching/tree"
   Chain = TChain(tree)
+  fcount = 0
   for path, subdirs, files in os.walk(folder):
     for name in files:
       File = os.path.join(path, name)
       if (File.endswith(".root") and "flat" in File):
         if(os.path.getsize(File) > 100):
+            fcount += 1
+            #if(fcount > 10): break
             print os.path.join(path, name)
             Chain.Add(File)
 
@@ -106,6 +109,12 @@ def Treemaker(folder, Dataset, isData, year):
     # Save to the file we created earlier:
     branchList = ROOT.std.vector('std::string')()
     for k in Helper.keeplist: branchList.push_back(k)
+    branchList.push_back("gen_ID")
+    branchList.push_back("gen_pt")
+    branchList.push_back("gen_eta")
+    branchList.push_back("gen_phi")
+    branchList.push_back("gen_energy")
+    branchList.push_back("gen_mass")
     snapshotOptions = ROOT.RDF.RSnapshotOptions()
     snapshotOptions.fMode = "UPDATE" 
     Rdf.Snapshot(b[0], saveTreeFolder+Name+".root", branchList, snapshotOptions)

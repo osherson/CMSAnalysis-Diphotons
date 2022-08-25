@@ -2,43 +2,66 @@ from ROOT import *
 from array import *
 import numpy as np
 import os
+import sys
 
-#xasig = "X600A3"
-xasig = "X1000A10"
-outdir = "./output/{}".format(xasig)
+outdir = "./saveOutput/"
+xmass = sys.argv[1]
+nparams = sys.argv[2]
+
+if(nparams=="3"):
+  outdir += "ThreeParams/"
+elif(nparams=="4"):
+  outdir += "FourParams/"
+elif(nparams=="5"):
+  outdir += "FiveParams/"
+elif(nparams=="6"):
+  outdir += "SixParams/"
 functions = []
-
 
 dirs = []
 
+if("noshow" in sys.argv):
+  gROOT.SetBatch()
+
+def MakeFolder(N):
+    if not os.path.exists(N):
+     os.makedirs(N)
+
+MakeFolder("Plots/{}Params/X{}/".format(nparams,xmass))
+
 for dd in os.listdir(outdir):
   if("alpha" in dd):
-    myd = os.path.join(outdir,dd)
+    for xd in os.listdir(os.path.join(outdir,dd)):
+      if("X{}A".format(xmass) not in xd): continue
+      myd = os.path.join(outdir,dd,xd)
 
-    anum = int(myd[myd.rfind("_")+1:])
+      anum = int( myd.split("/")[-2][len("alpha_") :])
 
-    rfile=open(os.path.join(myd,"range.txt"))
-    rr = rfile.readline().rstrip()
-    lA =float(rr.split(",")[0])
-    hA =float(rr.split(",")[-1])
+      rfile=open(os.path.join(myd,"arange.txt"))
+      rr = rfile.readline().rstrip()
+      lA =float(rr.split(",")[0])
+      hA =float(rr.split(",")[-1])
 
-    dirs.append((myd,anum,lA,hA))
+      dirs.append((myd,anum,lA,hA))
 
-    for ff in os.listdir(os.path.join(outdir,dd)):
-      if(ff.endswith(".png")):
-        fitfunc = ff[ff.find("diphoton_")+9 : ff.find("_2018")]
-        if fitfunc not in functions: functions.append(fitfunc)
+      for ff in os.listdir(myd):
+        if(ff.endswith(".png")):
+          fitfunc = ff.split("_")[-2]
+          if fitfunc not in functions: functions.append(fitfunc)
 
-#functions = functions[0:4]
-#functions = ["myexp"]
-functions.remove("csch")
+functions = functions[0:4]
+print(functions)
+#functions = [functions[0]]
 
 lumi = 13.7 ##Check this
 sqrts=np.sqrt(13000)
 
 signal_mjj = [297.0, 303.0, 310.0, 317.0, 324.0, 331.0, 338.0, 345.0, 352.0, 360.0, 368.0, 376.0, 384.0, 392.0, 400.0, 409.0, 418.0, 427.0, 436.0, 445.0, 454.0, 464.0, 474.0, 484.0, 494.0, 504.0,515.0, 526.0, 537.0, 548.0, 560.0, 572.0, 584.0, 596.0, 609.0, 622.0, 635.0, 648.0, 662.0, 676.0, 690.0, 704.0, 719.0, 734.0, 749.0, 765.0, 781.0, 797.0, 814.0, 831.0, 848.0, 866.0, 884.0, 902.0, 921.0, 940.0, 959.0, 979.0, 999.0, 1020.0, 1041.0, 1063.0, 1085.0, 1107.0, 1130.0, 1153.0, 1177.0, 1201.0, 1226.0, 1251.0,1277.0, 1303.0, 1330.0, 1357.0, 1385.0, 1413.0, 1442.0, 1472.0, 1502.0,1533.0, 1564.0, 1596.0, 1629.0, 1662.0, 1696.0]
 
-def convertToMjjHist(hist_th1x,x):
+x = array('d', signal_mjj) # mjj binning
+
+def convertToMjjHist(hist_th1x):
+    global x
 
     hist = TH1D(hist_th1x.GetName()+'_mjj',hist_th1x.GetName()+'_mjj',len(x)-1,x)
     for i in range(1,hist_th1x.GetNbinsX()+1):
@@ -56,16 +79,22 @@ def convertToTh1xHist(hist):
 
     return hist_th1x
 
-x = array('d', signal_mjj) # mjj binning
 
 def getHistFromWorkspace(thisDir,ff,inh,dataHist,ph):
   global x
-  print("{}/DijetFitResults_diphoton_{}_2018.root".format(thisDir,ff))
-  thisFile = TFile("{}/DijetFitResults_diphoton_{}_2018.root".format(thisDir,ff))
+  for fil in os.listdir(thisDir):
+     if(fil.startswith("Dijet") and ff+"_" in fil):
+       thisFName = os.path.join(thisDir, fil)
+       break
+  thisFile = TFile(thisFName,"READ")
   w = thisFile.Get("wdiphoton_{}".format(ff))
   #w.Print()
 
-  th1x = w.var('th1x')
+  try:
+    th1x = w.var('th1x')
+  except AttributeError:
+    print("Problem with {}, likely doesn't exits".format(thisFName))
+    return 0
   nBins = (len(x)-1)
   th1x.setBins(nBins)
 
@@ -73,7 +102,7 @@ def getHistFromWorkspace(thisDir,ff,inh,dataHist,ph):
   asimov = thisPdf.generateBinned(RooArgSet(th1x),RooFit.Name('central'),RooFit.Asimov())
   h_th1x = asimov.createHistogram('h_th1x',th1x)
 
-  h_background = h_th1x.Clone()
+  h_background = convertToMjjHist(h_th1x.Clone())
 
   #c1 = TCanvas()
   #c1.cd()
@@ -84,19 +113,22 @@ def getHistFromWorkspace(thisDir,ff,inh,dataHist,ph):
   inh.SetName("{}".format(ff))
 
   pullplot = dataHist.Clone()
-  pullplot.Add(h_th1x, -1)
+  pullplot.Add(h_background, -1)
  
   for i in range(pullplot.GetNbinsX()):
     if not dataHist.GetBinContent(i+1) == 0:
       pullplot.SetBinContent(i+1, pullplot.GetBinContent(i+1)/dataHist.GetBinError(i+1))
       pullplot.SetBinError(i+1, 1)
-    else:
-      pullplot.SetBinContent(i+1, 0)
-      pullplot.SetBinError(i+1, 0)
+    #else:  #Leave this commented out to include 0 bins in pull plot calculation
+    #  print(dataHist.GetBinContent(i+1), h_background.GetBinContent(i+1), pullplot.GetBinContent(i+1))
+    #  pullplot.SetBinContent(i+1, 0)
+    #  pullplot.SetBinError(i+1, 0)
 
   for ii in range(pullplot.GetNbinsX()):
     ph.SetBinContent(ii,pullplot.GetBinContent(ii))
   ph.SetName("{}_pull".format(ff))
+
+  thisFile.Close()
 
   return 
 
@@ -142,11 +174,18 @@ def makePlotTogether(hdir, anum, functions, lA, hA):
   leg.SetLineColor(kWhite)
 
   #####################################################################################
-  bkgFile = TFile("../inputs/Shapes_fromGen/alpha1/{}_2Sigma_pt90/{}{}/PLOTS_{}.root".format(xasig,anum,xasig,xasig))
+  bkgDir = "../inputs/Shapes_fromGen/alphaBinning/{}/".format(anum)
+  for ff in os.listdir(bkgDir):
+    if("X{}A".format(xmass) in ff):
+      bkgFile = TFile(os.path.join(bkgDir, ff)+"/PLOTS_{}.root".format(anum))
+
   #myTH1=bkgFile.Get("data_XM1")
   myTH1=bkgFile.Get("data_XM")
-  myTH1.Rebin(len(x)-1,'data_obs_rebin',x)
-  myRebinnedTH1 = gDirectory.Get('data_obs_rebin')
+  #myTH1.Rebin(len(x)-1,'data_obs_rebin',x)
+
+  #myRebinnedTH1 = gDirectory.Get('data_obs_rebin')
+  myRebinnedTH1 = myTH1.Clone()
+  myRebinnedTH1.Scale(1,"width")
   myRebinnedTH1.SetDirectory(0)
   myRealTH1 = convertToTh1xHist(myRebinnedTH1)
 
@@ -191,7 +230,11 @@ def makePlotTogether(hdir, anum, functions, lA, hA):
   for (ii,fit) in enumerate(functions):
     th = TH1D("{}".format(fit),"{}".format(fit),len(x)-1, x)
     ph = TH1D("{}_pull".format(fit),"{}_pull".format(fit),len(x)-1, x)
-    getHistFromWorkspace(hdir,fit,th, myRealTH1, ph)
+    #a=getHistFromWorkspace(hdir,fit,th, myRealTH1, ph)
+    a=getHistFromWorkspace(hdir,fit,th, myRebinnedTH1, ph)
+    if(a==0): 
+      print("Bad fit at {}, skipping".format(fit))
+      return
     histlist.append(th)
     pulllist.append(ph)
 
@@ -234,8 +277,9 @@ def makePlotTogether(hdir, anum, functions, lA, hA):
     if(ii==0): pp.Draw("hist")
     else: pp.Draw("histsame")
 
-  canv.Print("Plots/{}/fitTogether_{}.png".format(xasig,anum))
+  canv.Print("Plots/{}Params/X{}/fitTogether_alpha{}_X{}.png".format(nparams,xmass,anum,xmass))
 
 for (dd,anum,lA,hA) in dirs:
+  #if(anum != 0): continue
   #if("alpha_2" not in dd): continue
   makePlotTogether(dd,anum,functions,lA,hA)

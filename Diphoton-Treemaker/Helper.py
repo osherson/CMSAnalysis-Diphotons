@@ -31,7 +31,7 @@ def getTrigIndex(year, run):
 
 keeplist = ['lumiSec','run','id', 
             "weight",
-            "pvtx_size",
+            #"pvtx_size",
             "HLT_DoublePhoton", "HLT_EleTrig",
             "clu1_pt",
             "clu1_eta",

@@ -24,14 +24,13 @@ ClassImp(RooMyExpBinPdf)
 RooMyExpBinPdf::RooMyExpBinPdf(const char *name, const char *title,
 				   RooAbsReal& _th1x,  
 				   RooAbsReal& _p1, RooAbsReal& _p2, 
-			           RooAbsReal& _p3, RooAbsReal& _p4, RooAbsReal& _sqrts,
+			           RooAbsReal& _p3, RooAbsReal& _sqrts,
 			           RooAbsReal& _meff, RooAbsReal& _seff) : RooAbsPdf(name, title), 
 //TH3* _Hnominal) : RooAbsPdf(name, title), 
   th1x("th1x", "th1x Observable", this, _th1x),
   p1("p1", "p1", this, _p1),
   p2("p2", "p2", this, _p2),
   p3("p3", "p3", this, _p3),
-  p4("p4", "p4", this, _p4),
   sqrts("sqrts", "sqrts", this, _sqrts),
   meff("meff", "meff", this, _meff),
   seff("seff", "seff", this, _seff),
@@ -47,13 +46,12 @@ RooMyExpBinPdf::RooMyExpBinPdf(const char *name, const char *title,
 RooMyExpBinPdf::RooMyExpBinPdf(const char *name, const char *title,
 				   RooAbsReal& _th1x,  
 				   RooAbsReal& _p1, RooAbsReal& _p2, 
-				   RooAbsReal& _p3, RooAbsReal& _p4, RooAbsReal& _sqrts) : RooAbsPdf(name, title), 
+				   RooAbsReal& _p3, RooAbsReal& _sqrts) : RooAbsPdf(name, title), 
 //TH3* _Hnominal) : RooAbsPdf(name, title), 
   th1x("th1x", "th1x Observable", this, _th1x),
   p1("p1", "p1", this, _p1),
   p2("p2", "p2", this, _p2),
   p3("p3", "p3", this, _p3),
-  p4("p4", "p4", this, _p4),
   sqrts("sqrts", "sqrts", this, _sqrts),
   meff("meff", "meff", this, RooConst(-1) ),
   seff("seff", "seff", this, RooConst(-1) ),
@@ -72,7 +70,6 @@ RooMyExpBinPdf::RooMyExpBinPdf(const RooMyExpBinPdf& other, const char* name) :
    p1("p1", this, other.p1),
    p2("p2", this, other.p2),
    p3("p3", this, other.p3),
-   p4("p4", this, other.p4),
    sqrts("sqrts", this, other.sqrts),
    meff("meff", this, other.meff),
    seff("seff", this, other.seff),
@@ -123,11 +120,10 @@ Double_t RooMyExpBinPdf::evaluate() const
     
   // define the function to be integrated numerically
   MyExpFunction func;
-  double params[7];
+  double params[6];
   params[0] = sqrts;    params[1] = p1;
   params[2] = p2;       params[3] = p3;
-  params[4] = p4;
-  params[5] = meff;     params[6] = seff;
+  params[4] = meff;     params[5] = seff;
   func.SetParameters(params);
 
   ROOT::Math::Integrator ig(ROOT::Math::IntegrationOneDim::kADAPTIVE,absTol,relTol);
@@ -164,11 +160,10 @@ Double_t RooMyExpBinPdf::analyticalIntegral(Int_t code, const char* rangeName) c
    
    // define the function to be integrated numerically  
    MyExpFunction func;
-   double params[7];
+   double params[6];
    params[0] = sqrts;    params[1] = p1;
    params[2] = p2;       params[3] = p3;
-   params[4] = p4;
-   params[5] = meff;     params[6] = seff;
+   params[4] = meff;     params[5] = seff;
    func.SetParameters(params);
 
    

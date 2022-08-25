@@ -26,11 +26,11 @@ public:
    RooMyExpBinPdf() {} ;
    RooMyExpBinPdf(const char *name, const char *title,
 		    RooAbsReal& _th1x, RooAbsReal& _p1,
-		  RooAbsReal& _p2, RooAbsReal& _p3, RooAbsReal& _p4,
+		  RooAbsReal& _p2, RooAbsReal& _p3,
 		  RooAbsReal& _sqrts, RooAbsReal& _meff, RooAbsReal& _seff);
    RooMyExpBinPdf(const char *name, const char *title,
 		    RooAbsReal& _th1x, RooAbsReal& _p1,
-		  RooAbsReal& _p2, RooAbsReal& _p3, RooAbsReal& _p4,
+		  RooAbsReal& _p2, RooAbsReal& _p3,
 		  RooAbsReal& _sqrts);
    RooMyExpBinPdf(const RooMyExpBinPdf& other,
       const char* name = 0);
@@ -49,7 +49,6 @@ protected:
    RooRealProxy p1;       // p1
    RooRealProxy p2;        // p2
    RooRealProxy p3;        // p3
-   RooRealProxy p4;        // p4
    RooRealProxy sqrts;        // sqrts
    RooRealProxy meff;        // meff
    RooRealProxy seff;        // seff
@@ -81,7 +80,7 @@ public:
    {
      double pdf = pow(p[1], p[2]*(x/p[0]) + p[3]/(x/p[0]));
      double eff = 1.;
-     if (p[6]>0) eff = 1.0/(1.0 + exp(-2.4*(x - p[5])/p[6])) ; // Sigmoid function
+     if (p[5]>0) eff = 1.0/(1.0 + exp(-2.4*(x - p[4])/p[5])) ; // Sigmoid function
      return pdf*eff;
    }
    
@@ -90,7 +89,7 @@ public:
      double pdf = pow(pars[1], pars[2]*(x/pars[0]) + pars[3]/(x/pars[0]));
      double eff = 1.;
      //if (pars[6]>0) eff = 0.5 * (1.0 + TMath::Erf((x - pars[5])/pars[6])); // Error function     
-     if (pars[6]>0) eff = 1.0/(1.0 + exp(-2.4*(x - pars[5])/pars[6])); // Sigmoid function
+     if (pars[5]>0) eff = 1.0/(1.0 + exp(-2.4*(x - pars[4])/pars[5])); // Sigmoid function
      return pdf*eff;
    }
  
@@ -111,6 +110,6 @@ public:
  
    unsigned int NPar() const
    {
-      return 7;
+      return 6;
    }
 };
