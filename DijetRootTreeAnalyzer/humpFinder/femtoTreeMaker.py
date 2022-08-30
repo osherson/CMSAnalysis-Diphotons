@@ -17,7 +17,7 @@ year='2018'
 
 xaastorage = "/cms/xaastorage-2/DiPhotonsTrees/"
 
-sample="Signal"
+sample="Data"
 
 ################################################
 DATA = []
@@ -45,6 +45,7 @@ if(sample=="Signal"):
       DATA.append(os.path.join(xaastorage,ff))
 
     # Load files:
+print(DATA)
 if(sample=="Data"):
   Chain = ROOT.TChain("pico_skim")
 elif(sample=="GJets"):
@@ -58,10 +59,18 @@ for f in DATA:
 Rdf = RDF(Chain)
 # Make cuts:
 Rdf = Rdf.Filter("HLT_DoublePhoton > 0.","trigger")
-#Rdf = Rdf.Filter("clu1_pt > 90. && clu2_pt > 90.", "pt > 90")
+
+##
+#Analysis Cuts
+Rdf = Rdf.Filter("clu1_pt > 90. && clu2_pt > 90.", "pt > 90")
+Rdf = Rdf.Filter("masym < 0.25", "Mass Asymmetry < 0.25")
+Rdf = Rdf.Filter("deta < 1.5", "Delta Eta < 1.5")
+Rdf = Rdf.Filter("clu1_dipho > 0.9 && clu2_dipho > 0.9", "dipho > 0.9")
+Rdf = Rdf.Filter("clu1_iso > 0.8 && clu2_iso > 0.8", "iso > 0.8")
+
 rep = Rdf.Report()
 rep.Print()
 
-savename = "FemtoTrees/{}_trigger.root".format(sample)
-print("Saving Data Tree As: {}".format(savename))
-Rdf.Snapshot("femtotree", savename)
+#savename = "FemtoTrees/{}_trigger.root".format(sample)
+#print("Saving Data Tree As: {}".format(savename))
+#Rdf.Snapshot("femtotree", savename)

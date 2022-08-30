@@ -12,5 +12,5 @@ export HOME=/cms/sclark/
 cd /cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/PostFit
 eval `scramv1 runtime -sh`
 
-python postProcessAll.py 1000
+python postProcessAll.py 200
 

@@ -6,6 +6,17 @@
 *.swp
 *.png
 *.json
+*.jdl
+
+DijetRootTreeAnalyzer/DoAlphaFits/ShapeCombinedCards/
+DijetRootTreeAnalyzer/DoAlphaFits/combineOutput/
+DijetRootTreeAnalyzer/DoAlphaFits/copyfits.sh
+DijetRootTreeAnalyzer/DoAlphaFits/limitMaker.py
+DijetRootTreeAnalyzer/DoAlphaFits/limitMakerCombined.py
+DijetRootTreeAnalyzer/DoAlphaFits/shapeCombineOutput/
+DijetRootTreeAnalyzer/DoEnvelopeFits/combineOutput/
+DijetRootTreeAnalyzer/DoEnvelopeFits/saveOutput/
+DijetRootTreeAnalyzer/PostFit/Call*.sh
 DijetRoot_reeAnalyzer/inputs/Interpolations/*
 DijetRootTreeAnalyzer/python/runInterpo/Call*
 DijetRootTreeAnalyzer/python/FTestPlots/

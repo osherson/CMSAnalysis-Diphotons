@@ -9,7 +9,8 @@ def RunDataCardMaker(o):
       env=True
 
     if(env):
-      config = " -c {}/../config/envelope/{}".format(dir_path,str(o.FIT)) + ".config"
+      print("STEVEN LOOK HERE IF YOUR ENVELOPE HAS WRONG FUNCTIONS")
+      config = " -c {}/../config/envelope2/{}".format(dir_path,str(o.FIT)) + ".config"
       box=" -b "
     else:
       config = " -c {}/../config/diphoton_{}".format(dir_path,str(o.FIT)) + ".config"

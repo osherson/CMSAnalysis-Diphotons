@@ -6,8 +6,10 @@ goLim = False
 fast=False
 fnum=999
 
-xmasslist = ['600','400','500','300','750','1000','1500','2000']
+#xmasslist = ['600','400','500','300','750','1000','1500','2000']
+xmasslist = ['600','400','500','200','300','750','1000','1500','2000']
 
+#To run test on one alpha bin, add fast# to command line arg
 for arg in sys.argv:
   if 'fast' in arg:
     fnum = int(arg[4:])
@@ -54,7 +56,7 @@ def makeThisLimit(xmass):
     anum = int(dd)
     if(fast and anum!=fnum): continue
     for xx in os.listdir(os.path.join(data_dir,dd)):
-      if("X{}A".format(xmass) in xx):
+      if("X{}A".format(xmass) in xx and os.path.exists("{}{}/{}/PLOTS_{}.root".format(data_dir,dd,xx,anum))):
         sig=xx
         rangeFile = open("{}{}/{}/arange.txt".format(data_dir,dd,sig),"r")
         rr = rangeFile.readline().rstrip()
@@ -62,14 +64,20 @@ def makeThisLimit(xmass):
         ha = float(rr.split(",")[-1])
         dirs.append(("{}{}/{}".format(data_dir,dd,sig), anum,la,ha))
 
-    MakeFolder("output/alpha_{}/{}".format(anum,sig))
     if(goLim): MakeFolder("combineOutput")
-    os.system("cp {}{}/{}/arange.txt output/alpha_{}/{}/.".format(data_dir,dd,sig,anum,sig))
 
   for (dd,anum,la,ha) in dirs:
+    if(anum > 0): continue
     sig = dd.split("/")[-1]
     abin_num = int(dd.split("/")[-2])
     print("Starting {} Signal, alpha bin {}" .format(sig, abin_num))
+    MakeFolder("output/alpha_{}/{}".format(abin_num,sig))
+    os.system("cp {}/{}/{}/arange.txt output/alpha_{}/{}/.".format(data_dir,abin_num,sig,abin_num,sig))
+    
+    if(os.path.exists("output/combineCards/CARD_envelope_alpha{}_{}.txt".format(abin_num,sig))):
+      print(abin_num, sig)
+      print("Already done, moving on. ")
+      continue
 
     #GetSignal and efficiency
     for fil in os.listdir(dd):
@@ -79,7 +87,7 @@ def makeThisLimit(xmass):
           print(eff)
 
 
-    mycommand = "python ../python/BinnedDiphotonFit.py -c ../config/envelope/diphoton_envelope_alpha{}.config -y {} -l {} -b diphoton_envelope_alpha{} {}/PLOTS_{}.root -d output --fit-spectrum --write-fit --words test".format(abin_num,year,lumi,abin_num,dd,abin_num)
+    mycommand = "python ../python/BinnedDiphotonFit.py -c ../config/envelope2/diphoton_envelope_alpha{}.config -y {} -l {} -b diphoton_envelope_alpha{} {}/PLOTS_{}.root -d output --fit-spectrum --write-fit --words test".format(abin_num,year,lumi,abin_num,dd,abin_num)
     print(mycommand)
     os.system(mycommand)
     os.system("mv output/fit_mjj_Full_diphoton_envelope_alpha{}_2018.png output/alpha_{}/{}/fit_mjj_Full_diphoton_{}_{}.png ".format(abin_num,abin_num,sig,sig,abin_num))
@@ -96,17 +104,22 @@ def makeThisLimit(xmass):
     ocname = "output/combineCards/CARD_envelope_alpha{}_{}".format(abin_num,sig)
     fpname = "{}/output/combineCards/CARD_envelope_alpha{}_{}".format(os.getcwd(),abin_num,sig)
 
-    with open('{}.txt'.format(cname), 'r') as input_file, open('{}.txt'.format(ocname), 'w') as output_file:
-      print("File successfully opened: {}.txt".format(cname))
-      for line in input_file:
-        if line.startswith('shapes') and cname in line:
-          output_file.write(line.replace(cname,fpname))
-        else:
-          output_file.write(line)
-      print("Saving card as: {}.txt".format(ocname))
+    try:
+      with open('{}.txt'.format(cname), 'r') as input_file, open('{}.txt'.format(ocname), 'w') as output_file:
+        print("File successfully opened: {}.txt".format(cname))
+        for line in input_file:
+          if line.startswith('shapes') and cname in line:
+            output_file.write(line.replace(cname,fpname))
+          else:
+            output_file.write(line)
+        print("Saving card as: {}.txt".format(ocname))
+      os.system("mv {}.root {}.root".format(cname, ocname))
+      os.system("rm {}.txt ".format(cname))
 
-    os.system("mv {}.root {}.root".format(cname, ocname))
-    os.system("rm {}.txt ".format(cname))
+    except IOError:
+      print("Something went wrong")
+      continue
+
     
     os.system("rm crude*")
     os.system("rm stuff*")
@@ -122,7 +135,7 @@ def makeThisLimit(xmass):
           os.system("mv higgsCombine_alpha{}_{}.AsymptoticLimits.mH120.root combineOutput/higgsCombine_envelope_alpha{}_{}.root".format(abin_num,sig,abin_num,sig))
 
 #xmasslist=[xmasslist[0]]
-xmasslist=["600"]
+#xmasslist=["400"]
 for xm in xmasslist:
   print("\nStarting X Mass {}\n".format(xm))
   makeThisLimit(xm)
