@@ -115,6 +115,8 @@ def MakeLimitPlots(function):
   for alpha in alphas:
     flist = []
 
+    if(alpha != 0.015 or function != "dijet"): continue
+
     print("Starting {} function, alpha = {}".format(function,alpha))
 
     for ff in os.listdir(combine_dir):
@@ -157,6 +159,8 @@ def MakeLimitPlots(function):
       if n == 6:
         x.append(float(xx))
         T.GetEntry(5)
+        if(xx==1000):
+            print(T.limit)
         obs.append(T.limit)
         T.GetEntry(0)
         m2.append(T.limit)
@@ -171,7 +175,7 @@ def MakeLimitPlots(function):
 
     #LimitPlot = TH2F("LP", ";Four-Photon Resonance Mass (GeV);(pp #rightarrow X #rightarrow #phi#phi #rightarrow (#gamma#gamma)(#gamma#gamma)) #sigma #times B (fb)", 100, 300, 3000, 100, 0.005, 50.)
     #LimitPlot = TH2F("LP", ";Four-Photon Resonance Mass (GeV);(pp #rightarrow X #rightarrow #phi#phi #rightarrow (#gamma#gamma)(#gamma#gamma)) #sigma #times B (fb)", 100, 300, 2000, 1000, 0.005, 50.)
-    LimitPlot = TH2F("LP", ";Four-Photon Resonance Mass (GeV);(pp #rightarrow X #rightarrow #phi#phi #rightarrow (#gamma#gamma)(#gamma#gamma)) #sigma #times B (fb)", 100, 300, 2000, 1000, 0.0005, 50.)
+    LimitPlot = TH2F("LP", ";Four-Photon Resonance Mass (GeV);(pp #rightarrow X #rightarrow #phi#phi #rightarrow (#gamma#gamma)(#gamma#gamma)) #sigma #times B (fb)", 100, 300, 2000, 1000, 0.000005, 50.)
     LimitPlot.SetStats(0)
 
     LimitPlot.GetXaxis().SetMoreLogLabels(ROOT.kTRUE)
