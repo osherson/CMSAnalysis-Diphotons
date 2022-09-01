@@ -45,13 +45,13 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,penalty=False,multi=True,x=None
             continue
         w.factory(parameter)
 
-    print 1
+    #print 1
      
     #for bkg fit with 4-par function   
     #constPars = ['sqrts', 'sqrts5', 'p50_%s'%box, 'sqrtsm', 'p0_%s'%box, 'sqrtsa','sqrtse', 'pa0_%s'%box]
 
     #for bkg fit with 3-par function
-    constPars = ['sqrts', 'sqrts5', 'p50_%s'%box, 'sqrtsm', 'p0_%s'%box, 'sqrtsa','sqrtse', 'pa0_%s'%box, 'pm3_%s'%box]
+    constPars = ['sqrts', 'sqrts5', 'p50_%s'%box, 'sqrtsm', 'p0_%s'%box, 'sqrtsa','sqrtse', 'sqrtsmd','pa0_%s'%box, 'pm3_%s'%box]
 
     #for s+b fit
     #constPars = ['sqrts', 'sqrts5', 'p50_%s'%box, 'sqrtsm', 'p0_%s'%box, 'sqrtsa','sqrtse', 'pa0_%s'%box, 'p1_%s'%box, 'p2_%s'%box,'pm3_%s'%box]
@@ -59,7 +59,8 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,penalty=False,multi=True,x=None
     if w.var('meff_%s'%box).getVal()<0 and w.var('seff_%s'%box).getVal()<0:
         #constPars.extend(['meff_%s'%box,'seff_%s'%box, 'p0_%s'%box, 'p1_%s'%box, 'p2_%s'%box,  'pm3_%s'%box,  'pm4_%s'%box])#edw!!!!
         #constPars.extend(['meff_%s'%box,'seff_%s'%box,  'p4_%s'%box,  'pm4_%s'%box, 'pe3_%s'%box, 'pa3_%s'%box,'pa4_%s'%box ,'pe4_%s'%box])
-        constPars.extend(['meff_%s'%box,'seff_%s'%box,   'pm4_%s'%box, 'pe3_%s'%box, 'pa3_%s'%box,'pa4_%s'%box ,'pe4_%s'%box]) #Steven changed to this
+        #constPars.extend(['meff_%s'%box,'seff_%s'%box,   'pm4_%s'%box, 'pe3_%s'%box, 'pa3_%s'%box,'pa4_%s'%box ,'pe4_%s'%box]) #Steven changed to this
+        constPars.extend(['meff_%s'%box,'seff_%s'%box])
         #This is important
     if  w.var('pa4_%s'%box)!=None and w.var('pa4_%s'%box).getVal()==0:
         constPars.extend(['pa4_%s'%box])
@@ -71,18 +72,15 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,penalty=False,multi=True,x=None
         constPars.extend(['p2_%s'%box])
  
     
-    print 2    
+    #print 2    
         
     for parameter in parameters:
         paramName = parameter.split('[')[0]
         if paramName not in constPars:
             paramNames.append(paramName)
             w.var(paramName).setConstant(False)
-	    #w.var('p1_%s'%box).setRange(0.,100.)
-	    #w.var('p2_%s'%box).setRange(-200.,200.) #set range to parameters
-            #w.var('pm3_%s'%box).setRange(-200.,200.)
 
-        print 3   
+        #print 3   
         # float normalization parameters
         fixPars(w,"Ntot",False)
         
@@ -95,7 +93,7 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,penalty=False,multi=True,x=None
         for myvar in constPars:
             fixPars(w,myvar)
 
-            print 4           
+            #print 4           
         
     if emptyHist1D==None:
         emptyHist1D = rt.TH1D("emptyHist1D","emptyHist1D",len(x)-1,x)
@@ -105,7 +103,7 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,penalty=False,multi=True,x=None
             emptyHist1D.SetBinContent(ix,1)
             emptyHist1D.SetBinError(ix,0)
         
-    print 5               
+    #print 5               
     commands = cfg.getVariables(box, "combine_pdfs")
     bkgs = []
     for command in commands:
@@ -162,7 +160,7 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,penalty=False,multi=True,x=None
                 [mypdfs.add(w.pdf(myvar)) for myvar in mylist[1:]]
                 rootTools.Utils.importToWS(w,mypdfs)
                 arglist.append(mypdfs)                   
-            print 6
+            #print 6
             print arglist   
             args = tuple(arglist)
             print args
@@ -181,7 +179,8 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,penalty=False,multi=True,x=None
     w.Print('v')
     if multi:
         paramNames.append('pdf_index')
-        bkgs = ['multi']
+        #bkgs = ['multi']
+        bkgs = ['DIPHO_multi']
     return paramNames, bkgs
 
 
@@ -215,13 +214,15 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,fixed,shapes=[
         #rates.extend([w.var('Ntot_%s'%(bkg)).getVal() for bkg in bkgs])
         #Naming of Ntot_ constants is a bit different in config file, loop below is necessary for getting the Ntot_diphoton_envelope const
         for bkg in bkgs:
-          print('Ntot_%s'%bkg)
+          print('BKG: Ntot_%s'%bkg)
           if("multi" in bkg):
             ccc = options.config.split("/")[-1].split("_")[-1]
-            anum = ccc[len("alpha") : ccc.find(".")]
-            rates.extend([w.var('Ntot_multi_diphoton_envelope_alpha{}'.format(anum)).getVal()]) 
+            #anum = ccc[len("alpha") : ccc.find(".")]
+            #rates.extend([w.var('Ntot_multi_diphoton_envelope_alpha{}'.format(anum)).getVal()]) 
+            rates.extend([w.var('Ntot_diphoton_multi').getVal()])
           else:
             rates.extend([w.var('Ntot_%s'%bkg).getVal()])
+          #rates.extend([w.var('Ntot_%s'%bkg).getVal()])
        # processes.extend(["%s_%s"%(box,bkg) for bkg in bkgs])
         processes.extend(["%s"%(bkg) for bkg in bkgs])
         lumiErrs.extend([1.00 for bkg in bkgs])
@@ -599,9 +600,9 @@ if __name__ == '__main__':
                 if options.deco:
                     w.factory('Ntot_bkg_deco_%s[%f]'%(box,p.getVal()))
                     w.var('Ntot_bkg_deco_%s'%(box)).setError(p.getError())
-                if options.multi:
-                    w.var('Ntot_multi_%s'%(box)).setVal(p.getVal())
-                    w.var('Ntot_multi_%s'%(box)).setError(p.getError())
+                #if options.multi:
+                #    w.var('Ntot_multi_%s'%(box)).setVal(p.getVal())
+                #    w.var('Ntot_multi_%s'%(box)).setError(p.getError())
                     
                     
         for p in rootTools.RootIterator.RootIterator(frIn.constPars()):

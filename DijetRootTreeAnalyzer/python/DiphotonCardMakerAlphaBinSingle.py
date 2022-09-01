@@ -5,7 +5,7 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 
 def RunDataCardMaker(o):
     env=False
-    if("envelope" in o.FIT):
+    if("envelope" in o.FIT or "multi" in o.FIT):
       env=True
 
     if(env):
@@ -28,6 +28,8 @@ def RunDataCardMaker(o):
 
     abin = str(o.ABIN)
     sig = str(o.SIG)
+
+    multi = " --multi {}".format(env)
 
     if(os.path.exists(dir_path + "/../inputs/Shapes_fromGen/alphaBinning/" + abin + "/" + str(o.SIG) + "/DATA.root")):
       if(env):
@@ -52,7 +54,7 @@ def RunDataCardMaker(o):
       jerup = " --jerUp inputs/Shapes_fromInterpo/"+ yr + "/" + str(o.SIG)+"/Sig_PU.root"
       jerdown = " --jerDown inputs/Shapes_fromInterpo/"+ yr + "/" + str(o.SIG)+"/Sig_PD.root"
 
-    dcstring = "python {}/../python/WriteDataCard_photons.py".format(dir_path) + config + mass + savemass + year + box + output + inputs + jesup + jesdown + jerup + jerdown + xs + lumi
+    dcstring = "python {}/../python/WriteDataCard_photons.py".format(dir_path) + config + mass + savemass + year + box + output + inputs + jesup + jesdown + jerup + jerdown + xs + lumi + multi
     print(dcstring)
     os.system(dcstring)
 
