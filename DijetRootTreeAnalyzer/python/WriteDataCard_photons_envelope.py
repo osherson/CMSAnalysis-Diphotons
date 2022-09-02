@@ -64,16 +64,19 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,penalty=False,multi=True,x=None
         #constPars.extend(['meff_%s'%box,'seff_%s'%box,  'p4_%s'%box,  'pm4_%s'%box, 'pe3_%s'%box, 'pa3_%s'%box,'pa4_%s'%box ,'pe4_%s'%box])
         #constPars.extend(['meff_%s'%box,'seff_%s'%box,   'pm4_%s'%box, 'pe3_%s'%box, 'pa3_%s'%box,'pa4_%s'%box ,'pe4_%s'%box]) #Steven changed to this
         constPars.extend(['meff_%s'%box,'seff_%s'%box])
-        #This is important
+    if  w.var('pa3_%s'%box)!=None and w.var('pa3_%s'%box).getVal()==0:
+        constPars.extend(['pa3_%s'%box])
     if  w.var('pa4_%s'%box)!=None and w.var('pa4_%s'%box).getVal()==0:
         constPars.extend(['pa4_%s'%box])
-    if  w.var('pm3_%s'%box)!=None and w.var('pm3_%s'%box).getVal()==0:
-        constPars.extend(['pm3_%s'%box])
-    if  w.var('pm4_%s'%box)!=None and w.var('pm4_%s'%box).getVal()==0:
-        constPars.extend(['pm4_%s'%box])
-    if  w.var('p2_%s'%box)!=None and w.var('p2_%s'%box).getVal()==0:
-        constPars.extend(['p2_%s'%box])
- 
+    if  w.var('p3_%s'%box)!=None and w.var('p3_%s'%box).getVal()==0:
+        constPars.extend(['p3_%s'%box])
+    if  w.var('p4_%s'%box)!=None and w.var('p4_%s'%box).getVal()==0:
+        constPars.extend(['p4_%s'%box])
+    if  w.var('pmd3_%s'%box)!=None and w.var('pmd3_%s'%box).getVal()==0:
+        constPars.extend(['pmd3_%s'%box])
+    if  w.var('pmd4_%s'%box)!=None and w.var('pmd4_%s'%box).getVal()==0:
+        constPars.extend(['pmd4_%s'%box])
+
     
     #print 2    
         
@@ -123,7 +126,7 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,penalty=False,multi=True,x=None
             arglist = [name, name]
             for myvar in mylist:
                 print("VAR: ", myvar)
-                continue
+                #continue
                 if w.var(myvar)!=None:
                     arglist.append(w.var(myvar))
                 elif w.function(myvar)!=None:
@@ -229,8 +232,9 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,fixed,shapes=[
 #          else:
 #            rates.extend([w.var('Ntot_%s'%bkg).getVal()])
 #          rates.extend([w.var('Ntot_%s'%bkg).getVal()])
-       # processes.extend(["%s_%s"%(box,bkg) for bkg in bkgs])
-        processes.extend(["%s"%(bkg) for bkg in bkgs])
+        rates.extend([w.var('Ntot_%s_%s'%(bkg,box)).getVal() for bkg in bkgs])
+        processes.extend(["%s_%s"%(box,bkg) for bkg in bkgs])
+        #processes.extend(["%s"%(bkg) for bkg in bkgs])
         lumiErrs.extend([1.00 for bkg in bkgs])
         divider = "------------------------------------------------------------\n"
         datacard = "imax 1 number of channels\n" + \

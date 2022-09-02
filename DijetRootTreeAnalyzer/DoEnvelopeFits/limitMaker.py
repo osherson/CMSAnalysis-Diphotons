@@ -22,8 +22,8 @@ for doAlpha in [0]:
   for cc in os.listdir(card_dir):
     if(cc.endswith(".txt")):
       sp = cc.split("_")
-      salpha = sp[2]
-      sxa = sp[-1][:sp[-1].find(".txt")]
+      sxa = sp[2]
+      salpha = sp[-1][:sp[-1].find(".txt")]
 
       anum = int(salpha[5:])
 

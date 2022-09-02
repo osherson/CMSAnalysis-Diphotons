@@ -6,7 +6,8 @@ from array import *
 from itertools import *
 from operator import *
 #from WriteDataCard_4J import initializeWorkspace,convertToTh1xHist,convertToMjjHist,applyTurnonFunc,applyTurnonGraph
-from WriteDataCard_photons import initializeWorkspace,convertToTh1xHist,convertToMjjHist,applyTurnonFunc,applyTurnonGraph
+#from WriteDataCard_photons import initializeWorkspace,convertToTh1xHist,convertToMjjHist,applyTurnonFunc,applyTurnonGraph
+from WriteDataCard_photons_envelope import initializeWorkspace,convertToTh1xHist,convertToMjjHist,applyTurnonFunc,applyTurnonGraph
 import os
 import random
 import sys
@@ -316,6 +317,7 @@ if __name__ == '__main__':
 
     w = rt.RooWorkspace("w"+box)
 
+    print("MULTI",options.multi)
     paramNames, bkgs = initializeWorkspace(w,cfg,box,multi=options.multi)
     
     x = array('d', cfg.getBinning(box)[0]) # mjj binning

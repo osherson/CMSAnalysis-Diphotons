@@ -54,7 +54,7 @@ def RunDataCardMaker(o):
       jerup = " --jerUp inputs/Shapes_fromInterpo/"+ yr + "/" + str(o.SIG)+"/Sig_PU.root"
       jerdown = " --jerDown inputs/Shapes_fromInterpo/"+ yr + "/" + str(o.SIG)+"/Sig_PD.root"
 
-    dcstring = "python {}/../python/WriteDataCard_photons.py".format(dir_path) + config + mass + savemass + year + box + output + inputs + jesup + jesdown + jerup + jerdown + xs + lumi + multi
+    dcstring = "python {}/../python/WriteDataCard_photons_envelope.py".format(dir_path) + config + mass + savemass + year + box + output + inputs + jesup + jesdown + jerup + jerdown + xs + lumi + multi
     print(dcstring)
     os.system(dcstring)
 

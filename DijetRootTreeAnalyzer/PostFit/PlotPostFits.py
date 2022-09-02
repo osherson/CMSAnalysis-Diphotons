@@ -249,5 +249,6 @@ for i,j in zip(Lc,Ln):
 	C_B.Print(newDir+"/"+j+"_{}_{}_{}.root".format(an,mm,fit))
 
 os.system("rm higgsCombine*{}*.root".format(comName))
+os.system("rm fitDiagnostics*{}*.root".format(comName))
 
 #os.system("mv *.png {}/.".format(newDir))
