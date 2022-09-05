@@ -125,7 +125,7 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,penalty=False,multi=True,x=None
             mylist = mytuple.split(',')
             arglist = [name, name]
             for myvar in mylist:
-                if(myvar[0] = " "): myvar = myvar[1:]
+                if(myvar[0] == " "): myvar = myvar[1:]
                 print("VAR: ", myvar)
                 #continue
                 if w.var(myvar)!=None:
