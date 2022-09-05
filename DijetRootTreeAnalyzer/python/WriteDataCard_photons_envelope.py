@@ -125,6 +125,7 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,penalty=False,multi=True,x=None
             mylist = mytuple.split(',')
             arglist = [name, name]
             for myvar in mylist:
+                if(myvar[0] = " "): myvar = myvar[1:]
                 print("VAR: ", myvar)
                 #continue
                 if w.var(myvar)!=None:
@@ -188,7 +189,6 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,penalty=False,multi=True,x=None
     if multi:
         paramNames.append('pdf_index')
         bkgs = ['multi']
-        #bkgs = ['DIPHO_multi']
     return paramNames, bkgs
 
 
@@ -222,8 +222,8 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,fixed,shapes=[
         #rates.extend([w.var('Ntot_%s'%(bkg)).getVal() for bkg in bkgs])
         #Naming of Ntot_ constants is a bit different in config file, loop below is necessary for getting the Ntot_diphoton_envelope const
         for bkg in bkgs:
-          print('BKG: Ntot_%s'%bkg)
-          continue
+          print('Look here for BKG: Ntot_%s'%bkg)
+          #continue
 #          if("multi" in bkg):
 #            ccc = options.config.split("/")[-1].split("_")[-1]
 #            #anum = ccc[len("alpha") : ccc.find(".")]
@@ -776,6 +776,7 @@ if __name__ == '__main__':
     outFile = 'dijet_combine_%s_%s_lumi-%.3f_%s_%s.root'%(model,saveMassPoint,lumi/1000.,year,box)  
     outputFile = rt.TFile.Open(options.outDir+"/"+outFile,"recreate")
     print bkgs
+    print("BACKGROUNDS: ", bkgs)
     if options.mcFile is not None:
         writeDataCardMC(box,model,options.outDir+"/"+outFile.replace(".root",".txt"),bkgs,paramNames,w)
     else:

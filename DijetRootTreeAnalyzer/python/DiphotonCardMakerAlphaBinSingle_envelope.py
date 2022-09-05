@@ -8,9 +8,14 @@ def RunDataCardMaker(o):
     if("envelope" in o.FIT or "multi" in o.FIT or "DIPHOM" in o.FIT):
       env=True
 
+    abin = str(o.ABIN)
+    sig = str(o.SIG)
+
     if(env):
       print("STEVEN LOOK HERE IF YOUR ENVELOPE HAS WRONG FUNCTIONS")
-      config = " -c {}/../config/fourjet_inclusive_multipdf_3_func.config".format(dir_path)
+      #config = " -c {}/../config/envelope2/diphoton_multi_alpha{}.config".format(dir_path,abin)
+      config = " -c {}/../config/envelope2/diphoton_multi.config".format(dir_path)
+      #config = " -c {}/../config/fourjet_inclusive_multipdf_3_func.config".format(dir_path)
       box=" -b "
     else:
       config = " -c {}/../config/diphoton_{}".format(dir_path,str(o.FIT)) + ".config"
@@ -25,10 +30,6 @@ def RunDataCardMaker(o):
 
     yr = str(o.YEAR)
     year = " --year " + yr
-
-    abin = str(o.ABIN)
-    sig = str(o.SIG)
-
     multi = " --multi {}".format(env)
 
     if(os.path.exists(dir_path + "/../inputs/Shapes_fromGen/alphaBinning/" + abin + "/" + str(o.SIG) + "/DATA.root")):

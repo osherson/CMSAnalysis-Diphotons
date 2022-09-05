@@ -73,8 +73,10 @@ def makeThisLimit(xmass):
     sigPhi = float(sig[sig.find("A")+1:].replace("p","."))
     sigAlpha = sigPhi / sigX
     abin_num = int(dd.split("/")[-2])
-    #if(sig != "X400A2"): continue
-    #if(sigAlpha != 0.005): continue
+
+    if(sig != "X400A2"): continue
+    if(sigAlpha != 0.005): continue
+
     print("Starting {} Signal, alpha bin {}" .format(sig, abin_num))
     MakeFolder("output/alpha_{}/{}".format(abin_num,sig))
     os.system("cp {}/{}/{}/arange.txt output/alpha_{}/{}/.".format(data_dir,abin_num,sig,abin_num,sig))
@@ -92,9 +94,9 @@ def makeThisLimit(xmass):
           print(eff)
 
 
-    #mycommand = "python ../python/BinnedDiphotonFit.py -c ../config/envelope2/diphoton_multi.config -y {} -l {} -b diphoton_multi {}/PLOTS_{}.root -d output --fit-spectrum --write-fit --words test".format(year,lumi,dd,abin_num)
-    #mycommand = "python ../python/BinnedDiphotonFit.py -c ../config/envelope2/diphoton_multi.config -y {} -l {} -b DIPHOM {}/PLOTS_{}.root -d output --fit-spectrum --write-fit --words test".format(year,lumi,dd,abin_num)
-    mycommand = "python ../python/BinnedDiphotonFit.py -c ../config/fourjet_inclusive_multipdf_3_func.config -y {} -l {} -b DIPHOM {}/PLOTS_{}.root -d output --fit-spectrum --write-fit --words test --lowA {} --hiA {}".format(year,lumi,dd,abin_num, la, ha)
+    #mycommand = "python ../python/BinnedDiphotonFit.py -c ../config/envelope2/diphoton_multi_alpha{}.config -y {} -l {} -b DIPHOM {}/PLOTS_{}.root -d output --fit-spectrum --write-fit --words test --lowA {} --hiA {}".format(abin_num,year,lumi,dd,abin_num, la, ha)
+    mycommand = "python ../python/BinnedDiphotonFit.py -c ../config/envelope2/diphoton_multi.config -y {} -l {} -b DIPHOM {}/PLOTS_{}.root -d output --fit-spectrum --write-fit --words test --lowA {} --hiA {}".format(year,lumi,dd,abin_num, la, ha)
+    #mycommand = "python ../python/BinnedDiphotonFit.py -c ../config/fourjet_inclusive_multipdf_3_func.config -y {} -l {} -b DIPHOM {}/PLOTS_{}.root -d output --fit-spectrum --write-fit --words test --lowA {} --hiA {}".format(year,lumi,dd,abin_num, la, ha)
     print(mycommand)
     os.system(mycommand)
     #os.system("mv output/fit_mjj_Full_diphoton_envelope_alpha{}_2018.png output/alpha_{}/{}/fit_mjj_Full_diphoton_{}_{}.png ".format(abin_num,abin_num,sig,sig,abin_num))
