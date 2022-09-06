@@ -6,7 +6,8 @@ goLim = False
 
 #xmasslist = ['300','400','500','600','750','1000','1500']#,'2000']
 #xmasslist = ['300','400','500','750','1000','1500']#,'2000']
-xmasslist = ['400','600','1000','200','300','500','750','1500','2000','3000']
+#xmasslist = ['400','600','1000','200','300','500','750','1500','2000','3000']
+xmasslist = ['400','600','1000','300','500','750','1500','2000','3000']
 
 if ('clean' in sys.argv):
   clean=True
@@ -50,7 +51,7 @@ def makeThisLimit(xmass):
 
   for dd in os.listdir(data_dir):
     anum = int(dd)
-    #if(anum != 6): continue
+    if(anum == 0): continue
     for xx in os.listdir(os.path.join(data_dir,dd)):
       if("X{}A".format(xmass) in xx and os.path.exists("{}{}/{}/PLOTS_{}.root".format(data_dir,dd,xx,anum))):
         sig=xx
@@ -64,19 +65,11 @@ def makeThisLimit(xmass):
     if(goLim): MakeFolder("combineOutput/alpha_{}/{}/".format(anum,sig))
     os.system("cp {}{}/{}/arange.txt output/alpha_{}/{}/.".format(data_dir,dd,sig,anum,sig))
 
-
-  #dirs = [dirs[6]]
-
   fitfuncs = ["dijet","moddijet","atlas","dipho","myexp"]
-  #fitfuncs = ["moddijet","myexp"]
-  #fitfuncs = ["dijet","atlas","dipho"]#,"myexp"]
-  #fitfuncs=[fitfuncs[1]]
-  #fitfuncs=["myexp"]
-  #fitfuncs=["moddijet"]
 
   for (dd,anum,la,ha) in dirs:
     sig = dd.split("/")[-1]
-    #if(sig != "X400A10"):continue
+    #if(sig != "X400A2"):continue
     abin_num = int(dd.split("/")[-2])
     MakeFolder("output/alpha_{}/{}".format(anum,sig))
     print("Starting {} Signal, alpha bin {}" .format(sig, abin_num))
@@ -104,7 +97,7 @@ def makeThisLimit(xmass):
       if clean:
         os.system("mv output/*.* output/alpha_{}/{}/.".format(abin_num,sig))
 
-      lcommand = "python ../python/DiphotonCardMakerAlphaBinSingle.py -f {} -l {} -y {} -a {} -s {} -x {}".format(ff,lumi/10, year, abin_num, sig, eff)
+      lcommand = "python ../python/DiphotonCardMakerAlphaBinSingle_envelope.py -f {} -l {} -y {} -a {} -s {} -x {}".format(ff,lumi/10, year, abin_num, sig, eff)
       print(lcommand)
       MakeFolder("output/combineCards")
       os.system(lcommand)

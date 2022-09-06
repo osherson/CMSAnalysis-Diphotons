@@ -67,15 +67,15 @@ def makeThisLimit(xmass):
     if(goLim): MakeFolder("combineOutput")
 
   for (dd,anum,la,ha) in dirs:
-    if(anum > 0): continue
+    #if(anum > 0): continue
     sig = dd.split("/")[-1]
     sigX = float(sig[1 : sig.find("A")])
     sigPhi = float(sig[sig.find("A")+1:].replace("p","."))
     sigAlpha = sigPhi / sigX
     abin_num = int(dd.split("/")[-2])
 
-    if(sig != "X400A2"): continue
-    if(sigAlpha != 0.005): continue
+    #if(sig != "X400A2"): continue
+    #if(sigAlpha != 0.005): continue
 
     print("Starting {} Signal, alpha bin {}" .format(sig, abin_num))
     MakeFolder("output/alpha_{}/{}".format(abin_num,sig))
@@ -93,30 +93,21 @@ def makeThisLimit(xmass):
           eff = float(f.readline().rstrip())
           print(eff)
 
-
-    #mycommand = "python ../python/BinnedDiphotonFit.py -c ../config/envelope2/diphoton_multi_alpha{}.config -y {} -l {} -b DIPHOM {}/PLOTS_{}.root -d output --fit-spectrum --write-fit --words test --lowA {} --hiA {}".format(abin_num,year,lumi,dd,abin_num, la, ha)
     mycommand = "python ../python/BinnedDiphotonFit.py -c ../config/envelope2/diphoton_multi.config -y {} -l {} -b DIPHOM {}/PLOTS_{}.root -d output --fit-spectrum --write-fit --words test --lowA {} --hiA {}".format(year,lumi,dd,abin_num, la, ha)
-    #mycommand = "python ../python/BinnedDiphotonFit.py -c ../config/fourjet_inclusive_multipdf_3_func.config -y {} -l {} -b DIPHOM {}/PLOTS_{}.root -d output --fit-spectrum --write-fit --words test --lowA {} --hiA {}".format(year,lumi,dd,abin_num, la, ha)
     print(mycommand)
+
     os.system(mycommand)
-    #os.system("mv output/fit_mjj_Full_diphoton_envelope_alpha{}_2018.png output/alpha_{}/{}/fit_mjj_Full_diphoton_{}_{}.png ".format(abin_num,abin_num,sig,sig,abin_num))
-    #os.system("mv output/fit_mjj_Full_diphoton_envelope_alpha{}_2018.C output/alpha_{}/{}/fit_mjj_Full_diphoton_{}_{}.C ".format(abin_num,abin_num,sig,sig,abin_num))
-    #os.system("mv output/DijetFitResults_diphoton_envelope_alpha{}_2018.root output/alpha_{}/{}/DijetFitResults_diphoton_{}_diphoton_envelope_alpha{}.root ".format(abin_num,abin_num,sig,sig,abin_num))
     os.system("mv output/fit_mjj_Full_diphoton_multi_2018.png output/alpha_{}/{}/fit_mjj_Full_diphoton_{}_{}.png ".format(abin_num,sig,sig,abin_num))
     os.system("mv output/fit_mjj_Full_diphoton_multi_2018.C output/alpha_{}/{}/fit_mjj_Full_diphoton_{}_{}.C ".format(abin_num,sig,sig,abin_num))
     os.system("mv output/DijetFitResults_*2018.root output/alpha_{}/{}/DijetFitResults_diphoton_{}_DIPHOM.root ".format(abin_num,sig,sig))
     if clean:
       os.system("mv output/*.* output/alpha_{}/{}/.".format(abin_num,sig))
 
-    #lcommand = "python ../python/DiphotonCardMakerAlphaBinSingle.py -f diphoton_envelope_alpha{} -l {} -y {} -a {} -s {} -x {}".format(abin_num,lumi/10, year, abin_num, sig, eff)
-    #lcommand = "python ../python/DiphotonCardMakerAlphaBinSingle.py -f diphoton_multi -l {} -y {} -a {} -s {} -x {}".format(lumi/10, year, abin_num, sig, eff)
     lcommand = "python ../python/DiphotonCardMakerAlphaBinSingle_envelope.py -f DIPHOM -l {} -y {} -a {} -s {} -x {}".format(lumi/10, year, abin_num, sig, eff)
     print(lcommand)
     MakeFolder("output/combineCards")
     os.system(lcommand)
-    #cname = "output/dijet_combine_gg_{}_lumi-1.370_2018_diphoton_envelope_alpha{}".format(sig,abin_num)
-    #ocname = "output/combineCards/CARD_envelope_alpha{}_{}".format(abin_num,sig)
-    #fpname = "{}/output/combineCards/CARD_envelope_alpha{}_{}".format(os.getcwd(),abin_num,sig)
+
     cname = "output/dijet_combine_gg_{}_lumi-1.370_2018_DIPHOM".format(sig)
     ocname = "output/combineCards/CARD_multi_{}_alpha{}".format(sig,abin_num)
     fpname = "{}/output/combineCards/CARD_multi_{}_alpha{}".format(os.getcwd(),sig,abin_num)
