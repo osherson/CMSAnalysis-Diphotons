@@ -125,9 +125,8 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,penalty=False,multi=True,x=None
             mylist = mytuple.split(',')
             arglist = [name, name]
             for myvar in mylist:
+                myvar = myvar.replace(" ","") #Remove any spaces that might exist
                 if(myvar[0] == " "): myvar = myvar[1:]
-                print("VAR: ", myvar)
-                #continue
                 if w.var(myvar)!=None:
                     arglist.append(w.var(myvar))
                 elif w.function(myvar)!=None:
@@ -186,7 +185,7 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,penalty=False,multi=True,x=None
 
 
     w.Print('v')
-    if multi:
+    if multi==True:
         paramNames.append('pdf_index')
         bkgs = ['multi']
     return paramNames, bkgs
@@ -217,24 +216,13 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,fixed,shapes=[
                 else: lumiErrs = [1.016]
         print bkgs
         print box
-        #print 'Ntot_%s_%s'%(bkgs,box)
-       # rates.extend([w.var('Ntot_%s_%s'%(bkg,box)).getVal() for bkg in bkgs])
-        #rates.extend([w.var('Ntot_%s'%(bkg)).getVal() for bkg in bkgs])
-        #Naming of Ntot_ constants is a bit different in config file, loop below is necessary for getting the Ntot_diphoton_envelope const
-        for bkg in bkgs:
-          print('Look here for BKG: Ntot_%s'%bkg)
-          #continue
-#          if("multi" in bkg):
-#            ccc = options.config.split("/")[-1].split("_")[-1]
-#            #anum = ccc[len("alpha") : ccc.find(".")]
-#            #rates.extend([w.var('Ntot_multi_diphoton_envelope_alpha{}'.format(anum)).getVal()]) 
-#            rates.extend([w.var('Ntot_diphoton_multi').getVal()])
-#          else:
-#            rates.extend([w.var('Ntot_%s'%bkg).getVal()])
-#          rates.extend([w.var('Ntot_%s'%bkg).getVal()])
-        rates.extend([w.var('Ntot_%s_%s'%(bkg,box)).getVal() for bkg in bkgs])
-        processes.extend(["%s_%s"%(box,bkg) for bkg in bkgs])
-        #processes.extend(["%s"%(bkg) for bkg in bkgs])
+
+        if(options.multi==True):
+          rates.extend([w.var('Ntot_%s_%s'%(bkg,box)).getVal() for bkg in bkgs])
+          processes.extend(["%s_%s"%(box,bkg) for bkg in bkgs])
+        else:
+          rates.extend([w.var('Ntot_%s'%(bkg)).getVal() for bkg in bkgs])
+          processes.extend(["%s"%(bkg) for bkg in bkgs])
         lumiErrs.extend([1.00 for bkg in bkgs])
         divider = "------------------------------------------------------------\n"
         datacard = "imax 1 number of channels\n" + \
@@ -470,13 +458,18 @@ if __name__ == '__main__':
                   help="decorrelate parameters")
     parser.add_option('--refit',dest="refit",default=False,action='store_true',
                   help="refit for S+B")
-    parser.add_option('--multi',dest="multi",default=False,action='store_true',
+    #parser.add_option('--multi',dest="multi",default=False,action='store_true',
+    #              help="using RooMultiPdf for total background")
+    parser.add_option('--multi',dest="multi",default=False,
                   help="using RooMultiPdf for total background")
     parser.add_option('--mc',dest="mcFile", default=None,type="string",
                   help="file containing MC-based background prediciton inputs")
 
 
     (options,args) = parser.parse_args()
+    if(options.multi=='True'):
+      options.multi=True
+    else: options.multi=False
     
     cfg = Config.Config(options.config)
 
@@ -577,15 +570,8 @@ if __name__ == '__main__':
 
     # initialize fit parameters (b-only fit)
     if options.inputFitFile is not None:
-        print("\n\n I AM HERE \n\n")
         inputRootFile = rt.TFile.Open(options.inputFitFile,"r")
-        print("\n\n")
-        print(options.inputFitFile)
-        print("\n\n")
         wIn = inputRootFile.Get("w"+box).Clone("wIn"+box)            
-        print("\n\n")
-        print(wIn)
-        print("\n\n")
         if wIn.obj("fitresult_extDijetPdf_data_obs") != None:
             frIn = wIn.obj("fitresult_extDijetPdf_data_obs")
         elif wIn.obj("nll_extDijetPdf_data_obs") != None:
@@ -610,7 +596,7 @@ if __name__ == '__main__':
                 if options.deco:
                     w.factory('Ntot_bkg_deco_%s[%f]'%(box,p.getVal()))
                     w.var('Ntot_bkg_deco_%s'%(box)).setError(p.getError())
-                if options.multi:
+                if options.multi==True:
                     w.var('Ntot_multi_%s'%(box)).setVal(p.getVal())
                     w.var('Ntot_multi_%s'%(box)).setError(p.getError())
                     
@@ -775,7 +761,6 @@ if __name__ == '__main__':
  
     outFile = 'dijet_combine_%s_%s_lumi-%.3f_%s_%s.root'%(model,saveMassPoint,lumi/1000.,year,box)  
     outputFile = rt.TFile.Open(options.outDir+"/"+outFile,"recreate")
-    print bkgs
     print("BACKGROUNDS: ", bkgs)
     if options.mcFile is not None:
         writeDataCardMC(box,model,options.outDir+"/"+outFile.replace(".root",".txt"),bkgs,paramNames,w)
