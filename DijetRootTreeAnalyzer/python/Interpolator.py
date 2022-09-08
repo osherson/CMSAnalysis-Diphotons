@@ -4,17 +4,42 @@ import os
 import math
 import sys
 import pandas
-sys.path.append("../.")
 
+dir_path = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(dir_path+"/../../.")
+import PlottingPayload as PL
+
+#######################################
+#Global Variables
 LUMI = {}
 LUMI["2016"] = 36.050
 LUMI["2017"] = 39.670
 LUMI["2018"] = 59.320
 
-XS = 100 #fb^-1
+GEN_ALPHAS = [0.005, 0.01, 0.015, 0.02, 0.025, 0.03]
+GEN_X = [200,300,400,500,600,750,1000,1500,2000,3000]
 
-maxvv = 2000
-nxbins = maxvv
+GEN_SHAPE_DIR = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromGen/alphaBinning"
+INTERPO_SHAPE_DIR = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromInterpo/alphaBinning"
+
+#######################################
+
+def MakeFolder(N):
+    if not os.path.exists(N):
+     os.makedirs(N)
+
+def FindAndSetMax(*args):
+  if len(args) == 1: args = args[0]
+  maximum = 0.0
+  for i in args:
+    i.SetStats(0)
+    t = i.GetMaximum()
+    if t > maximum:
+      maximum = t
+  for j in args:
+    j.GetYaxis().SetRangeUser(0,maximum*1.35)#should be 1.35 (below as well)
+    j.SetLineWidth(2)
+  return maximum*1.35
 
 def computeBoundingIndices(M, anchors):
   lowI, highI = 0,0
@@ -55,335 +80,233 @@ def integralInterpo(Min, INTS, M, log=True):
 
   return SPLINE
 
-def linearInterpolate(x, x1, y1, x2, y2):
-  return y1 + ( (x - x1) * (y2 - y1) ) / (x2 - x1)
-
-def getDenom(my_x, my_phi):
-  """
-  Get N Events Generated for a known signal
-  """
-  ### N Events File ###
-  infoFile = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/Diphoton-Treemaker/HelperFiles/Signal_NEvents_{}.csv".format(year)
-  xm, phim, nevt = numpy.loadtxt(infoFile, delimiter=',', skiprows=1, unpack=True)
-  for (x,p,n) in zip(xm, phim, nevt):
-    if (x == my_x and p == my_phi):
-      return n
-
 class HC:
+
   def __init__(self, histArr, massArr):
     self._massArr = massArr
+    print("MASSARR: {}".format(massArr))
     self._histArr = histArr
     self._x  = ROOT.RooRealVar("x","x",histArr[0].GetXaxis().GetXmin(),histArr[0].GetXaxis().GetXmax())
-    #self._x  = ROOT.RooRealVar("x","x",800,1000)
+    #self._x  = ROOT.RooRealVar("x","x",histArr[0].GetXaxis().GetXmin(),2100.)
     self._x.setBins(histArr[0].GetNbinsX())
     self._histInts = [h.Integral() for h in histArr]
     self._inxhists = []
     self._cutEff = []
 
-  def morph(self, MM, nameM, N, scaled=False):
+  def morph(self, MM, wpoint, signame):
     #scaled=True
-    self._lowI, self._hiI = computeBoundingIndices(MM, self._massArr)
+    #self._lowI, self._hiI = computeBoundingIndices(MM, self._massArr)
+    self._lowI, self._hiI = 0,1
+    print(self._massArr[self._lowI], self._massArr[self._hiI])
+
     HL = self._histArr[self._lowI].Clone(self._histArr[self._lowI].GetName() + "HL")
     HH = self._histArr[self._hiI].Clone(self._histArr[self._hiI].GetName() + "HH")
-    print(HL.GetXaxis().GetXmin(),HL.GetXaxis().GetXmax())
 
     inxhists = [HL, HH]
-    un = nameM
 
     print("Bounding Masses: {} - {}".format(self._massArr[self._lowI], self._massArr[self._hiI]))
 
-    alpha = (float(MM) - float(self._massArr[self._lowI]))/(float(self._massArr[self._hiI]) - float(self._massArr[self._lowI]))
-    rmass = ROOT.RooRealVar("rm_{}".format(un), "rmass", alpha, 0., 1.)
+    rmass = ROOT.RooRealVar("rm_{}".format(signame), "rmass", wpoint, 0., 1.)
 
-    RHL = ROOT.RooDataHist("HL_".format(un), ";DiCluster Mass [GeV];Events/GeV", ROOT.RooArgList(self._x), HL)
-    RHLR = ROOT.RooHistPdf("HL_AbsReal_{}".format(un), "", ROOT.RooArgSet(self._x), RHL)
-    RHH = ROOT.RooDataHist("HH_{}".format(un), ";DiCluster Mass [GeV];Events/GeV", ROOT.RooArgList(self._x), HH)
-    RHHR = ROOT.RooHistPdf("HH_AbsReal_{}".format(un), "", ROOT.RooArgSet(self._x), RHH)
+    RHL = ROOT.RooDataHist("HL_".format(signame), ";DiCluster Mass [GeV];Events/GeV", ROOT.RooArgList(self._x), HL)
+    RHLR = ROOT.RooHistPdf("HL_AbsReal_{}".format(signame), "", ROOT.RooArgSet(self._x), RHL)
+    RHH = ROOT.RooDataHist("HH_{}".format(signame), ";DiCluster Mass [GeV];Events/GeV", ROOT.RooArgList(self._x), HH)
+    RHHR = ROOT.RooHistPdf("HH_AbsReal_{}".format(signame), "", ROOT.RooArgSet(self._x), RHH)
 
-    RHIM = ROOT.RooIntegralMorph("Hmorph_{}".format(un), "", RHHR, RHLR, self._x, rmass)
-    #self.xframe = self._x.frame(ROOT.RooFit.Title(";DiCluster Mass [GeV];Events/GeV"), ROOT.RooFit.Range(MM, 10000))
+    RHIM = ROOT.RooIntegralMorph("Hmorph_{}".format(signame), "", RHHR, RHLR, self._x, rmass)
     self.xframe = self._x.frame(ROOT.RooFit.Title(";DiCluster Mass [GeV];Events/GeV"), ROOT.RooFit.Range(0, 10000))
-    RHI = RHIM.createHistogram("Hinterpo_{}".format(un), self._x)
-    if scaled: RHI.Scale(integralInterpo(self._massArr, self._histInts, MM)/RHI.Integral())
-    return RHI.Clone(un+N), inxhists
+    RHI = RHIM.createHistogram("Hinterpo_{}".format(signame), self._x)
 
-def getAlphaHists(xtreename, xs, alpha, dists):
-  histos = []
-  effs = []
-  denoms = []
+    ##
+    ##
+    c1 = ROOT.TCanvas()
+    c1.cd()
+    ll = ROOT.TLegend(0.6,0.5,0.8,0.75)
+    ll.SetBorderSize(0)
+    HH.SetTitle("HH")
+    HH.SetLineColor(ROOT.kRed)
+    HL.SetLineColor(ROOT.kGreen)
+    HL.SetLineWidth(2)
+    HL.SetTitle("HL")
 
-  for xm in xs:
-    phim = xm*alpha
-    for xphi,F in dists.items():
-      dx = int(xphi[1:xphi.find("A")])
-      dphi = float(xphi[xphi.find("A")+1 :].replace("p","."))
-      if(dphi/dx == alpha and dx == xm):
-        Chain=ROOT.TChain(xtreename)
-        Chain.Add(F)
-        rdf = ROOT.RDataFrame.RDataFrame(Chain)
-        xhist_nocut = rdf.Histo1D(("xhist_{}_{}".format(xm, phim),"xmass", nxbins, 0, max(int(xm)*2, maxvv)), "XM")
-        cutString = "masym < 0.25 && clu1_dipho > 0.9 && clu2_dipho > 0.9 && clu1_iso > 0.8 && clu2_iso > 0.8 && clu1_pt > 70 && clu2_pt > 70"
-        rdf = rdf.Filter(cutString)
-        hist = rdf.Histo1D( ("alpha","alpha",4000,0,4000), "alpha")
-        alphastd = hist.GetStdDev()
-        rdf = rdf.Filter("alpha > {} && alpha < {}".format(alpha - alphastd*3, alpha + alphastd*3), "alpha Window")
-        num = float(rdf.Count().GetValue())
-        rdf = rdf.Filter("XM > {} && XM < 2000".format(float(xm)*0.85))
-        xhist = rdf.Histo1D(("xhist_{}_{}".format(xm, phim),"xmass", nxbins, 0, max(int(xm)*2, maxvv)), "XM")
-        effs.append(num / getDenom(int(xm), float(phim)))
-        denoms.append(getDenom(int(xm), float(phim)))
-        histos.append(xhist.GetValue().Clone())
-        del Chain, rdf
+    ll.AddEntry(HL, "In_Low")
+    ll.AddEntry(HH, "In_High")
+    ##
+    rr = RHI.Clone(signame+"new")
+    rr.SetTitle("OUT")
+    rr.SetLineColor(ROOT.kBlack)
+    ll.AddEntry(rr, "OUT")
+    FindAndSetMax([HH, HL, rr])
+    HH.Draw("hist")
+    HL.Draw("histsame")
+    rr.Draw("histsame")
+    ll.Draw("same")
+    c1.Print("tc3.png")
+    ##
 
-  return histos, effs, denoms
+    return RHI.Clone(signame+"new"), inxhists
 
-def getPhiHists(xtreename, xm, alpha, alphas, dists):
-  gphis = []
-  histos = []
-  effs = []
-  denoms = []
+def linearInterpolate(x, x1, y1, x2, y2):
+  return y1 + ( (x - x1) * (y2 - y1) ) / (x2 - x1)
 
-  for t_alpha in alphas:
-    for xphi,F in dists.items():
-      dx = int(xphi[1:xphi.find("A")])
-      if(dx != xm): continue
-      dphi = float(xphi[xphi.find("A")+1 :].replace("p","."))
-      dalpha = dphi / dx
-      if(dalpha == t_alpha):
-        print(xphi)
-        gphis.append(dphi)
-        Chain=ROOT.TChain(xtreename)
-        Chain.Add(F)
-        rdf = ROOT.RDataFrame.RDataFrame(Chain)
-        xhist_nocut = rdf.Histo1D(("xhist_{}_{}".format(xm, dphi),"xmass", nxbins, 0, max(int(xm)*2, maxvv)), "XM")
-        cutString = "masym < 0.25 && clu1_dipho > 0.9 && clu2_dipho > 0.9 && clu1_iso > 0.8 && clu2_iso > 0.8 && clu1_pt > 70 && clu2_pt > 70"
-        rdf = rdf.Filter(cutString)
-        hist = rdf.Histo1D( ("alpha","alpha",4000,0,4000), "alpha")
-        alphastd = hist.GetStdDev()
-        rdf = rdf.Filter("alpha > {} && alpha < {}".format(t_alpha - alphastd*3, t_alpha + alphastd*3), "alpha Window")
-        num = float(rdf.Count().GetValue())
-        rdf = rdf.Filter("XM > {} && XM < 2000".format(float(xm)*0.85))
-        xhist = rdf.Histo1D(("xhist_{}_{}".format(xm, dphi),"xmass", nxbins, 0, max(int(xm)*2, maxvv)), "XM")
-        effs.append(num / getDenom(int(xm), float(dphi)))
-        denoms.append(getDenom(int(xm), float(dphi)))
-        histos.append(xhist.GetValue().Clone())
-        del Chain, rdf
+def GetClosestX(ix, ia):
+  for ii in range(len(GEN_X)-1):
+    lx,hx = GEN_X[ii],GEN_X[ii+1]
+    if(ix > lx and ix < hx):
+      return lx,hx
 
-  return gphis, histos, effs, denoms
+def GetSignalString(xx, alph):
+  phi = xx*alph
+  sphi = str(phi).replace(".0","")
+  sphi = sphi.replace(".","p")
+  sig = "X{}A{}".format(xx,sphi)
+  return sig
 
+def checkFile(fname):
+  if(not os.path.exists(fname)):
+      print("Cannot Interpolate, File does not exist")
+      print(fname)
+      return False
+  return True
 
-def InterpolateHists(input_x, input_phi, xtreename, masslist, lm, him, usehists, usemasses, useeffs, denoms, outFName):
-      myout = ROOT.TFile(outFName, "UPDATE")
-      myout.cd()
-      for h in usehists:
-        a = h.Clone(h.GetName()+"_original")
-        a.Write()
+#FIXME See if this is legal
+def TrimHist(hist):
+  mean,rms = hist.GetMean(), hist.GetRMS()
+  WW = 2
+  tHist = hist.Clone()
+  for bb in range(hist.GetNbinsX()):
+    if(hist.GetBinLowEdge(bb) < (mean - WW*rms) or hist.GetBinLowEdge(bb) > (mean + WW*rms)):
+      tHist.SetBinContent(bb,0)
+    else: 
+      tHist.SetBinContent(bb, hist.GetBinContent(bb))
 
-      h1,h2 = usehists[0], usehists[1]
-      h1.Scale(1/h1.Integral())
-      h2.Scale(1/h2.Integral())
-      h1.Sumw2()
-      h2.Sumw2()
-      scalehists=[h1, h2]
-      for sh in scalehists:
-        b = sh.Clone(sh.GetName()+"_scaledOne")
-        b.Write()
-      myout.Write()
-      myout.Close()
+  return tHist.Clone()
 
-      mp = HC(scalehists, usemasses)
+def GetAlphaBinDirectory(alphaBin):
+  adir = GEN_SHAPE_DIR+"/"+str(alphaBin)
+  for ff in os.listdir(adir):
+    ndir = os.path.join(adir,ff)
+    for nf in os.listdir(ndir):
+      if(os.path.exists(os.path.join(ndir, "arange.txt")) and os.path.exists(os.path.join(ndir, "PLOTS_{}.root".format(alphaBin)))):
+        return ndir
 
-      if(masslist.keys()[0]=='X'):
-        x1,phi1,eff1,d1 = masslist['X'][lm], input_phi, useeffs[0], denoms[0]
-        x2,phi2,eff2,d2 = masslist['X'][him], input_phi, useeffs[1], denoms[1]
-        neweff = linearInterpolate(input_x, x1, eff1, x2, eff2) #This is the final efficiency for new signal
-        newNevt = linearInterpolate(input_x, x1, d1, x2, d2) #This is the expected n events for new signal
-
-      elif(masslist.keys()[0]=='phi'):
-        x1,phi1,eff1,d1 = input_x, masslist['phi'][lm], useeffs[0], denoms[0]
-        x2,phi2,eff2,d2 = input_x, masslist['phi'][him], useeffs[1], denoms[1]
-        neweff = linearInterpolate(input_phi, phi1, eff1, phi2, eff2) #This is the final efficiency for new signal
-        newNevt = linearInterpolate(input_phi, phi1, d1, phi2, d2) #This is the expected n events for new signal
-
-      print("Final Efficiency: ")
-      print("X {}, phi {} : {:.4f}".format(input_x, input_phi, neweff))
-
-      E, newxhists = mp.morph(input_x, "{}_{}_{}".format(input_x, input_phi, xtreename), "newhist_{}_{}_{}".format(input_x, input_phi, xtreename), input_x)
-
-      myout = ROOT.TFile(outFName, "UPDATE")
-      myout.cd()
-      E.SetName("X{}phi{}_normed".format(input_x, input_phi))
-      E.SetTitle("X {} #phi {} Interpolated Signal".format(input_x, input_phi))
-      E.Sumw2()
-      E.Write()
-      ##
-      #E.Scale(neweff * LUMI[year] * XS)
-      E.Scale(neweff * newNevt)
-      E.SetName("X{}phi{}".format(input_x, input_phi))
-      ##
-      E.Write()
-      myout.Write()
-      myout.Close()
-      return E, neweff, newNevt
-
-def interpoSignalMaker(o, xtreename):
-
-  global year
-  year = o.year
-  in_xphi = o.mass
-  in_x = float(in_xphi[1 : in_xphi.find("A")])
-  in_phi = float(in_xphi[in_xphi.find("A")+1 :].replace("p","."))
-  in_alpha = in_phi / in_x
-  if(in_x.is_integer()): in_x = int(in_x)
-  if(in_phi.is_integer()): in_phi = int(in_phi)
-
-  nom_updown = xtreename[xtreename.find("_")+1 :]
-  
-  print("\nGetting Dicluster Mass Shape for X {} Phi {} Signal".format(in_x, in_phi))
-
-  ### PICOTREE DIRECTORIES ###
-  pico_dir = "/cms/xaastorage-2/DiPhotonsTrees/"
-  dists = {}
-  xmasses = []
-  phimasses = []
-  alphas = []
-  ##
-
-  outFileName = "../inputs/Interpolations/{}/X{}phi{}_{}.root".format(year,in_x,in_phi,nom_updown)
-
-  for path, subdirs, files in os.walk(pico_dir):
-    for name in files:
-      File = os.path.join(path, name)
-      if name[0]=="X" and year in name:
-        xamass = name[:name.find("_")]
-        xmass = int(xamass[1 : xamass.find("A")])
-        phimass = float(xamass[xamass.find("A")+1 :].replace("p",".") )
-  
-        if (File.endswith(".root") and year in name and "v_" not in File):
-          if(os.path.getsize(File) > 100):
-              dists[xamass]=File
-              xmasses.append(xmass)
-              phimasses.append(phimass)
-              alphas.append(phimass / xmass)
-
-  #Determine if we already have xmass or phi mass
-  interpoBool = True
-  have_x = False
-  have_phi = False
-  have_alpha = False
-
-  if(in_x in xmasses): have_x = True
-  if(in_phi in phimasses): have_phi=True
-  if(have_x and have_phi): interpoBool=False
-  if(in_alpha in alphas): have_alpha = True
-  if o.force : interpoBool=True
-
-  ###
-  if(in_x < min(xmasses) or in_x > max(xmasses)): 
-    print("Input X = {} GeV out of X mass range. Doing nothing".format(in_x))
+def CopyRangeData(outFolder, alphaBin):
+    abin_dir = GetAlphaBinDirectory(alphaBin)
+    os.system("cp {}/arange.txt {}/.".format(abin_dir, outFolder))
+    os.system("cp {}/DATA.root {}/.".format(abin_dir, outFolder))
     return
-  elif(in_alpha < min(alphas) or in_alpha > max(alphas)): 
-    print("Input alpha={} out of alpha mass range. Doing nothing".format(in_alpha))
-    return
-  ###
 
-  if interpoBool: 
-    myout = ROOT.TFile(outFileName, "RECREATE")
-    myout.Close()
+def SaveHists(Hist, inputSignal, alphaBin, fname):
+    global outDir
+    hname = "h_AveDijetMass_1GeV"
 
-    if(have_alpha == True and not o.force): 
-      print("Interpolating from known alpha signals")
-      lowx, hix = computeBoundingIndices(in_x, xmasses)
-
-      INPUTM = [xmasses[lowx], xmasses[hix]]
-      myhists, myeffs, mydenoms = getAlphaHists(xtreename, INPUTM, in_alpha, dists)
-      use_masses = {}
-      use_masses["X"] = xmasses
-      InterpolateHists(in_x, in_phi, xtreename, use_masses, lowx, hix, myhists, INPUTM, myeffs, mydenoms, outFileName)
-
-    elif( (have_x and not have_alpha) or o.force ):
-      if( o.force ): print("Forcing Interpolation for known signal")
-      else: print("Known X, Unknown alpha. Interpolating from same X mass, nearest phi mass signals")
-
-      lowa, hia = computeBoundingIndices(in_alpha, alphas)
-
-      INPUTM = [alphas[lowa], alphas[hia]]
-      myphis, myhists, myeffs, mydenoms = getPhiHists(xtreename, in_x, in_alpha, INPUTM, dists)
-      use_masses = {}
-      use_masses["phi"] = myphis
-      InterpolateHists(in_x, in_phi, xtreename, use_masses, 0, 1, myhists, myphis, myeffs, mydenoms, outFileName)
-
+    if(fname=="nom"):
+      abin_dir = GetAlphaBinDirectory(alphaBin)
+      alphaBinFile = ROOT.TFile("{}/PLOTS_{}.root".format(abin_dir, alphaBin), "read")
+      outFile = ROOT.TFile(outDir + "/PLOTS_{}.root".format(alphaBin), "RECREATE")
+      dataXM = alphaBinFile.Get("data_XM")
+      dataXM1 = alphaBinFile.Get("data_XM1")
+      outFile.cd()
+      Hist.Write(hname)
+      dataXM.Write()
+      dataXM1.Write()
     else:
-      print("Unknown X and phi mass. Interpolating twice")
-      lowx, hix = computeBoundingIndices(in_x, xmasses) 
-      bxs = [xmasses[lowx], xmasses[hix]]
-      
-      inx_alphahists = []
-      myeffs = []
-      mydenoms = []
-      for dox in bxs:
-        lowa, hia = computeBoundingIndices(in_alpha, alphas)
+      outFile = ROOT.TFile("{}/{}.root".format(outDir,fname), "recreate")
+      outFile.cd()
+      Hist.Write(hname)
 
-        INPUTM = [alphas[lowa], alphas[hia]]
-        myphis, myhists, myeffs, mydenoms = getPhiHists(xtreename, dox, in_alpha, INPUTM, dists)
-        print(myphis)
-        use_masses = {}
-        use_masses["phi"] = myphis
-        newhist, neweff, newdenom = InterpolateHists(dox, in_phi, xtreename, use_masses, 0, 1, myhists, myphis, myeffs, mydenoms, outFileName)
-        inx_alphahists.append(newhist)
-        myeffs.append(neweff)
-        mydenoms.append(newdenom)
-      #myhists, myeffs, mydenoms = getAlphaHists(INPUTM, in_alpha, dists)
+    outFile.Close()
 
-      use_masses = {}
-      use_masses["X"] = xmasses
-      InterpolateHists(in_x, in_phi, xtreename, use_masses, lowx, hix, inx_alphahists, bxs, myeffs, mydenoms, outFileName)
+    return
+
+def GetEfficiency(sig, fname):
+  eFile = fname[ : fname.rfind("/")+1]
+  eFile += "{}.txt".format(sig)
+
+  eF = open(eFile,"r").readlines()
+  return float(eF[0])
+
+def WriteEff(sig, eff):
+   global outDir
+
+   effFile= open("{}/{}.txt".format(outDir,sig),"w")
+   effFile.write(str(eff))
+   effFile.close()
+   return
+
+def InterpolateHists(inputSignal, alphaBin, fname):
+
+  in_x = int(inputSignal[1 : inputSignal.find("A")])
+  in_phi = float(inputSignal[inputSignal.find("A")+1 :].replace("p","."))
+  in_alpha = in_phi / in_x
+
+  if(in_alpha < min(GEN_ALPHAS) or in_alpha > max(GEN_ALPHAS)):
+    print("Requested alpha outside of range. Cannot interpolate")
+
+  if(in_x < min(GEN_X) or in_x > max(GEN_X)):
+    print("Requested X Mass outside of range. Cannot interpolate")
+
+  if(in_alpha in GEN_ALPHAS and in_x not in GEN_X):
+    print("Known alpha, unknown X mass. Interpolating between Two Signals")
+    low_gx, hi_gx = GetClosestX(in_x, in_alpha)
+    lowsig=GetSignalString(low_gx, in_alpha)
+    hisig=GetSignalString(hi_gx, in_alpha)
+
+    print("Interpolating between {} and {} signals".format(lowsig, hisig))
+    wpoint = float(in_x - low_gx) / float(hi_gx - low_gx)
+
+    print("Mixing Term: {}".format(wpoint))
+
+    if(fname=="nom"):
+      lowfile = "{}/{}/{}/PLOTS_{}.root".format(GEN_SHAPE_DIR, alphaBin, lowsig, alphaBin)
+      hifile = "{}/{}/{}/PLOTS_{}.root".format(GEN_SHAPE_DIR, alphaBin, hisig, alphaBin)
+      leff,heff = GetEfficiency(lowsig, lowfile),GetEfficiency(hisig, hifile)
+      neweff = linearInterpolate(in_x, low_gx, leff, hi_gx, heff)
+      WriteEff(inputSignal, neweff)
+    else:
+      lowfile = "{}/{}/{}/{}.root".format(GEN_SHAPE_DIR, alphaBin, lowsig, fname)
+      hifile = "{}/{}/{}/{}.root".format(GEN_SHAPE_DIR, alphaBin, hisig, fname)
+    if(not checkFile(lowfile)): return
+    if(not checkFile(hifile)): return
+
+    lowR = ROOT.TFile(lowfile, "read")
+    lowH = lowR.Get("h_AveDijetMass_1GeV")
+
+    hiR = ROOT.TFile(hifile, "read")
+    hiH = hiR.Get("h_AveDijetMass_1GeV")
+
+    hist_low_trim = TrimHist(lowH)
+    hist_hi_trim = TrimHist(hiH)
+
+    masslist = [low_gx, hi_gx]
+    #histlist = [lowH, hiH]
+    histlist = [hist_low_trim, hist_hi_trim]
+
+    MP = HC(histlist, masslist)
+    newHist, _ = MP.morph(in_x, wpoint, inputSignal)
+
+    SaveHists(newHist, inputSignal, alphaBin, fname)
+
+  elif(in_alpha not in GEN_ALPHAS and in_x in GEN_X):
+    print("Known X Mass, unknown alphas. Interpolating between two signals")
+
+  elif(in_alpha not in GEN_ALPHAS and in_x not in GEN_X): 
+    print("Interpolated signal does not match generated alpha. Interpolating Twice")
+ 
+  return
+
+inputSignal = sys.argv[1]
+alphaBin = 1 #ToDo do this in all alpha bins
+
+outDir = "{}/{}/{}".format(INTERPO_SHAPE_DIR, alphaBin, inputSignal)
+MakeFolder(outDir)
+
+#CopyRangeData(outDir, alphaBin)
+InterpolateHists(inputSignal,alphaBin,"nom")
+#InterpolateHists(inputSignal,alphaBin,"Sig_PU")
+#InterpolateHists(inputSignal,alphaBin,"Sig_PD")
+#InterpolateHists(inputSignal,alphaBin,"Sig_SU")
+#InterpolateHists(inputSignal,alphaBin,"Sig_SD")
+#InterpolateHists(inputSignal,alphaBin,"Sig_nominal")
 
 
-  else: 
-    print("Known Signal. Getting X Mass")
-    outFileName = outFileName.replace(".root","_known.root")
-    for xphi,F in dists.items():
-      this_xm = xphi[1 : xphi.find("A")]
-      this_phim = xphi[xphi.find("A")+1 :].replace("p",".")
-      alpha = float(this_phim) / float(this_xm)
-      if(str(in_x) == this_xm and str(in_phi)==this_phim):   #Doing 1D for now, only get matching x mass
-        Chain=ROOT.TChain(xtreename)
-        Chain.Add(F)
-        rdf = ROOT.RDataFrame.RDataFrame(Chain)
-        cutString = "masym < 0.25 && clu1_dipho > 0.9 && clu2_dipho > 0.9 && clu1_iso > 0.8 && clu2_iso > 0.8 && clu1_pt > 70 && clu2_pt > 70"
-        rdf = rdf.Filter(cutString, "Analysis Cuts")
-        hist = rdf.Histo1D( ("alpha","alpha",4000,0,4000), "alpha")
-        alphastd = hist.GetStdDev()
-        rdf = rdf.Filter("alpha > {} && alpha < {}".format(alpha - alphastd*3, alpha + alphastd*3), "alpha Window")
-        num = float(rdf.Count().GetValue())
-        rdf = rdf.Filter("XM > {} && XM < 2000".format(float(this_xm)*0.85), "xmass cut")
-        xhist = rdf.Histo1D(("xhist_{}_{}".format(this_xm, this_phim),"xmass", nxbins, 0, max(int(this_xm)*2, maxvv)), "XM")
-        rep=rdf.Report()
-        rep.Print()
-        del Chain, rdf
-
-    myout = ROOT.TFile(outFileName, "RECREATE")
-    myout.cd()
-    xhist.SetName("X{}phi{}".format(in_x, in_phi))
-    xhist.SetTitle("X {} #phi {} Known Signal".format(in_x, in_phi))
-    #xhist.Scale(1/xhist.Integral())
-    xhist.Sumw2()
-    eff = num / getDenom(int(this_xm), float(this_phim))
-    xhist.Write()
-
-  print("Saving file: {}".format(outFileName))
-
-if __name__ == "__main__":
-  from argparse import ArgumentParser
-  parser = ArgumentParser()
-  
-  parser.add_argument("--year", required=True, default=2018, help='Run II Year' )
-  parser.add_argument("--mass", required=True, default = "X623A17", help='X, Phi mass entered as X123A123' )
-  parser.add_argument("--forceinterpo", action="store_true", dest="force", help="Force interpolation of intermediate mass points which are given.")
-
-  args = parser.parse_args()
-
-  interpoSignalMaker(args, "pico_nom")
-  interpoSignalMaker(args, "pico_scale_up")
-  interpoSignalMaker(args, "pico_scale_down")
