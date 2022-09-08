@@ -155,6 +155,12 @@ def GetClosestX(ix, ia):
     if(ix > lx and ix < hx):
       return lx,hx
 
+def GetClosestAlpha(ix, ia):
+  for ii in range(len(GEN_ALPHAS)-1):
+    la,ha = GEN_ALPHAS[ii],GEN_ALPHAS[ii+1]
+    if(ia > la and ia < ha):
+      return la,ha
+
 def GetSignalString(xx, alph):
   phi = xx*alph
   sphi = str(phi).replace(".0","")
@@ -219,10 +225,9 @@ def SaveHists(Hist, inputSignal, alphaBin, fname):
 
     return
 
-def GetEfficiency(sig, fname):
-  eFile = fname[ : fname.rfind("/")+1]
-  eFile += "{}.txt".format(sig)
-
+def GetEfficiency(sig, alphaBin):
+  eFile = "{}/{}/{}/{}.txt".format(GEN_SHAPE_DIR, alphaBin, sig, sig)
+  if(not checkFile(eFile)): return 0
   eF = open(eFile,"r").readlines()
   return float(eF[0])
 
@@ -254,49 +259,65 @@ def InterpolateHists(inputSignal, alphaBin, fname):
 
     print("Interpolating between {} and {} signals".format(lowsig, hisig))
     wpoint = float(in_x - low_gx) / float(hi_gx - low_gx)
-
     print("Mixing Term: {}".format(wpoint))
 
     if(fname=="nom"):
-      lowfile = "{}/{}/{}/PLOTS_{}.root".format(GEN_SHAPE_DIR, alphaBin, lowsig, alphaBin)
-      hifile = "{}/{}/{}/PLOTS_{}.root".format(GEN_SHAPE_DIR, alphaBin, hisig, alphaBin)
-      leff,heff = GetEfficiency(lowsig, lowfile),GetEfficiency(hisig, hifile)
+      leff,heff = GetEfficiency(lowsig,alphaBin),GetEfficiency(hisig,alphaBin)
       neweff = linearInterpolate(in_x, low_gx, leff, hi_gx, heff)
       WriteEff(inputSignal, neweff)
-    else:
-      lowfile = "{}/{}/{}/{}.root".format(GEN_SHAPE_DIR, alphaBin, lowsig, fname)
-      hifile = "{}/{}/{}/{}.root".format(GEN_SHAPE_DIR, alphaBin, hisig, fname)
-    if(not checkFile(lowfile)): return
-    if(not checkFile(hifile)): return
-
-    lowR = ROOT.TFile(lowfile, "read")
-    lowH = lowR.Get("h_AveDijetMass_1GeV")
-
-    hiR = ROOT.TFile(hifile, "read")
-    hiH = hiR.Get("h_AveDijetMass_1GeV")
-
-    hist_low_trim = TrimHist(lowH)
-    hist_hi_trim = TrimHist(hiH)
-
-    masslist = [low_gx, hi_gx]
-    #histlist = [lowH, hiH]
-    histlist = [hist_low_trim, hist_hi_trim]
-
-    MP = HC(histlist, masslist)
-    newHist, _ = MP.morph(in_x, wpoint, inputSignal)
-
-    SaveHists(newHist, inputSignal, alphaBin, fname)
 
   elif(in_alpha not in GEN_ALPHAS and in_x in GEN_X):
     print("Known X Mass, unknown alphas. Interpolating between two signals")
+    low_ga, hi_ga = GetClosestAlpha(in_x, in_alpha)
+    lowsig=GetSignalString(in_x, low_ga)
+    hisig=GetSignalString(in_x, hi_ga)
+
+    print("Interpolating between {} and {} signals".format(lowsig, hisig))
+    wpoint = float(in_alpha - low_ga) / float(hi_ga - low_ga)
+    print("Mixing Term: {}".format(wpoint))
+
+    if(fname=="nom"):
+      leff,heff = GetEfficiency(lowsig,alphaBin),GetEfficiency(hisig,alphaBin)
+      neweff = linearInterpolate(in_alpha, low_ga, leff, hi_ga, heff)
+      WriteEff(inputSignal, neweff)
+
+    low_gx, hi_gx = in_x, in_x
 
   elif(in_alpha not in GEN_ALPHAS and in_x not in GEN_X): 
     print("Interpolated signal does not match generated alpha. Interpolating Twice")
+
+  if(fname=="nom"):
+    lowfile = "{}/{}/{}/PLOTS_{}.root".format(GEN_SHAPE_DIR, alphaBin, lowsig, alphaBin)
+    hifile = "{}/{}/{}/PLOTS_{}.root".format(GEN_SHAPE_DIR, alphaBin, hisig, alphaBin)
+  else:
+    lowfile = "{}/{}/{}/{}.root".format(GEN_SHAPE_DIR, alphaBin, lowsig, fname)
+    hifile = "{}/{}/{}/{}.root".format(GEN_SHAPE_DIR, alphaBin, hisig, fname)
+  if(not checkFile(lowfile)): return
+  if(not checkFile(hifile)): return
+
+  lowR = ROOT.TFile(lowfile, "read")
+  lowH = lowR.Get("h_AveDijetMass_1GeV")
+
+  hiR = ROOT.TFile(hifile, "read")
+  hiH = hiR.Get("h_AveDijetMass_1GeV")
+
+  hist_low_trim = TrimHist(lowH)
+  hist_hi_trim = TrimHist(hiH)
+
+  masslist = [low_gx, hi_gx]
+  #histlist = [lowH, hiH]
+  histlist = [hist_low_trim, hist_hi_trim]
+
+  MP = HC(histlist, masslist)
+  newHist, _ = MP.morph(in_x, wpoint, inputSignal)
+
+  SaveHists(newHist, inputSignal, alphaBin, fname)
+
  
   return
 
 inputSignal = sys.argv[1]
-alphaBin = 1 #ToDo do this in all alpha bins
+alphaBin = 9 #ToDo do this in all alpha bins
 
 outDir = "{}/{}/{}".format(INTERPO_SHAPE_DIR, alphaBin, inputSignal)
 MakeFolder(outDir)
