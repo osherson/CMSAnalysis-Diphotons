@@ -12,10 +12,19 @@ sys.path.append(dir_path+"/../../.")
 import PlottingPayload as PL
 gROOT.SetBatch()
 
-#year = sys.argv[1]
 year='2018'
 
+#xmass = 1000
+if( len(sys.argv) >= 1):
+  if("X" in sys.argv[1]):
+    xmass = sys.argv[1]
+    xmass = int(xmass[1:])
+
+#print(xmass)
+
+
 xaastorage = "/cms/xaastorage-2/DiPhotonsTrees/"
+interp_directory = "{}/../inputs/Interpolations/{}/".format(dir_path,year)
 const_alpha = False #Use this to get signals at one alpha val
 this_alpha = 0.005 #Set this to the alpha you want. If const_alpha = False, this does nothing
 
@@ -34,8 +43,8 @@ def doOneInput(N, sig, h, H, S, norm = False):
     toF.Save()
     toF.Close()
 
-def doOneInputInterpo(N, h, H, S, norm = False):
-    toF = TFile("{}/../inputs/Shapes_fromInterpo/".format(dir_path)+N+"/"+S+".root", "recreate")
+def doOneInputInterpo(N, sig, h, H, S, norm = False):
+    toF = TFile("{}/../inputs/Shapes_fromInterpo/alphaBinning/{}/{}/{}.root".format(dir_path, N, sig, S), "recreate")
     if norm:
         h.Scale(1./h.Integral())
     toF.cd()
@@ -140,6 +149,31 @@ def SaveHists(N, sig, sXr, sX1r, sXvAr, sX, sX1, dX, dX1, dXvA, sX1pu, sX1pd, sX
     oF.Save()
     oF.Close()
 
+#############################
+def SaveHists_Interpo(N, sig, sXr, sX1r, sX, sX1, dX, dX1, sX1pu, sX1pd, sX1su, sX1sd):
+
+    header = "{}/../inputs/Shapes_fromInterpo/{}/{}/".format(dir_path,N,sig)
+    PL.MakeFolder(header)
+    txtfile = interp_directory + sig + "/" + sig.replace("A","phi").replace(".","p") + '.txt'
+    os.system('cp ' + txtfile + header + N.replace(".","p") + ".txt")
+
+    doOneInputInterpo(N, sig, sX1, "h_AveDijetMass_1GeV", "Sig_nominal", True)
+    doOneInputInterpo(N, sig, sX1pu, "h_AveDijetMass_1GeV", "Sig_PU", True)
+    doOneInputInterpo(N, sig, sX1pd, "h_AveDijetMass_1GeV", "Sig_PD", True)
+    doOneInputInterpo(N, sig, sX1su, "h_AveDijetMass_1GeV", "Sig_SU", True)
+    doOneInputInterpo(N, sig, sX1sd, "h_AveDijetMass_1GeV", "Sig_SD", True)
+    doOneInputInterpo(N, sig, dX1, "data_XM1", "DATA")
+    AE = str(sX.Integral()/sXr.Integral())
+    for h in [sXr, sX1r]:
+        h.SetFillColor(0)
+        h.SetLineColor(1)
+    oF = TFile(header+"/PLOTS_"+N+".root", "recreate")
+    sX.SetName(sX.GetName().replace("XrM","XM"))
+    sX.Write()
+    sX1.Write()
+    dX.Write()
+    dX1.Write()
+
 
 ################################################
 #Get DATA
@@ -150,8 +184,8 @@ for ff in os.listdir(xaastorage):
     DATA.append(os.path.join(xaastorage,ff))
 
 #DATA = [DATA[-1]]
-print(DATA)
-time.sleep(1)
+#print(DATA)
+#time.sleep(1)
 
 #Analysis Cuts
 # masym, eta, dipho, iso
@@ -197,18 +231,25 @@ AlphaBins = [
              ]
 
 
+
+
+def getNearestAlpha(in_a, g_alphas):
+
+  minDiff = 999
+  ng = 0
+  for ga in g_alphas:
+    diff = abs(ga-in_a)
+    if(diff < minDiff): 
+      minDiff = diff
+      ng = ga
+  
+  return ng
+
+
+print("Doing Generated Signals")
+
 #Get signals for one x mass
-
 genXs = [200,300,400,500,600,750,1000,1500,2000,3000]
-#genXs = [600]
-
-xmass = 1000
-if( len(sys.argv) >= 1):
-  if("X" in sys.argv[1]):
-    xmass = sys.argv[1]
-    xmass = int(xmass[1:])
-
-print(xmass)
 
 if(xmass not in genXs):
   print("Not a generated X Mass. Quitting")
@@ -228,22 +269,8 @@ for ff in os.listdir(xaastorage):
 
 g_alphas = SignalsGenerated.keys()
 
-def getNearestAlpha(in_a):
-  global g_alphas
-
-  minDiff = 999
-  ng = 0
-  for ga in g_alphas:
-    diff = abs(ga-in_a)
-    if(diff < minDiff): 
-      minDiff = diff
-      ng = ga
-  
-  return ng
-
-
 for abin_num in range(0,len(AlphaBins)-1):
-  #if(abin_num > 0): break
+  if(abin_num > 0): break
 
   lA = AlphaBins[abin_num]
   hA = AlphaBins[abin_num+1]
@@ -254,10 +281,10 @@ for abin_num in range(0,len(AlphaBins)-1):
   newd = "{}/../inputs/Shapes_fromGen/alphaBinning/{}/".format(dir_path,abin_num)
   PL.MakeFolder(newd)
 
-  nearestAlpha = getNearestAlpha((lA+hA)/2)
+  nearestAlpha = getNearestAlpha((lA+hA)/2, g_alphas)
   #whichSig = SignalsGenerated[nearestAlpha][0].split("/")[-1]
   #whichSig = whichSig[0 : whichSig.find("_")]
-  
+
   (dX, dX1, dXvA) = PL.GetDiphoShapeAnalysis(DATA, "pico_skim", "data", CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "1.", saveTree, year+"/"+str(abin_num))
   print("Data Entries: {}".format(dX1.GetEntries()))
 
@@ -287,5 +314,6 @@ for abin_num in range(0,len(AlphaBins)-1):
     (sXsu, sX1su, sXvAsu) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_scale_up", str(abin_num), CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "weight*10.*5.99")
     (sXsd, sX1sd, sXvAsd) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_scale_down", str(abin_num), CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "weight*10.*5.99")
 
-
     SaveHists(str(abin_num), whichSig, sXr, sX1r, sXvAr, sX, sX1, dX, dX1, dXvA, sX1pu, sX1pd, sX1su, sX1sd)
+
+

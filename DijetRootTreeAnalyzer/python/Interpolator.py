@@ -5,6 +5,8 @@ import math
 import sys
 import pandas
 
+#ROOT.gROOT.SetBatch()
+
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(dir_path+"/../../.")
 import PlottingPayload as PL
@@ -162,7 +164,7 @@ def GetClosestAlpha(ix, ia):
       return la,ha
 
 def GetSignalString(xx, alph):
-  phi = xx*alph
+  phi = round(xx*alph,2)
   sphi = str(phi).replace(".0","")
   sphi = sphi.replace(".","p")
   sig = "X{}A{}".format(xx,sphi)
@@ -283,9 +285,120 @@ def InterpolateHists(inputSignal, alphaBin, fname):
 
     low_gx, hi_gx = in_x, in_x
 
+####################################
+#The hard case
   elif(in_alpha not in GEN_ALPHAS and in_x not in GEN_X): 
     print("Interpolated signal does not match generated alpha. Interpolating Twice")
+    low_gx, hi_gx = GetClosestX(in_x, in_alpha)
+    print(low_gx, hi_gx)
 
+    faux_sig_low = GetSignalString(low_gx, in_alpha)
+    faux_sig_hi = GetSignalString(hi_gx, in_alpha)
+    #Now we have a 'known' X, unknown phi, follow that workflow
+
+    midhists = []
+
+    #################################################################################
+    #Tried to do this in a loop but had some weird problem that wouldn't let me save both histograms
+    f1_in_x = int(faux_sig_low[1 : faux_sig_low.find("A")])
+    f1_in_phi = float(faux_sig_low[faux_sig_low.find("A")+1 :].replace("p","."))
+    f1_in_alpha = f1_in_phi / f1_in_x
+    f1_low_ga, f1_hi_ga = GetClosestAlpha(f1_in_x, f1_in_alpha)
+    f1_lowsig=GetSignalString(f1_in_x, f1_low_ga)
+    f1_hisig=GetSignalString(f1_in_x, f1_hi_ga)
+
+    print("Interpolating between {} and {} signals".format(f1_lowsig, f1_hisig))
+    wpoint = float(f1_in_alpha - f1_low_ga) / float(f1_hi_ga - f1_low_ga)
+    print("Mixing Term: {}".format(wpoint))
+
+    if(fname=="nom"):
+      leff,heff = GetEfficiency(f1_lowsig,alphaBin),GetEfficiency(f1_hisig,alphaBin)
+      neweff = linearInterpolate(in_alpha, f1_low_ga, leff, f1_hi_ga, heff)
+    if(fname=="nom"):
+      f1_lowfile = "{}/{}/{}/PLOTS_{}.root".format(GEN_SHAPE_DIR, alphaBin, f1_lowsig, alphaBin)
+      f1_hifile = "{}/{}/{}/PLOTS_{}.root".format(GEN_SHAPE_DIR, alphaBin, f1_hisig, alphaBin)
+    else:
+      f1_lowfile = "{}/{}/{}/{}.root".format(GEN_SHAPE_DIR, alphaBin, f1_lowsig, fname)
+      f1_hifile = "{}/{}/{}/{}.root".format(GEN_SHAPE_DIR, alphaBin, f1_hisig, fname)
+    if(not checkFile(f1_lowfile)): return
+    if(not checkFile(f1_hifile)): return
+
+    f1_lowR, f1_hiR = ROOT.TFile(f1_lowfile, "read"), ROOT.TFile(f1_hifile, "read")
+    f1_lowH, f1_hiH = f1_lowR.Get("h_AveDijetMass_1GeV"), f1_hiR.Get("h_AveDijetMass_1GeV")
+    f1_hist_low_trim, f1_hist_hi_trim= TrimHist(f1_lowH), TrimHist(f1_hiH)
+    masslist = [f1_in_x, f1_in_x]
+    histlist = [f1_hist_low_trim, f1_hist_hi_trim]
+    MP = HC(histlist, masslist)
+    newHist, _ = MP.morph(f1_in_x, wpoint, faux_sig_low)
+    if(fname=="nom"):
+      midhists.append([faux_sig_low, newHist, neweff])
+    else:
+      midhists.append([faux_sig_low, newHist])
+
+    #######
+    f2_in_x = int(faux_sig_hi[1 : faux_sig_low.find("A")])
+    f2_in_phi = float(faux_sig_hi[faux_sig_low.find("A")+1 :].replace("p","."))
+    f2_in_alpha = f2_in_phi / f2_in_x
+    f2_low_ga, f2_hi_ga = GetClosestAlpha(f2_in_x, f2_in_alpha)
+    f2_lowsig=GetSignalString(f2_in_x, f2_low_ga)
+    f2_hisig=GetSignalString(f2_in_x, f2_hi_ga)
+
+    print("Interpolating between {} and {} signals".format(f2_lowsig, f2_hisig))
+    wpoint = float(f2_in_alpha - f2_low_ga) / float(f2_hi_ga - f2_low_ga)
+    print("Mixing Term: {}".format(wpoint))
+
+    if(fname=="nom"):
+      leff,heff = GetEfficiency(f2_lowsig,alphaBin),GetEfficiency(f2_hisig,alphaBin)
+      neweff = linearInterpolate(in_alpha, f2_low_ga, leff, f2_hi_ga, heff)
+    if(fname=="nom"):
+      f2_lowfile = "{}/{}/{}/PLOTS_{}.root".format(GEN_SHAPE_DIR, alphaBin, f2_lowsig, alphaBin)
+      f2_hifile = "{}/{}/{}/PLOTS_{}.root".format(GEN_SHAPE_DIR, alphaBin, f2_hisig, alphaBin)
+    else:
+      f2_lowfile = "{}/{}/{}/{}.root".format(GEN_SHAPE_DIR, alphaBin, f2_lowsig, fname)
+      f2_hifile = "{}/{}/{}/{}.root".format(GEN_SHAPE_DIR, alphaBin, f2_hisig, fname)
+    if(not checkFile(f2_lowfile)): return
+    if(not checkFile(f2_hifile)): return
+
+    f2_lowR, f2_hiR = ROOT.TFile(f2_lowfile, "read"), ROOT.TFile(f2_hifile, "read")
+    f2_lowH, f2_hiH = f2_lowR.Get("h_AveDijetMass_1GeV"), f2_hiR.Get("h_AveDijetMass_1GeV")
+    f2_hist_low_trim, f2_hist_hi_trim= TrimHist(f2_lowH), TrimHist(f2_hiH)
+    masslist = [f2_in_x, f2_in_x]
+    histlist = [f2_hist_low_trim, f2_hist_hi_trim]
+    MP = HC(histlist, masslist)
+    newHist, _ = MP.morph(f2_in_x, wpoint, faux_sig_hi)
+    if(fname=="nom"):
+      midhists.append([faux_sig_hi, newHist, neweff])
+    else:
+      midhists.append([faux_sig_hi, newHist])
+    #######
+
+    ##Now midhists contains intermediate signals
+    c_sig_low, c_sig_hi = midhists[0][0], midhists[1][0]
+    c_x_low = int(c_sig_low[1:c_sig_low.find("A")])
+    c_x_hi = int(c_sig_hi[1:c_sig_hi.find("A")])
+    c_phi_low = float(c_sig_low[c_sig_low.find("A")+1 :].replace("p","."))
+    c_phi_hi = float(c_sig_hi[c_sig_hi.find("A")+1 :].replace("p","."))
+    c_a_low, c_a_hi = c_phi_low/c_x_low, c_phi_hi/c_x_hi
+    print("Interpolating between {} and {} signals".format(c_sig_low, c_sig_hi))
+
+    if(fname=="nom"):
+      c_leff,c_heff = midhists[0][2], midhists[1][2]
+      neweff = linearInterpolate(in_x, c_x_low, c_leff, c_x_hi, c_heff)
+      WriteEff(inputSignal, neweff)
+
+    c_wpoint = float(in_x - c_x_low) / float(c_x_hi - c_x_low)
+    print("Mixing Term: {}".format(wpoint))
+    masslist = [c_x_low, c_x_hi]
+    histlist = [midhists[0][1], midhists[1][1]]
+
+    MP = HC(histlist, masslist)
+    newHist, _ = MP.morph(in_x, wpoint, inputSignal)
+
+    SaveHists(newHist, inputSignal, alphaBin, fname)
+
+    return
+
+####################################
   if(fname=="nom"):
     lowfile = "{}/{}/{}/PLOTS_{}.root".format(GEN_SHAPE_DIR, alphaBin, lowsig, alphaBin)
     hifile = "{}/{}/{}/PLOTS_{}.root".format(GEN_SHAPE_DIR, alphaBin, hisig, alphaBin)
@@ -312,7 +425,6 @@ def InterpolateHists(inputSignal, alphaBin, fname):
   newHist, _ = MP.morph(in_x, wpoint, inputSignal)
 
   SaveHists(newHist, inputSignal, alphaBin, fname)
-
  
   return
 
@@ -322,12 +434,12 @@ alphaBin = 9 #ToDo do this in all alpha bins
 outDir = "{}/{}/{}".format(INTERPO_SHAPE_DIR, alphaBin, inputSignal)
 MakeFolder(outDir)
 
-#CopyRangeData(outDir, alphaBin)
+CopyRangeData(outDir, alphaBin)
 InterpolateHists(inputSignal,alphaBin,"nom")
-#InterpolateHists(inputSignal,alphaBin,"Sig_PU")
-#InterpolateHists(inputSignal,alphaBin,"Sig_PD")
-#InterpolateHists(inputSignal,alphaBin,"Sig_SU")
-#InterpolateHists(inputSignal,alphaBin,"Sig_SD")
-#InterpolateHists(inputSignal,alphaBin,"Sig_nominal")
+InterpolateHists(inputSignal,alphaBin,"Sig_PU")
+InterpolateHists(inputSignal,alphaBin,"Sig_PD")
+InterpolateHists(inputSignal,alphaBin,"Sig_SU")
+InterpolateHists(inputSignal,alphaBin,"Sig_SD")
+InterpolateHists(inputSignal,alphaBin,"Sig_nominal")
 
 
