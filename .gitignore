@@ -32,10 +32,12 @@ DijetRootTreeAnalyzer/RunInterpolator/condor_logfiles/
 DijetRootTreeAnalyzer/RunInterpolator/old/
 DijetRootTreeAnalyzer/inputs/X*
 DijetRootTreeAnalyzer/FTestPlots/Plots
-DijetRootTreeAnalyzer/InterpoPlotter/OutFiles
 DijetRootTreeAnalyzer/inputs/Shapes_fromInterpo/*
 DijetRootTreeAnalyzer/inputs/Shapes_fromGen/*
 DijetRootTreeAnalyzer/InterpoPlotter/FineScanAnalysis/Plots
+DijetRootTreeAnalyzer/InterpoPlotter/OutFiles
+DijetRootTreeAnalyzer/InterpoPlotter/Plots
+DijetRootTreeAnalyzer/InterpoPlotter/old
 /DijetRootTreeAnalyzer/DoAlphaFits/output/
 /DijetRootTreeAnalyzer/DoAlphaFits/saveOutput/
 /DijetRootTreeAnalyzer/DoEnvelopeFits/output/
