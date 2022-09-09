@@ -5,7 +5,7 @@ import math
 import sys
 import pandas
 
-#ROOT.gROOT.SetBatch()
+ROOT.gROOT.SetBatch()
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(dir_path+"/../../.")
@@ -251,15 +251,15 @@ def InterpolateHists(inputSignal, alphaBin, fname):
 
   if(in_alpha < min(GEN_ALPHAS) or in_alpha > max(GEN_ALPHAS)):
     print("Requested alpha outside of range. Cannot interpolate")
-    return
+    return False
 
   elif(in_x < min(GEN_X) or in_x > max(GEN_X)):
     print("Requested X Mass outside of range. Cannot interpolate")
-    return
+    return False
 
   elif(in_x in GEN_X and in_alpha in GEN_ALPHAS):
     print("Known Signal. Doing nothing")
-    return
+    return False
 
   elif(in_alpha in GEN_ALPHAS and in_x not in GEN_X):
     print("Known alpha, unknown X mass. Interpolating between Two Signals")
@@ -328,8 +328,8 @@ def InterpolateHists(inputSignal, alphaBin, fname):
     else:
       f1_lowfile = "{}/{}/{}/{}.root".format(GEN_SHAPE_DIR, alphaBin, f1_lowsig, fname)
       f1_hifile = "{}/{}/{}/{}.root".format(GEN_SHAPE_DIR, alphaBin, f1_hisig, fname)
-    if(not checkFile(f1_lowfile)): return
-    if(not checkFile(f1_hifile)): return
+    if(not checkFile(f1_lowfile)): return False
+    if(not checkFile(f1_hifile)): return False
 
     f1_lowR, f1_hiR = ROOT.TFile(f1_lowfile, "read"), ROOT.TFile(f1_hifile, "read")
     f1_lowH, f1_hiH = f1_lowR.Get("h_AveDijetMass_1GeV"), f1_hiR.Get("h_AveDijetMass_1GeV")
@@ -364,8 +364,8 @@ def InterpolateHists(inputSignal, alphaBin, fname):
     else:
       f2_lowfile = "{}/{}/{}/{}.root".format(GEN_SHAPE_DIR, alphaBin, f2_lowsig, fname)
       f2_hifile = "{}/{}/{}/{}.root".format(GEN_SHAPE_DIR, alphaBin, f2_hisig, fname)
-    if(not checkFile(f2_lowfile)): return
-    if(not checkFile(f2_hifile)): return
+    if(not checkFile(f2_lowfile)): return False
+    if(not checkFile(f2_hifile)): return False
 
     f2_lowR, f2_hiR = ROOT.TFile(f2_lowfile, "read"), ROOT.TFile(f2_hifile, "read")
     f2_lowH, f2_hiH = f2_lowR.Get("h_AveDijetMass_1GeV"), f2_hiR.Get("h_AveDijetMass_1GeV")
@@ -404,7 +404,7 @@ def InterpolateHists(inputSignal, alphaBin, fname):
 
     SaveHists(newHist, inputSignal, alphaBin, fname)
 
-    return
+    return True
 
 ####################################
   if(fname=="nom"):
@@ -413,8 +413,8 @@ def InterpolateHists(inputSignal, alphaBin, fname):
   else:
     lowfile = "{}/{}/{}/{}.root".format(GEN_SHAPE_DIR, alphaBin, lowsig, fname)
     hifile = "{}/{}/{}/{}.root".format(GEN_SHAPE_DIR, alphaBin, hisig, fname)
-  if(not checkFile(lowfile)): return
-  if(not checkFile(hifile)): return
+  if(not checkFile(lowfile)): return False
+  if(not checkFile(hifile)): return False
 
   lowR = ROOT.TFile(lowfile, "read")
   lowH = lowR.Get("h_AveDijetMass_1GeV")
@@ -434,20 +434,26 @@ def InterpolateHists(inputSignal, alphaBin, fname):
 
   SaveHists(newHist, inputSignal, alphaBin, fname)
  
-  return
+  return True
 
 inputSignal = sys.argv[1]
-alphaBin = 9 #ToDo do this in all alpha bins
 
-outDir = "{}/{}/{}".format(INTERPO_SHAPE_DIR, alphaBin, inputSignal)
-MakeFolder(outDir)
+for alphaBin in range(0,9+1):
+  print("Starting Alpha Bin {}".format(alphaBin))
+  #if(alphaBin != 5): continue
 
-CopyRangeData(outDir, alphaBin)
-InterpolateHists(inputSignal,alphaBin,"nom")
-#InterpolateHists(inputSignal,alphaBin,"Sig_PU")
-#InterpolateHists(inputSignal,alphaBin,"Sig_PD")
-#InterpolateHists(inputSignal,alphaBin,"Sig_SU")
-#InterpolateHists(inputSignal,alphaBin,"Sig_SD")
-#InterpolateHists(inputSignal,alphaBin,"Sig_nominal")
+  outDir = "{}/{}/{}".format(INTERPO_SHAPE_DIR, alphaBin, inputSignal)
+  MakeFolder(outDir)
+
+  saved = InterpolateHists(inputSignal,alphaBin,"nom")
+  InterpolateHists(inputSignal,alphaBin,"Sig_PU")
+  InterpolateHists(inputSignal,alphaBin,"Sig_PD")
+  InterpolateHists(inputSignal,alphaBin,"Sig_SU")
+  InterpolateHists(inputSignal,alphaBin,"Sig_SD")
+  InterpolateHists(inputSignal,alphaBin,"Sig_nominal")
+  if(saved == True):
+    CopyRangeData(outDir, alphaBin)
+  else: 
+    os.system("rm -rf {}".format(outDir))
 
 
