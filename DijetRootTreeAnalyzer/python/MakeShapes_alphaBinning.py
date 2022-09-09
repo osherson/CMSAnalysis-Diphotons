@@ -22,7 +22,11 @@ this_alpha = 0.005 #Set this to the alpha you want. If const_alpha = False, this
 def doOneInput(N, sig, h, H, S, norm = False):
     toF = TFile("{}/../inputs/Shapes_fromGen/alphaBinning/{}/{}/{}.root".format(dir_path,N,sig,S), "recreate")
     if norm:
-        h.Scale(1./h.Integral())
+        try:
+          h.Scale(1./h.Integral())
+        except ZeroDivisionError:
+          print("Not normalizing")
+
     toF.cd()
     h.SetName(H)
     h.Write()
@@ -154,7 +158,7 @@ time.sleep(1)
 #CUTS = [1.0, 3.5, 0.9, 0.5] #Loose
 #CUTS = [1.0, 3.5, 0.9, 0.8] #Loose
 #CUTS = [0.25, 1.5, 0.9, 0.8] #Analysis Cuts
-CUTS = [0.25, 2.5, 0.9, 0.1] #Loose Analysis Cuts
+CUTS = [0.25, 1.5, 0.9, 0.1] #Loose Analysis Cuts
 
 #################################################
 
@@ -169,12 +173,12 @@ AlphaBins = [
              0.00775,
              0.00844,
              0.00935,
-             0.00974,
-             0.01012,
-             0.01120,
-             0.01189,
-             0.01285,
-             0.0139285714286,
+#             0.00974,
+#             0.01012,
+#             0.01120,
+#             0.01189,
+#             0.01285,
+#             0.0139285714286,
 #             0.015,
 #             0.01603,
 #             0.01672,
@@ -195,8 +199,8 @@ AlphaBins = [
 
 #Get signals for one x mass
 
-#genXs = [200,300,400,500,600,750,1000,1500,2000,3000]
-genXs = [600]
+genXs = [200,300,400,500,600,750,1000,1500,2000,3000]
+#genXs = [600]
 
 xmass = 1000
 if( len(sys.argv) >= 1):
@@ -243,29 +247,45 @@ for abin_num in range(0,len(AlphaBins)-1):
 
   lA = AlphaBins[abin_num]
   hA = AlphaBins[abin_num+1]
-  print("alpha bin: ")
+  print("---------------------------------------------------------------------------")
+  print("Alpha bin: ")
   print("{}: {} - {}".format(abin_num, lA, hA))
   saveTree = False
   newd = "{}/../inputs/Shapes_fromGen/alphaBinning/{}/".format(dir_path,abin_num)
   PL.MakeFolder(newd)
 
   nearestAlpha = getNearestAlpha((lA+hA)/2)
-  whichSig = SignalsGenerated[nearestAlpha][0].split("/")[-1]
-  whichSig = whichSig[0 : whichSig.find("_")]
-  PL.MakeFolder("{}{}/".format(newd,whichSig))
-  rfile = open("{}{}/arange.txt".format(newd,whichSig),"w")
-  rfile.write("{},{}".format(lA,hA))
-
-  (sXr, sX1r, sXvAr) = PL.GetDiphoShapeAnalysis(SignalsGenerated[nearestAlpha], "pico_nom", str(abin_num), CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeight*weight*10.*5.99")
-  print("Signal Entries: {}".format(sX1r.GetEntries()))
-
-  (sXpu, sX1pu, sXvApu) = PL.GetDiphoShapeAnalysis(SignalsGenerated[nearestAlpha], "pico_nom", str(abin_num), CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeightUp*weight*10.*5.99")
-  (sXpd, sX1pd, sXvApd) = PL.GetDiphoShapeAnalysis(SignalsGenerated[nearestAlpha], "pico_nom", str(abin_num), CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeightDown*weight*10.*5.99")
-  (sX, sX1, sXvA) = PL.GetDiphoShapeAnalysis(SignalsGenerated[nearestAlpha], "pico_nom", str(abin_num), CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeight*weight*10.*5.99")
-  (sXsu, sX1su, sXvAsu) = PL.GetDiphoShapeAnalysis(SignalsGenerated[nearestAlpha], "pico_scale_up", str(abin_num), CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "weight*10.*5.99")
-  (sXsd, sX1sd, sXvAsd) = PL.GetDiphoShapeAnalysis(SignalsGenerated[nearestAlpha], "pico_scale_down", str(abin_num), CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "weight*10.*5.99")
+  #whichSig = SignalsGenerated[nearestAlpha][0].split("/")[-1]
+  #whichSig = whichSig[0 : whichSig.find("_")]
+  
   (dX, dX1, dXvA) = PL.GetDiphoShapeAnalysis(DATA, "pico_skim", "data", CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "1.", saveTree, year+"/"+str(abin_num))
-
   print("Data Entries: {}".format(dX1.GetEntries()))
 
-  SaveHists(str(abin_num), whichSig, sXr, sX1r, sXvAr, sX, sX1, dX, dX1, dXvA, sX1pu, sX1pd, sX1su, sX1sd)
+  for thisSigIndex, oneSig in SignalsGenerated.items():
+    whichSig = oneSig[0][0 : oneSig[0].find("_")]
+    whichSig = whichSig.split("/")[-1]
+    #if(whichSig != "X400A6"):continue
+
+    print("\nSignal: {}".format(whichSig))
+    PL.MakeFolder("{}{}/".format(newd,whichSig))
+    rfile = open("{}{}/arange.txt".format(newd,whichSig),"w")
+    rfile.write("{},{}".format(lA,hA))
+
+    (sXr, sX1r, sXvAr) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_nom", str(abin_num), CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeight*weight*10.*5.99")
+    print("Signal sX1r Entries: {}".format(sX1r.GetEntries()))
+    print("Signal sXr Entries: {}".format(sXr.GetEntries()))
+    if(sX1r.GetEntries()==0 or sXr.GetEntries() == 0): 
+      print("skipping")
+      continue
+    if(sX1r.Integral()==0 or sXr.Integral() == 0): 
+      print("Skipping, Integral = 0")
+      continue
+
+    (sXpu, sX1pu, sXvApu) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_nom", str(abin_num), CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeightUp*weight*10.*5.99")
+    (sXpd, sX1pd, sXvApd) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_nom", str(abin_num), CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeightDown*weight*10.*5.99")
+    (sX, sX1, sXvA) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_nom", str(abin_num), CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeight*weight*10.*5.99")
+    (sXsu, sX1su, sXvAsu) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_scale_up", str(abin_num), CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "weight*10.*5.99")
+    (sXsd, sX1sd, sXvAsd) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_scale_down", str(abin_num), CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "weight*10.*5.99")
+
+
+    SaveHists(str(abin_num), whichSig, sXr, sX1r, sXvAr, sX, sX1, dX, dX1, dXvA, sX1pu, sX1pd, sX1su, sX1sd)

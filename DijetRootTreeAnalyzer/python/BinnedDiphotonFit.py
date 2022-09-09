@@ -6,7 +6,8 @@ from array import *
 from itertools import *
 from operator import *
 #from WriteDataCard_4J import initializeWorkspace,convertToTh1xHist,convertToMjjHist,applyTurnonFunc,applyTurnonGraph
-from WriteDataCard_photons import initializeWorkspace,convertToTh1xHist,convertToMjjHist,applyTurnonFunc,applyTurnonGraph
+#from WriteDataCard_photons import initializeWorkspace,convertToTh1xHist,convertToMjjHist,applyTurnonFunc,applyTurnonGraph
+from WriteDataCard_photons_envelope import initializeWorkspace,convertToTh1xHist,convertToMjjHist,applyTurnonFunc,applyTurnonGraph
 import os
 import random
 import sys
@@ -24,6 +25,7 @@ def binnedFit(pdf, data, fitRange='Full', useWeight=False):
         migrad_status = fr.status()
         hesse_status = -1
     else:
+        print(data,rt.RooFit.Range(fitRange),rt.RooFit.Extended(True),rt.RooFit.Offset(True))
         nll = pdf.createNLL(data,rt.RooFit.Range(fitRange),rt.RooFit.Extended(True),rt.RooFit.Offset(True))
         m2 = rt.RooMinimizer(nll)
         m2.setStrategy(2)
@@ -315,6 +317,7 @@ if __name__ == '__main__':
 
     w = rt.RooWorkspace("w"+box)
 
+    print("MULTI",options.multi)
     paramNames, bkgs = initializeWorkspace(w,cfg,box,multi=options.multi)
     
     x = array('d', cfg.getBinning(box)[0]) # mjj binning
@@ -334,6 +337,7 @@ if __name__ == '__main__':
     print 'sideband2'
     plotband = convertSideband(plotRegion,w,x)
 
+    w.Print()
     extDijetPdf = w.pdf('extDijetPdf')
     myf = rt.TFile("stuff.root","RECREATE") #This is necessary? 
     w.Write()

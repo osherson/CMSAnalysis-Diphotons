@@ -84,7 +84,7 @@ infile = sys.argv[1]
 
 sf = infile[infile.rfind("/")+1 : infile.find(".txt")].split("_")
 
-mm = sf[0][sf[0].find("X")+1 : ]
+mm = sf[1][sf[1].find("X") : ]
 an="all"
 fit=sf[-1]
 
