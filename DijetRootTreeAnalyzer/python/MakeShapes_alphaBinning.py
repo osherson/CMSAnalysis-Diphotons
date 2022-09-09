@@ -270,7 +270,7 @@ for ff in os.listdir(xaastorage):
 g_alphas = SignalsGenerated.keys()
 
 for abin_num in range(0,len(AlphaBins)-1):
-  if(abin_num > 0): break
+  #if(abin_num != 3): continue
 
   lA = AlphaBins[abin_num]
   hA = AlphaBins[abin_num+1]
@@ -291,7 +291,7 @@ for abin_num in range(0,len(AlphaBins)-1):
   for thisSigIndex, oneSig in SignalsGenerated.items():
     whichSig = oneSig[0][0 : oneSig[0].find("_")]
     whichSig = whichSig.split("/")[-1]
-    #if(whichSig != "X400A6"):continue
+    #if(whichSig != "X200A1"):continue
 
     print("\nSignal: {}".format(whichSig))
     PL.MakeFolder("{}{}/".format(newd,whichSig))
@@ -299,12 +299,13 @@ for abin_num in range(0,len(AlphaBins)-1):
     rfile.write("{},{}".format(lA,hA))
 
     (sXr, sX1r, sXvAr) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_nom", str(abin_num), CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeight*weight*10.*5.99")
-    print("Signal sX1r Entries: {}".format(sX1r.GetEntries()))
-    print("Signal sXr Entries: {}".format(sXr.GetEntries()))
-    if(sX1r.GetEntries()==0 or sXr.GetEntries() == 0): 
-      print("skipping")
+    print("Signal sX1r Entries, Integral: {}, {}".format(sX1r.GetEntries(), sX1r.Integral()))
+    print("Signal sXr Entries, Integral: {}, {}".format(sXr.GetEntries(), sX1r.Integral()))
+    #if(sX1r.GetEntries()<2 or sXr.GetEntries() < 2): 
+    if(sX1r.GetEntries()<100 or sXr.GetEntries() < 100): 
+      print("skipping, too few events")
       continue
-    if(sX1r.Integral()==0 or sXr.Integral() == 0): 
+    if(sX1r.Integral()<0.0001 or sXr.Integral() < 0.0001): 
       print("Skipping, Integral = 0")
       continue
 
