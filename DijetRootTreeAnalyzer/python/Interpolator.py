@@ -251,11 +251,17 @@ def InterpolateHists(inputSignal, alphaBin, fname):
 
   if(in_alpha < min(GEN_ALPHAS) or in_alpha > max(GEN_ALPHAS)):
     print("Requested alpha outside of range. Cannot interpolate")
+    return
 
-  if(in_x < min(GEN_X) or in_x > max(GEN_X)):
+  elif(in_x < min(GEN_X) or in_x > max(GEN_X)):
     print("Requested X Mass outside of range. Cannot interpolate")
+    return
 
-  if(in_alpha in GEN_ALPHAS and in_x not in GEN_X):
+  elif(in_x in GEN_X and in_alpha in GEN_ALPHAS):
+    print("Known Signal. Doing nothing")
+    return
+
+  elif(in_alpha in GEN_ALPHAS and in_x not in GEN_X):
     print("Known alpha, unknown X mass. Interpolating between Two Signals")
     low_gx, hi_gx = GetClosestX(in_x, in_alpha)
     lowsig=GetSignalString(low_gx, in_alpha)
