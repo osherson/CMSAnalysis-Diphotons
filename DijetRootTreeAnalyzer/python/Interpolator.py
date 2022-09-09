@@ -165,8 +165,10 @@ def GetClosestAlpha(ix, ia):
 
 def GetSignalString(xx, alph):
   phi = round(xx*alph,2)
-  sphi = str(phi).replace(".0","")
-  sphi = sphi.replace(".","p")
+  sphi = str(phi).replace(".","p")
+  #Problem is string is something like X1000A10p0 . Remove the ending p0
+  if(sphi.endswith("p0")):
+    sphi = sphi.replace("p0","")
   sig = "X{}A{}".format(xx,sphi)
   return sig
 
@@ -436,10 +438,10 @@ MakeFolder(outDir)
 
 CopyRangeData(outDir, alphaBin)
 InterpolateHists(inputSignal,alphaBin,"nom")
-InterpolateHists(inputSignal,alphaBin,"Sig_PU")
-InterpolateHists(inputSignal,alphaBin,"Sig_PD")
-InterpolateHists(inputSignal,alphaBin,"Sig_SU")
-InterpolateHists(inputSignal,alphaBin,"Sig_SD")
-InterpolateHists(inputSignal,alphaBin,"Sig_nominal")
+#InterpolateHists(inputSignal,alphaBin,"Sig_PU")
+#InterpolateHists(inputSignal,alphaBin,"Sig_PD")
+#InterpolateHists(inputSignal,alphaBin,"Sig_SU")
+#InterpolateHists(inputSignal,alphaBin,"Sig_SD")
+#InterpolateHists(inputSignal,alphaBin,"Sig_nominal")
 
 
