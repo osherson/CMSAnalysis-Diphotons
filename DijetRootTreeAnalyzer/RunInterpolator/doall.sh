@@ -5,7 +5,7 @@ rm CallFiles/*
 echo "Deleting SingleFiles"
 rm SingleFiles/*
 echo "Making Interpo Script"
-python interpSignalScriptProducer.py 
+python interpSignalScriptProducer.py $1
 echo "Splitting"
 split -a 4 -d --lines=1 InterpoProducerScript.sh single.
 echo "Making CallFiles"

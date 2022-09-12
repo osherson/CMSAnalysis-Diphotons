@@ -1,7 +1,11 @@
 import numpy as np
 import sys
 
-xmin, xmax = 290, 2000
+if("ALL" in sys.argv):
+  doAll = "ALL"
+else: doAll = ""
+
+xmin, xmax = 320, 1600
 xstep = 20
 #xmin, xmax = 400,550
 #xstep = 50
@@ -29,4 +33,4 @@ shfile = open("InterpoProducerScript.sh","w")
 
 for ii, (xx, pp) in enumerate(xapairs):
   #if(ii > 10):break
-  shfile.write("python ../python/Interpolator.py X{}A{}\n".format(xx, str(round(pp,3)).replace(".","p")))
+  shfile.write("python ../python/Interpolator.py X{}A{} {}\n".format(xx, str(round(pp,3)).replace(".","p"), doAll))
