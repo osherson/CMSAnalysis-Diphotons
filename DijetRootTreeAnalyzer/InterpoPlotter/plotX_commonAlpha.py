@@ -22,9 +22,10 @@ G_DIR = "../inputs/Shapes_fromGen/alphaBinning"
 
 GEN_ALPHAS = [0.005, 0.01, 0.015, 0.02, 0.025]
 
-for alphaBin in range(0,9+1):
+#for alphaBin in range(0,9+1):
+for alphaBin in ["ALL"]:
 
-  if(alphaBin != 1): continue
+  #if(alphaBin != 1): continue
 
   ialphaDir = "{}/{}".format(I_DIR,alphaBin)
   galphaDir = "{}/{}".format(G_DIR,alphaBin)
@@ -35,12 +36,17 @@ for alphaBin in range(0,9+1):
     for ii,alphaDir in enumerate([ialphaDir, galphaDir]):
       for si in os.listdir(alphaDir):
         xx,pp,aa = GetXPhiAlpha(si)
-        if(xx < 297 or xx > 1650): continue
+        if(xx < 297 or xx > 1600): continue
         if(aa == plot_alpha):
           xdir = os.path.join(alphaDir, si)
-          if(os.path.exists("{}/PLOTS_{}.root".format(xdir, alphaBin))):
-            if(ii==0):int_files.append(["int", xx, pp, aa, "{}/PLOTS_{}.root".format(xdir, alphaBin)])
-            else:gen_files.append(["gen", xx, pp, aa, "{}/PLOTS_{}.root".format(xdir, alphaBin)])
+          if(alphaBin=="ALL"):
+            if(os.path.exists("{}/PLOTS_0.root".format(xdir))):
+              if(ii==0):int_files.append(["int", xx, pp, aa, "{}/PLOTS_0.root".format(xdir)])
+              else:gen_files.append(["gen", xx, pp, aa, "{}/PLOTS_0.root".format(xdir)])
+          else:
+            if(os.path.exists("{}/PLOTS_{}.root".format(xdir, alphaBin))):
+              if(ii==0):int_files.append(["int", xx, pp, aa, "{}/PLOTS_{}.root".format(xdir, alphaBin)])
+              else:gen_files.append(["gen", xx, pp, aa, "{}/PLOTS_{}.root".format(xdir, alphaBin)])
   
     allFiles = int_files + gen_files
 
