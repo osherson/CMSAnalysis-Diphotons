@@ -5,14 +5,17 @@ import math
 import sys
 import pandas
 
-ROOT.gROOT.SetBatch()
+#ROOT.gROOT.SetBatch()
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(dir_path+"/../../.")
 import PlottingPayload as PL
 
 quick = False
+doAll = False
+
 if('quick' in sys.argv): quick=True
+if('ALL' in sys.argv): doAll=True
 
 #######################################
 #Global Variables
@@ -200,8 +203,12 @@ def GetAlphaBinDirectory(alphaBin):
   for ff in os.listdir(adir):
     ndir = os.path.join(adir,ff)
     for nf in os.listdir(ndir):
-      if(os.path.exists(os.path.join(ndir, "arange.txt")) and os.path.exists(os.path.join(ndir, "PLOTS_{}.root".format(alphaBin)))):
-        return ndir
+      if(alphaBin=="ALL"):
+        if(os.path.exists(os.path.join(ndir, "arange.txt")) and os.path.exists(os.path.join(ndir, "PLOTS_0.root"))):
+          return ndir
+      else:
+        if(os.path.exists(os.path.join(ndir, "arange.txt")) and os.path.exists(os.path.join(ndir, "PLOTS_{}.root".format(alphaBin)))):
+          return ndir
 
 def CopyRangeData(outFolder, alphaBin):
     abin_dir = GetAlphaBinDirectory(alphaBin)
@@ -215,8 +222,12 @@ def SaveHists(Hist, inputSignal, alphaBin, fname):
 
     if(fname=="nom"):
       abin_dir = GetAlphaBinDirectory(alphaBin)
-      alphaBinFile = ROOT.TFile("{}/PLOTS_{}.root".format(abin_dir, alphaBin), "read")
-      outFile = ROOT.TFile(outDir + "/PLOTS_{}.root".format(alphaBin), "RECREATE")
+      if(alphaBin=="ALL"):
+        alphaBinFile = ROOT.TFile("{}/PLOTS_0.root".format(abin_dir), "read")
+        outFile = ROOT.TFile(outDir + "/PLOTS_0.root".format(alphaBin), "RECREATE")
+      else:
+        alphaBinFile = ROOT.TFile("{}/PLOTS_{}.root".format(abin_dir, alphaBin), "read")
+        outFile = ROOT.TFile(outDir + "/PLOTS_{}.root".format(alphaBin), "RECREATE")
       dataXM = alphaBinFile.Get("data_XM")
       dataXM1 = alphaBinFile.Get("data_XM1")
       outFile.cd()
@@ -326,8 +337,12 @@ def InterpolateHists(inputSignal, alphaBin, fname):
       leff,heff = GetEfficiency(f1_lowsig,alphaBin),GetEfficiency(f1_hisig,alphaBin)
       neweff = linearInterpolate(in_alpha, f1_low_ga, leff, f1_hi_ga, heff)
     if(fname=="nom"):
-      f1_lowfile = "{}/{}/{}/PLOTS_{}.root".format(GEN_SHAPE_DIR, alphaBin, f1_lowsig, alphaBin)
-      f1_hifile = "{}/{}/{}/PLOTS_{}.root".format(GEN_SHAPE_DIR, alphaBin, f1_hisig, alphaBin)
+      if(alphaBin=="ALL"):
+        f1_lowfile = "{}/ALL/{}/PLOTS_0.root".format(GEN_SHAPE_DIR, f1_lowsig)
+        f1_hifile = "{}/ALL/{}/PLOTS_0.root".format(GEN_SHAPE_DIR, f1_hisig)
+      else:
+        f1_lowfile = "{}/{}/{}/PLOTS_{}.root".format(GEN_SHAPE_DIR, alphaBin, f1_lowsig, alphaBin)
+        f1_hifile = "{}/{}/{}/PLOTS_{}.root".format(GEN_SHAPE_DIR, alphaBin, f1_hisig, alphaBin)
     else:
       f1_lowfile = "{}/{}/{}/{}.root".format(GEN_SHAPE_DIR, alphaBin, f1_lowsig, fname)
       f1_hifile = "{}/{}/{}/{}.root".format(GEN_SHAPE_DIR, alphaBin, f1_hisig, fname)
@@ -362,8 +377,12 @@ def InterpolateHists(inputSignal, alphaBin, fname):
       leff,heff = GetEfficiency(f2_lowsig,alphaBin),GetEfficiency(f2_hisig,alphaBin)
       neweff = linearInterpolate(in_alpha, f2_low_ga, leff, f2_hi_ga, heff)
     if(fname=="nom"):
-      f2_lowfile = "{}/{}/{}/PLOTS_{}.root".format(GEN_SHAPE_DIR, alphaBin, f2_lowsig, alphaBin)
-      f2_hifile = "{}/{}/{}/PLOTS_{}.root".format(GEN_SHAPE_DIR, alphaBin, f2_hisig, alphaBin)
+      if(alphaBin=="ALL"):
+        f2_lowfile = "{}/ALL/{}/PLOTS_0.root".format(GEN_SHAPE_DIR, f2_lowsig)
+        f2_hifile = "{}/ALL/{}/PLOTS_0.root".format(GEN_SHAPE_DIR, f2_hisig)
+      else:
+        f2_lowfile = "{}/{}/{}/PLOTS_{}.root".format(GEN_SHAPE_DIR, alphaBin, f2_lowsig, alphaBin)
+        f2_hifile = "{}/{}/{}/PLOTS_{}.root".format(GEN_SHAPE_DIR, alphaBin, f2_hisig, alphaBin)
     else:
       f2_lowfile = "{}/{}/{}/{}.root".format(GEN_SHAPE_DIR, alphaBin, f2_lowsig, fname)
       f2_hifile = "{}/{}/{}/{}.root".format(GEN_SHAPE_DIR, alphaBin, f2_hisig, fname)
@@ -411,8 +430,12 @@ def InterpolateHists(inputSignal, alphaBin, fname):
 
 ####################################
   if(fname=="nom"):
-    lowfile = "{}/{}/{}/PLOTS_{}.root".format(GEN_SHAPE_DIR, alphaBin, lowsig, alphaBin)
-    hifile = "{}/{}/{}/PLOTS_{}.root".format(GEN_SHAPE_DIR, alphaBin, hisig, alphaBin)
+    if(alphaBin=="ALL"):
+      lowfile = "{}/ALL/{}/PLOTS_0.root".format(GEN_SHAPE_DIR, lowsig)
+      hifile = "{}/ALL/{}/PLOTS_0.root".format(GEN_SHAPE_DIR, hisig)
+    else:
+      lowfile = "{}/{}/{}/PLOTS_{}.root".format(GEN_SHAPE_DIR, alphaBin, lowsig, alphaBin)
+      hifile = "{}/{}/{}/PLOTS_{}.root".format(GEN_SHAPE_DIR, alphaBin, hisig, alphaBin)
   else:
     lowfile = "{}/{}/{}/{}.root".format(GEN_SHAPE_DIR, alphaBin, lowsig, fname)
     hifile = "{}/{}/{}/{}.root".format(GEN_SHAPE_DIR, alphaBin, hisig, fname)
@@ -442,8 +465,9 @@ def InterpolateHists(inputSignal, alphaBin, fname):
 inputSignal = sys.argv[1]
 
 for alphaBin in range(0,9+1):
-  if(alphaBin == 0): alphaBin = "ALL"
-  else: continue
+  if(doAll==True): 
+    if(alphaBin == 0): alphaBin = "ALL"
+    if(alphaBin != "ALL" and alphaBin > 0): break
   print("Starting Alpha Bin {}".format(alphaBin))
   #if(alphaBin != 5): continue
 
