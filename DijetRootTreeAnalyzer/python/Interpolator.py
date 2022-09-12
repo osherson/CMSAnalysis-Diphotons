@@ -11,6 +11,9 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(dir_path+"/../../.")
 import PlottingPayload as PL
 
+quick = False
+if('quick' in sys.argv): quick=True
+
 #######################################
 #Global Variables
 LUMI = {}
@@ -439,6 +442,8 @@ def InterpolateHists(inputSignal, alphaBin, fname):
 inputSignal = sys.argv[1]
 
 for alphaBin in range(0,9+1):
+  if(alphaBin == 0): alphaBin = "ALL"
+  else: continue
   print("Starting Alpha Bin {}".format(alphaBin))
   #if(alphaBin != 5): continue
 
@@ -446,11 +451,12 @@ for alphaBin in range(0,9+1):
   MakeFolder(outDir)
 
   saved = InterpolateHists(inputSignal,alphaBin,"nom")
-  InterpolateHists(inputSignal,alphaBin,"Sig_PU")
-  InterpolateHists(inputSignal,alphaBin,"Sig_PD")
-  InterpolateHists(inputSignal,alphaBin,"Sig_SU")
-  InterpolateHists(inputSignal,alphaBin,"Sig_SD")
-  InterpolateHists(inputSignal,alphaBin,"Sig_nominal")
+  if(not quick):
+    InterpolateHists(inputSignal,alphaBin,"Sig_PU")
+    InterpolateHists(inputSignal,alphaBin,"Sig_PD")
+    InterpolateHists(inputSignal,alphaBin,"Sig_SU")
+    InterpolateHists(inputSignal,alphaBin,"Sig_SD")
+    InterpolateHists(inputSignal,alphaBin,"Sig_nominal")
   if(saved == True):
     CopyRangeData(outDir, alphaBin)
   else: 
