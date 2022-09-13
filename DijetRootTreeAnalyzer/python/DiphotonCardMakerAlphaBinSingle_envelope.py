@@ -44,8 +44,22 @@ def RunDataCardMaker(o):
       jerup = " --jerUp {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_PU.root"
       jerdown = " --jerDown {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_PD.root"
 
+    elif(os.path.exists(dir_path + "/../inputs/Shapes_fromInterpo/alphaBinning/" + abin + "/" + str(o.SIG) + "/DATA.root")):
+      if(env):
+        inputs = " -i output/alpha_{}/{}/DijetFitResults_diphoton_{}_{}.root".format(abin,sig,sig,str(o.FIT))
+      else:
+        inputs = " -i output/alpha_{}/{}/DijetFitResults_diphoton_{}_{}_alpha{}.root".format(abin,sig,sig,str(o.FIT),abin)
+      inputs += " {}/../inputs/Shapes_fromInterpo/alphaBinning/".format(dir_path)  + abin+"/"+sig+ "/DATA.root"
+      inputs += " {}/../inputs/Shapes_fromInterpo/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_nominal.root"
+      jesup = " --jesUp {}/../inputs/Shapes_fromInterpo/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_SU.root"
+      jesdown = " --jesDown {}/../inputs/Shapes_fromInterpo/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_SD.root"
+      jerup = " --jerUp {}/../inputs/Shapes_fromInterpo/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_PU.root"
+      jerdown = " --jerDown {}/../inputs/Shapes_fromInterpo/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_PD.root"
+
     else:
       print("IN ELSE LOOP")
+      print(abin)
+      print(os.path.exists(dir_path + "/../inputs/Shapes_fromGen/alphaBinning/" + abin + "/" + str(o.SIG) + "/DATA.root"))
       exit()
       inputs = " -i output/DijetFitResults_diphoton_{}_{}.root".format(str(o.FIT),yr)
       inputs += " inputs/Shapes_fromInterpo/" + yr + "/" + str(o.SIG) + "/DATA.root"
