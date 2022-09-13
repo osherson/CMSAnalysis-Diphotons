@@ -4,12 +4,15 @@ import sys
 clean=False
 goLim = False
 doAll=False
+DoInterpo = False
 
 #xmasslist = ['300','400','500','600','750','1000','1500']#,'2000']
 #xmasslist = ['300','400','500','750','1000','1500']#,'2000']
 #xmasslist = ['400','600','1000','200','300','500','750','1500','2000','3000']
 xmasslist = ['400','600','1000','300','500','750','1500','2000','3000']
 
+if ("Interpo" in sys.argv):
+  DoInterpo = True
 
 if ('clean' in sys.argv):
   clean=True
@@ -17,7 +20,7 @@ if ('clean' in sys.argv):
 if ('limit' in sys.argv):
   goLim = True
 
-if('ALL' in sys.argv):
+if('ALL' in sys.argv or "All" in sys.argv):
   doAll = True
 
 if clean:
@@ -51,7 +54,10 @@ def makeThisLimit(xmass):
   print("_______________________________________________")
   print("STARTING X MASS {}".format(xmass))
 
-  data_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromGen/alphaBinning/"
+  if(DoInterpo):
+    data_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromInterpo/alphaBinning/"
+  else:
+    data_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromGen/alphaBinning/"
   dirs = []
 
   if(doAll==True):
@@ -89,7 +95,7 @@ def makeThisLimit(xmass):
   #fitfuncs = ["dijet","moddijet","atlas","dipho","myexp"] #FourParams
   fitfuncs = ["dijet","moddijet","atlas","dipho"] #Five and Three
   #fitfuncs = ["dijet","atlas","dipho"] #Six
-  #fitfuncs = ["dipho"]
+  fitfuncs = ["dijet"]
 
   for (dd,anum,la,ha) in dirs:
     sig = dd.split("/")[-1]
@@ -159,8 +165,17 @@ def makeThisLimit(xmass):
             os.system(comb_command)
             os.system("mv higgsCombine_{}_{}.AsymptoticLimits.mH120.root combineOutput/alpha_{}/higgsCombine_{}_{}.root".format(year,sig,abin_num,ff,sig))
 
+if(DoInterpo):
+  print("Using interpolated shapes")
+  i_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromInterpo/alphaBinning/ALL"
+  xmlist = []
+  for xa in os.listdir(i_dir):
+    xm = int(xa[1 : xa.find("A")])
+    xmlist.append(xm)
 
-#xmasslist=[xmasslist[0]]
-#xmasslist=["600"]
-for xm in xmasslist:
-  makeThisLimit(xm)
+  for xm in xmlist:
+    makeThisLimit(xm)
+
+else:
+  for xm in xmasslist:
+    makeThisLimit(xm)
