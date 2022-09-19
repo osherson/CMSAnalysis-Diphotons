@@ -31,6 +31,8 @@ for mx in xlist:
 
 shfile = open("InterpoProducerScript.sh","w")
 
-for ii, (xx, pp) in enumerate(xapairs):
-  #if(ii > 10):break
-  shfile.write("python ../python/Interpolator.py X{}A{} {}\n".format(xx, str(round(pp,3)).replace(".","p"), doAll))
+#for aa in range(0,9+1):
+for aa in range(1,2):
+  for ii, (xx, pp) in enumerate(xapairs):
+    #if(ii > 10):break
+      shfile.write("python ../python/Interpolator.py X{}A{} {} alpha{}\n".format(xx, str(round(pp,3)).replace(".","p"), doAll, aa))

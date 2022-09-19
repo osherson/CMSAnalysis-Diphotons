@@ -560,8 +560,8 @@ def InterpolateHists(inputSignal, alphaBin, fname):
   MP = HC(histlist, masslist)
   newHist, _ = MP.morph(in_x, wpoint, inputSignal)
 
-  print("Effs: {} - {} - {}".format(leff, neweff, heff))
-  print("Ints: {} - {} - {}".format(lowH.Integral(), newHist.Integral(), hiH.Integral()))
+  #print("Effs: {} - {} - {}".format(leff, neweff, heff))
+  #print("Ints: {} - {} - {}".format(lowH.Integral(), newHist.Integral(), hiH.Integral()))
 
   SaveHists(newHist, inputSignal, alphaBin, fname)
   del newHist
