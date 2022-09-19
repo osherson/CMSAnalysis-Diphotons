@@ -67,4 +67,7 @@ DijetRootTreeAnalyzer/python/RunMakeShapes/condor_submitFiles/
 DijetRootTreeAnalyzer/LimitMaker_Condor/condor_submitFiles/
 DijetRootTreeAnalyzer/LimitMaker_Condor/condor_logfiles/
 DijetRootTreeAnalyzer/LimitMaker_Condor/CallFiles/
+DijetRootTreeAnalyzer/DoEnvelopeFits/Condor_LimitMaker/CallFiles/
+DijetRootTreeAnalyzer/DoEnvelopeFits/Condor_LimitMaker/condor_logfiles/
+DijetRootTreeAnalyzer/DoEnvelopeFits/Condor_LimitMaker/condor_submitfiles/
 
