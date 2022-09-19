@@ -4,6 +4,8 @@ import os
 import math
 import sys
 import pandas
+import time
+import gc
 
 #ROOT.gROOT.SetBatch()
 
@@ -31,6 +33,15 @@ GEN_SHAPE_DIR = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-
 INTERPO_SHAPE_DIR = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromInterpo/alphaBinning"
 
 #######################################
+
+def Make1BinsFromMinToMax(Min,Max):
+  BINS = []
+  for i in range(int(Max-Min)+1):
+    BINS.append(Min+i)
+  return numpy.array(BINS)
+
+XB = [297.0, 303.0, 310.0, 317.0, 324.0, 331.0, 338.0, 345.0, 352.0, 360.0, 368.0, 376.0, 384.0, 392.0, 400.0, 409.0, 418.0, 427.0, 436.0, 445.0, 454.0, 464.0, 474.0, 484.0, 494.0, 504.0, 515.0, 526.0, 537.0, 548.0, 560.0, 572.0, 584.0, 596.0, 609.0, 622.0, 635.0, 648.0, 662.0, 676.0, 690.0, 704.0, 719.0, 734.0, 749.0, 765.0, 781.0, 797.0, 814.0, 831.0, 848.0, 866.0, 884.0, 902.0, 921.0, 940.0, 959.0, 979.0, 999.0, 1020.0, 1041.0, 1063.0, 1085.0, 1107.0, 1130.0, 1153.0, 1177.0, 1201.0, 1226.0, 1251.0, 1277.0, 1303.0, 1330.0, 1357.0, 1385.0, 1413.0, 1442.0, 1472.0, 1502.0, 1533.0, 1564.0, 1596.0, 1629.0, 1662.0, 1696.0]
+X1B = Make1BinsFromMinToMax(297., 1696.)
 
 def MakeFolder(N):
     if not os.path.exists(N):
@@ -129,7 +140,7 @@ class HC:
     ##
     c1 = ROOT.TCanvas()
     c1.cd()
-    ll = ROOT.TLegend(0.6,0.5,0.8,0.75)
+    ll = ROOT.TLegend(0.6,0.7,0.8,0.95)
     ll.SetBorderSize(0)
     HH.SetTitle("HH")
     HH.SetLineColor(ROOT.kRed)
@@ -141,10 +152,14 @@ class HC:
     ll.AddEntry(HH, "In_High")
     ##
     rr = RHI.Clone(signame+"new")
+    rm = rr.GetMean()
     rr.SetTitle("OUT")
     rr.SetLineColor(ROOT.kBlack)
     ll.AddEntry(rr, "OUT")
     FindAndSetMax([HH, HL, rr])
+    rr.GetXaxis().SetRangeUser(0.2*rm, 1.8*rm)
+    HL.GetXaxis().SetRangeUser(0.2*rm, 1.8*rm)
+    HH.GetXaxis().SetRangeUser(0.2*rm, 1.8*rm)
     HH.Draw("hist")
     HL.Draw("histsame")
     rr.Draw("histsame")
@@ -185,18 +200,83 @@ def checkFile(fname):
       return False
   return True
 
-#FIXME See if this is legal
-def TrimHist(hist):
-  mean,rms = hist.GetMean(), hist.GetRMS()
-  WW = 2
-  tHist = hist.Clone()
-  for bb in range(hist.GetNbinsX()):
-    if(hist.GetBinLowEdge(bb) < (mean - WW*rms) or hist.GetBinLowEdge(bb) > (mean + WW*rms)):
-      tHist.SetBinContent(bb,0)
-    else: 
-      tHist.SetBinContent(bb, hist.GetBinContent(bb))
+#def TrimHist(hist):
+#  mean,rms = hist.GetMean(), hist.GetRMS()
+#  WW = 2
+#  tHist = hist.Clone()
+#  for bb in range(hist.GetNbinsX()):
+#    if(hist.GetBinLowEdge(bb) < (mean - WW*rms) or hist.GetBinLowEdge(bb) > (mean + WW*rms)):
+#      tHist.SetBinContent(bb,0)
+#    else: 
+#      tHist.SetBinContent(bb, hist.GetBinContent(bb))
+#
+#  return tHist.Clone()
 
-  return tHist.Clone()
+def getBinIndex(num):
+  for ii in range(0,len(X1B)):
+    if num < X1B[ii]:
+      return ii
+
+#def TrimNewHist(lowhist, hihist):
+#  lowmean,lowrms = lowhist.GetMean(), lowhist.GetRMS()
+#  himean,hirms = hihist.GetMean(), hihist.GetRMS()
+#  WW = 2
+#
+#  botidx = getBinIndex(lowmean - WW*lowrms)
+#  topidx = getBinIndex(himean + WW*hirms)
+#
+#  print("lowmean, lowmean-ww:")
+#  print(lowmean, lowmean - WW*lowrms)
+#  print("himean, himean-ww:")
+#  print(himean, himean + WW*hirms)
+#  print("botidx, topidx")
+#  print(botidx, topidx)
+#  newBins = X1B[botidx : topidx+1]
+#  print(newBins[0],newBins[-1])
+#  print(X1B[botidx],X1B[topidx+1])
+#
+#  tl_Hist = ROOT.TH1D("{}_t".format(lowhist.GetName),"",len(newBins)-1, numpy.array(newBins))
+#  th_Hist = ROOT.TH1D("{}_t".format(hihist.GetName),"",len(newBins)-1, numpy.array(newBins))
+#
+#  print("N Bins: ")
+#  print(lowhist.GetNbinsX(), tl_Hist.GetNbinsX())
+#
+#  for bb in range(tl_Hist.GetNbinsX()):
+#    o_low_Bin = bb + botidx
+#    tl_Hist.SetBinContent(bb, lowhist.GetBinContent(o_low_Bin))
+#
+#    o_hi_Bin = hihist.FindBin(tl_Hist.GetBinLowEdge(bb))
+#    th_Hist.SetBinContent(bb, hihist.GetBinContent(o_hi_Bin))
+#
+#  return tl_Hist.Clone(), th_Hist.Clone()
+
+def TrimWideHist(lowhist, hihist):
+  lowmean,lowrms = lowhist.GetMean(), lowhist.GetRMS()
+  himean,hirms = hihist.GetMean(), hihist.GetRMS()
+  WW = 2
+
+  botidx = getBinIndex(lowmean - WW*lowrms)
+  topidx = getBinIndex(himean + WW*hirms)
+  bval = X1B[botidx]
+  tval = X1B[topidx]
+
+  newBins = Make1BinsFromMinToMax(0., 10000.)
+
+  tl_Hist = ROOT.TH1D("{}_t".format(lowhist.GetName),"",len(newBins)-1, numpy.array(newBins))
+  th_Hist = ROOT.TH1D("{}_t".format(hihist.GetName),"",len(newBins)-1, numpy.array(newBins))
+
+  for bb in range(tl_Hist.GetNbinsX()):
+    if( tl_Hist.GetBinLowEdge(bb) < bval or tl_Hist.GetBinLowEdge(bb) > tval):
+      tl_Hist.SetBinContent(bb,0)
+    else:
+      tl_Hist.SetBinContent(bb, lowhist.GetBinContent(lowhist.FindBin(tl_Hist.GetBinLowEdge(bb))))
+      th_Hist.SetBinContent(bb, hihist.GetBinContent(hihist.FindBin(tl_Hist.GetBinLowEdge(bb))))
+
+  #Maybe
+  #tl_Hist.Smooth()
+  #th_Hist.Smooth()
+
+  return tl_Hist.Clone(), th_Hist.Clone()
 
 def GetAlphaBinDirectory(alphaBin):
   adir = GEN_SHAPE_DIR+"/"+str(alphaBin)
@@ -351,7 +431,8 @@ def InterpolateHists(inputSignal, alphaBin, fname):
 
     f1_lowR, f1_hiR = ROOT.TFile(f1_lowfile, "read"), ROOT.TFile(f1_hifile, "read")
     f1_lowH, f1_hiH = f1_lowR.Get("h_AveDijetMass_1GeV"), f1_hiR.Get("h_AveDijetMass_1GeV")
-    f1_hist_low_trim, f1_hist_hi_trim= TrimHist(f1_lowH), TrimHist(f1_hiH)
+    #f1_hist_low_trim, f1_hist_hi_trim= TrimHist(f1_lowH), TrimHist(f1_hiH)
+    f1_hist_low_trim, f1_hist_hi_trim= TrimWideHist(f1_lowH, f1_hiH)
     masslist = [f1_in_x, f1_in_x]
     histlist = [f1_hist_low_trim, f1_hist_hi_trim]
     MP = HC(histlist, masslist)
@@ -391,7 +472,8 @@ def InterpolateHists(inputSignal, alphaBin, fname):
 
     f2_lowR, f2_hiR = ROOT.TFile(f2_lowfile, "read"), ROOT.TFile(f2_hifile, "read")
     f2_lowH, f2_hiH = f2_lowR.Get("h_AveDijetMass_1GeV"), f2_hiR.Get("h_AveDijetMass_1GeV")
-    f2_hist_low_trim, f2_hist_hi_trim= TrimHist(f2_lowH), TrimHist(f2_hiH)
+    #f2_hist_low_trim, f2_hist_hi_trim= TrimHist(f2_lowH), TrimHist(f2_hiH)
+    f2_hist_low_trim, f2_hist_hi_trim= TrimWideHist(f2_lowH, f2_hiH)
     masslist = [f2_in_x, f2_in_x]
     histlist = [f2_hist_low_trim, f2_hist_hi_trim]
     MP = HC(histlist, masslist)
@@ -448,8 +530,28 @@ def InterpolateHists(inputSignal, alphaBin, fname):
   hiR = ROOT.TFile(hifile, "read")
   hiH = hiR.Get("h_AveDijetMass_1GeV")
 
-  hist_low_trim = TrimHist(lowH)
-  hist_hi_trim = TrimHist(hiH)
+  #hist_low_trim = TrimHist(lowH)
+  #hist_hi_trim = TrimHist(hiH)
+  #hist_low_trim, hist_hi_trim = TrimNewHist(lowH, hiH)
+  hist_low_trim, hist_hi_trim = TrimWideHist(lowH, hiH)
+  #hist_low_trim.GetXaxis().SetRangeUser(600,1050.)
+  #hist_hi_trim.GetXaxis().SetRangeUser(600,1050.)
+
+#  c1 = ROOT.TCanvas()
+#  c1.cd()
+#  lowH.SetFillColor(ROOT.kBlack)
+#  lowH.SetLineWidth(2)
+#  hiH.SetLineWidth(2)
+#  hist_low_trim.SetLineColor(ROOT.kRed)
+#  hist_low_trim.SetLineWidth(1)
+#  hiH.SetFillColor(ROOT.kBlack)
+#  hist_hi_trim.SetLineColor(ROOT.kRed)
+#  hist_hi_trim.SetLineWidth(1)
+#  lowH.Draw("hist")
+#  hiH.Draw("histsame")
+#  hist_low_trim.Draw("histsame")
+#  hist_hi_trim.Draw("histsame")
+#  c1.Print("tmp.png")
 
   masslist = [low_gx, hi_gx]
   #histlist = [lowH, hiH]
@@ -458,32 +560,39 @@ def InterpolateHists(inputSignal, alphaBin, fname):
   MP = HC(histlist, masslist)
   newHist, _ = MP.morph(in_x, wpoint, inputSignal)
 
+  print("Effs: {} - {} - {}".format(leff, neweff, heff))
+  print("Ints: {} - {} - {}".format(lowH.Integral(), newHist.Integral(), hiH.Integral()))
+
   SaveHists(newHist, inputSignal, alphaBin, fname)
- 
+  del newHist
   return True
 
 inputSignal = sys.argv[1]
+alphaBin = 1
 
-for alphaBin in range(0,9+1):
-  if(doAll==True): 
-    if(alphaBin == 0): alphaBin = "ALL"
-    if(alphaBin != "ALL" and alphaBin > 0): break
-  print("Starting Alpha Bin {}".format(alphaBin))
-  #if(alphaBin != 5): continue
+for aa in sys.argv:
+  if("alpha" in aa):
+    alphaBin = aa[5:]
 
-  outDir = "{}/{}/{}".format(INTERPO_SHAPE_DIR, alphaBin, inputSignal)
-  MakeFolder(outDir)
+if(alphaBin=="All"):alphaBin="ALL"
+print("Do ALL? : {}".format(doAll))
+print("Starting Alpha Bin {}".format(alphaBin))
+#if(alphaBin != 5): continue
 
-  saved = InterpolateHists(inputSignal,alphaBin,"nom")
-  if(not quick):
-    InterpolateHists(inputSignal,alphaBin,"Sig_PU")
-    InterpolateHists(inputSignal,alphaBin,"Sig_PD")
-    InterpolateHists(inputSignal,alphaBin,"Sig_SU")
-    InterpolateHists(inputSignal,alphaBin,"Sig_SD")
-    InterpolateHists(inputSignal,alphaBin,"Sig_nominal")
-  if(saved == True):
-    CopyRangeData(outDir, alphaBin)
-  else: 
-    os.system("rm -rf {}".format(outDir))
+outDir = "{}/{}/{}".format(INTERPO_SHAPE_DIR, alphaBin, inputSignal)
+MakeFolder(outDir)
+
+saved = InterpolateHists(inputSignal,alphaBin,"nom")
+if(not quick):
+  InterpolateHists(inputSignal,alphaBin,"Sig_PU")
+  InterpolateHists(inputSignal,alphaBin,"Sig_PD")
+  InterpolateHists(inputSignal,alphaBin,"Sig_SU")
+  InterpolateHists(inputSignal,alphaBin,"Sig_SD")
+  InterpolateHists(inputSignal,alphaBin,"Sig_nominal")
+if(saved == True):
+  CopyRangeData(outDir, alphaBin)
+else: 
+  os.system("rm -rf {}".format(outDir))
+
 
 
