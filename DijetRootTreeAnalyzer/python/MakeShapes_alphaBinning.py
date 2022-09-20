@@ -24,7 +24,6 @@ if( len(sys.argv) >= 1):
 
 
 xaastorage = "/cms/xaastorage-2/DiPhotonsTrees/"
-interp_directory = "{}/../inputs/Interpolations/{}/".format(dir_path,year)
 const_alpha = False #Use this to get signals at one alpha val
 this_alpha = 0.005 #Set this to the alpha you want. If const_alpha = False, this does nothing
 
@@ -43,16 +42,6 @@ def doOneInput(N, sig, h, H, S, norm = False):
     toF.Save()
     toF.Close()
 
-def doOneInputInterpo(N, sig, h, H, S, norm = False):
-    toF = TFile("{}/../inputs/Shapes_fromInterpo/alphaBinning/{}/{}/{}.root".format(dir_path, N, sig, S), "recreate")
-    if norm:
-        h.Scale(1./h.Integral())
-    toF.cd()
-    h.SetName(H)
-    h.Write()
-    toF.Write()
-    toF.Save()
-    toF.Close()
 
 LH = []
 f = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/Diphoton-Treemaker/HelperFiles/Signal_NEvents_{}.csv".format(year)
@@ -150,32 +139,6 @@ def SaveHists(N, sig, sXr, sX1r, sXvAr, sX, sX1, dX, dX1, dXvA, sX1pu, sX1pd, sX
     oF.Close()
 
 #############################
-def SaveHists_Interpo(N, sig, sXr, sX1r, sX, sX1, dX, dX1, sX1pu, sX1pd, sX1su, sX1sd):
-
-    header = "{}/../inputs/Shapes_fromInterpo/{}/{}/".format(dir_path,N,sig)
-    PL.MakeFolder(header)
-    txtfile = interp_directory + sig + "/" + sig.replace("A","phi").replace(".","p") + '.txt'
-    os.system('cp ' + txtfile + header + N.replace(".","p") + ".txt")
-
-    doOneInputInterpo(N, sig, sX1, "h_AveDijetMass_1GeV", "Sig_nominal", True)
-    doOneInputInterpo(N, sig, sX1pu, "h_AveDijetMass_1GeV", "Sig_PU", True)
-    doOneInputInterpo(N, sig, sX1pd, "h_AveDijetMass_1GeV", "Sig_PD", True)
-    doOneInputInterpo(N, sig, sX1su, "h_AveDijetMass_1GeV", "Sig_SU", True)
-    doOneInputInterpo(N, sig, sX1sd, "h_AveDijetMass_1GeV", "Sig_SD", True)
-    doOneInputInterpo(N, sig, dX1, "data_XM1", "DATA")
-    AE = str(sX.Integral()/sXr.Integral())
-    for h in [sXr, sX1r]:
-        h.SetFillColor(0)
-        h.SetLineColor(1)
-    oF = TFile(header+"/PLOTS_"+N+".root", "recreate")
-    sX.SetName(sX.GetName().replace("XrM","XM"))
-    sX.Write()
-    sX1.Write()
-    dX.Write()
-    dX1.Write()
-
-
-################################################
 #Get DATA
 DATA = []
 for ff in os.listdir(xaastorage):
