@@ -12,7 +12,8 @@ import Helper
 dir_path = os.path.dirname(os.path.realpath(__file__)) #Get directory where this Treemaker.py is located
 gInterpreter.Declare('#include "{}/RDF_Functions.h"'.format(dir_path))
 
-saveTreeFolder = "/cms/sclark-2/DiPhotonsTrees/GJets/" 
+#saveTreeFolder = "/cms/sclark-2/DiPhotonsTrees/GJets/" 
+saveTreeFolder = "/cms/sclark-2/DiPhotonsTrees/QCD/" 
 
 #ROOT.ROOT.EnableImplicitMT()
 RDF = ROOT.ROOT.RDataFrame
@@ -38,7 +39,8 @@ def Treemaker(folder, Dataset, isData, year):
 
   # File dependent setup:
   if isData:
-      dpindex, eleindex = 0,3
+      #dpindex, eleindex = 0,3 #GJets
+      dpindex, eleindex = 0,3 #QCD
       Branches = [
           ["pico_skim", 10, 1., 1.],
           ["pico_full", 1, 1., 1.]

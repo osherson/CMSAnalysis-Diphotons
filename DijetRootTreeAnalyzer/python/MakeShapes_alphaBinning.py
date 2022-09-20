@@ -230,8 +230,7 @@ AlphaBins = [
              0.03
              ]
 
-
-
+#AlphaBins = [0.,0.03]
 
 def getNearestAlpha(in_a, g_alphas):
 
@@ -282,8 +281,6 @@ for abin_num in range(0,len(AlphaBins)-1):
   PL.MakeFolder(newd)
 
   nearestAlpha = getNearestAlpha((lA+hA)/2, g_alphas)
-  #whichSig = SignalsGenerated[nearestAlpha][0].split("/")[-1]
-  #whichSig = whichSig[0 : whichSig.find("_")]
 
   (dX, dX1, dXvA) = PL.GetDiphoShapeAnalysis(DATA, "pico_skim", "data", CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "1.", saveTree, year+"/"+str(abin_num))
   print("Data Entries: {}".format(dX1.GetEntries()))
@@ -300,12 +297,11 @@ for abin_num in range(0,len(AlphaBins)-1):
 
     (sXr, sX1r, sXvAr) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_nom", str(abin_num), CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeight*weight*10.*5.99")
     print("Signal sX1r Entries, Integral: {}, {}".format(sX1r.GetEntries(), sX1r.Integral()))
-    print("Signal sXr Entries, Integral: {}, {}".format(sXr.GetEntries(), sX1r.Integral()))
-    #if(sX1r.GetEntries()<2 or sXr.GetEntries() < 2): 
+
     if(sX1r.GetEntries()<100 or sXr.GetEntries() < 100): 
       print("skipping, too few events")
       continue
-    if(sX1r.Integral()<0.0001 or sXr.Integral() < 0.0001): 
+    if(sX1r.Integral()<0.00001 or sXr.Integral() < 0.00001): 
       print("Skipping, Integral = 0")
       continue
 
@@ -314,6 +310,14 @@ for abin_num in range(0,len(AlphaBins)-1):
     (sX, sX1, sXvA) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_nom", str(abin_num), CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeight*weight*10.*5.99")
     (sXsu, sX1su, sXvAsu) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_scale_up", str(abin_num), CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "weight*10.*5.99")
     (sXsd, sX1sd, sXvAsd) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_scale_down", str(abin_num), CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "weight*10.*5.99")
+    n_postcut = float(sX1r.GetEntries())
+    n_gen = float(lookup(whichSig))
+    eff = n_postcut / n_gen * 100
+    if(eff < 10):
+      print("Efficiency is {:.3f} %, skipping signal".format(eff))
+      continue
+    else:
+      print("Efficiency: {:.3f} %".format(eff))
 
     SaveHists(str(abin_num), whichSig, sXr, sX1r, sXvAr, sX, sX1, dX, dX1, dXvA, sX1pu, sX1pd, sX1su, sX1sd)
 
