@@ -40,7 +40,7 @@ def Make1BinsFromMinToMax(Min,Max):
     BINS.append(Min+i)
   return numpy.array(BINS)
 
-XB = [297.0, 303.0, 310.0, 317.0, 324.0, 331.0, 338.0, 345.0, 352.0, 360.0, 368.0, 376.0, 384.0, 392.0, 400.0, 409.0, 418.0, 427.0, 436.0, 445.0, 454.0, 464.0, 474.0, 484.0, 494.0, 504.0, 515.0, 526.0, 537.0, 548.0, 560.0, 572.0, 584.0, 596.0, 609.0, 622.0, 635.0, 648.0, 662.0, 676.0, 690.0, 704.0, 719.0, 734.0, 749.0, 765.0, 781.0, 797.0, 814.0, 831.0, 848.0, 866.0, 884.0, 902.0, 921.0, 940.0, 959.0, 979.0, 999.0, 1020.0, 1041.0, 1063.0, 1085.0, 1107.0, 1130.0, 1153.0, 1177.0, 1201.0, 1226.0, 1251.0, 1277.0, 1303.0, 1330.0, 1357.0, 1385.0, 1413.0, 1442.0, 1472.0, 1502.0, 1533.0, 1564.0, 1596.0, 1629.0, 1662.0, 1696.0]
+#XB = [297.0, 303.0, 310.0, 317.0, 324.0, 331.0, 338.0, 345.0, 352.0, 360.0, 368.0, 376.0, 384.0, 392.0, 400.0, 409.0, 418.0, 427.0, 436.0, 445.0, 454.0, 464.0, 474.0, 484.0, 494.0, 504.0, 515.0, 526.0, 537.0, 548.0, 560.0, 572.0, 584.0, 596.0, 609.0, 622.0, 635.0, 648.0, 662.0, 676.0, 690.0, 704.0, 719.0, 734.0, 749.0, 765.0, 781.0, 797.0, 814.0, 831.0, 848.0, 866.0, 884.0, 902.0, 921.0, 940.0, 959.0, 979.0, 999.0, 1020.0, 1041.0, 1063.0, 1085.0, 1107.0, 1130.0, 1153.0, 1177.0, 1201.0, 1226.0, 1251.0, 1277.0, 1303.0, 1330.0, 1357.0, 1385.0, 1413.0, 1442.0, 1472.0, 1502.0, 1533.0, 1564.0, 1596.0, 1629.0, 1662.0, 1696.0]
 X1B = Make1BinsFromMinToMax(297., 3000.)
 
 def MakeFolder(N):
@@ -166,6 +166,7 @@ class HC:
     ll.Draw("same")
     c1.Print("tc3.png")
     ##
+
 
     return RHI.Clone(signame+"new"), inxhists
 
@@ -296,8 +297,7 @@ def CopyRangeData(outFolder, alphaBin):
     os.system("cp {}/DATA.root {}/.".format(abin_dir, outFolder))
     return
 
-def SaveHists(Hist, inputSignal, alphaBin, fname):
-    global outDir
+def SaveHists(Hist, inputSignal, alphaBin, fname, outDir):
     hname = "h_AveDijetMass_1GeV"
 
     if(fname=="nom"):
@@ -329,15 +329,14 @@ def GetEfficiency(sig, alphaBin):
   eF = open(eFile,"r").readlines()
   return float(eF[0])
 
-def WriteEff(sig, eff):
-   global outDir
+def WriteEff(sig, eff, outDir):
 
    effFile= open("{}/{}.txt".format(outDir,sig),"w")
    effFile.write(str(eff))
    effFile.close()
    return
 
-def InterpolateHists(inputSignal, alphaBin, fname):
+def InterpolateHists(inputSignal, alphaBin, fname, doAll, outDir):
 
   in_x = int(inputSignal[1 : inputSignal.find("A")])
   in_phi = float(inputSignal[inputSignal.find("A")+1 :].replace("p","."))
@@ -368,7 +367,7 @@ def InterpolateHists(inputSignal, alphaBin, fname):
     if(fname=="nom"):
       leff,heff = GetEfficiency(lowsig,alphaBin),GetEfficiency(hisig,alphaBin)
       neweff = linearInterpolate(in_x, low_gx, leff, hi_gx, heff)
-      WriteEff(inputSignal, neweff)
+      WriteEff(inputSignal, neweff, outDir)
 
   elif(in_alpha not in GEN_ALPHAS and in_x in GEN_X):
     print("Known X Mass, unknown alphas. Interpolating between two signals")
@@ -383,7 +382,7 @@ def InterpolateHists(inputSignal, alphaBin, fname):
     if(fname=="nom"):
       leff,heff = GetEfficiency(lowsig,alphaBin),GetEfficiency(hisig,alphaBin)
       neweff = linearInterpolate(in_alpha, low_ga, leff, hi_ga, heff)
-      WriteEff(inputSignal, neweff)
+      WriteEff(inputSignal, neweff, outDir)
 
     low_gx, hi_gx = in_x, in_x
 
@@ -496,7 +495,7 @@ def InterpolateHists(inputSignal, alphaBin, fname):
     if(fname=="nom"):
       c_leff,c_heff = midhists[0][2], midhists[1][2]
       neweff = linearInterpolate(in_x, c_x_low, c_leff, c_x_hi, c_heff)
-      WriteEff(inputSignal, neweff)
+      WriteEff(inputSignal, neweff, outDir)
 
     c_wpoint = float(in_x - c_x_low) / float(c_x_hi - c_x_low)
     print("Mixing Term: {}".format(wpoint))
@@ -506,7 +505,7 @@ def InterpolateHists(inputSignal, alphaBin, fname):
     MP = HC(histlist, masslist)
     newHist, _ = MP.morph(in_x, wpoint, inputSignal)
 
-    SaveHists(newHist, inputSignal, alphaBin, fname)
+    SaveHists(newHist, inputSignal, alphaBin, fname, outDir)
 
     return True
 
@@ -521,6 +520,7 @@ def InterpolateHists(inputSignal, alphaBin, fname):
   else:
     lowfile = "{}/{}/{}/{}.root".format(GEN_SHAPE_DIR, alphaBin, lowsig, fname)
     hifile = "{}/{}/{}/{}.root".format(GEN_SHAPE_DIR, alphaBin, hisig, fname)
+    print("Getting file: ", lowfile)
   if(not checkFile(lowfile)): return False
   if(not checkFile(hifile)): return False
 
@@ -563,12 +563,17 @@ def InterpolateHists(inputSignal, alphaBin, fname):
   #print("Effs: {} - {} - {}".format(leff, neweff, heff))
   #print("Ints: {} - {} - {}".format(lowH.Integral(), newHist.Integral(), hiH.Integral()))
 
-  SaveHists(newHist, inputSignal, alphaBin, fname)
-  del newHist
+  SaveHists(newHist, inputSignal, alphaBin, fname,outDir)
+  #newHist.Delete()
+
   return True
 
 inputSignal = sys.argv[1]
+treeName = sys.argv[2]
 alphaBin = 1
+
+print(inputSignal)
+print(treeName)
 
 for aa in sys.argv:
   if("alpha" in aa):
@@ -582,17 +587,17 @@ print("Starting Alpha Bin {}".format(alphaBin))
 outDir = "{}/{}/{}".format(INTERPO_SHAPE_DIR, alphaBin, inputSignal)
 MakeFolder(outDir)
 
-saved = InterpolateHists(inputSignal,alphaBin,"nom")
-if(not quick):
-  InterpolateHists(inputSignal,alphaBin,"Sig_PU")
-  InterpolateHists(inputSignal,alphaBin,"Sig_PD")
-  InterpolateHists(inputSignal,alphaBin,"Sig_SU")
-  InterpolateHists(inputSignal,alphaBin,"Sig_SD")
-  InterpolateHists(inputSignal,alphaBin,"Sig_nominal")
-if(saved == True):
+saved = InterpolateHists(inputSignal,alphaBin,treeName,doAll,outDir)
+if(saved == True and treeName=="nom"):
   CopyRangeData(outDir, alphaBin)
-else: 
+elif(saved == False and treeName=="nom"): 
   os.system("rm -rf {}".format(outDir))
+
+#InterpolateHists(inputSignal,alphaBin,"Sig_PU",doAll,outDir)
+#InterpolateHists(inputSignal,alphaBin,"Sig_PD",doAll,outDir)
+#InterpolateHists(inputSignal,alphaBin,"Sig_SU",doAll,outDir)
+#InterpolateHists(inputSignal,alphaBin,"Sig_SD",doAll,outDir)
+#InterpolateHists(inputSignal,alphaBin,"Sig_nominal",doAll,outDir)
 
 
 

@@ -13,8 +13,6 @@ xstep = 10
 alphamin, alphamax = 0.005, 0.03
 nalphas = 25+1
 #nalphas = 5+1
-#alphamin, alphamax = 0.01,0.015
-#nalphas = 5+1
 alphalist = np.linspace(alphamin, alphamax, nalphas)
 #alphalist = np.array([0.026])
 #alphalist = np.array([0.01,0.02,0.026])
@@ -31,11 +29,15 @@ for mx in xlist:
 
 shfile = open("InterpoProducerScript.sh","w")
 
+treeList = ["nom","Sig_PU", "Sig_PD", "Sig_SU", "Sig_SD", "Sig_nominal"]
+
 if(doAll == False):
-  for aa in range(0,9+1):
-    for ii, (xx, pp) in enumerate(xapairs):
-      shfile.write("python ../python/Interpolator.py X{}A{} {} alpha{}\n".format(xx, str(round(pp,3)).replace(".","p"), doAll, aa))
+  for tname in treeList:
+    for aa in range(0,9+1):
+      for ii, (xx, pp) in enumerate(xapairs):
+        shfile.write("python ../python/Interpolator.py X{}A{} {} {} alpha{}\n".format(xx, str(round(pp,3)).replace(".","p"), tname, doAll, aa))
 
 else:
+  for tname in treeList:
     for ii, (xx, pp) in enumerate(xapairs):
-      shfile.write("python ../python/Interpolator.py X{}A{} {} alphaALL\n".format(xx, str(round(pp,3)).replace(".","p"), doAll, aa))
+      shfile.write("python ../python/Interpolator.py X{}A{} {} {} alphaALL\n".format(xx, str(round(pp,3)).replace(".","p"), tname, doAll, aa))
