@@ -32,12 +32,12 @@ shfile = open("InterpoProducerScript.sh","w")
 treeList = ["nom","Sig_PU", "Sig_PD", "Sig_SU", "Sig_SD", "Sig_nominal"]
 
 if(doAll == False):
-  for tname in treeList:
-    for aa in range(0,9+1):
+  for aa in range(0,9+1):
+    for tname in treeList:
       for ii, (xx, pp) in enumerate(xapairs):
         shfile.write("python ../python/Interpolator.py X{}A{} {} {} alpha{}\n".format(xx, str(round(pp,3)).replace(".","p"), tname, doAll, aa))
 
 else:
-  for tname in treeList:
-    for ii, (xx, pp) in enumerate(xapairs):
+  for ii, (xx, pp) in enumerate(xapairs):
+    for tname in treeList:
       shfile.write("python ../python/Interpolator.py X{}A{} {} {} alphaALL\n".format(xx, str(round(pp,3)).replace(".","p"), tname, doAll, aa))
