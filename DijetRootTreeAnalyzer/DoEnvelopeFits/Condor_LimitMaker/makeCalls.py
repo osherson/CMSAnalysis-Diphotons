@@ -5,6 +5,7 @@ if("clean" in sys.argv):
   print("Deleting Call Files and condor_submit Files")
   os.system("rm CallFiles/*")
   os.system("rm condor_submitFiles/*")
+  print("Done deleting")
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -14,7 +15,7 @@ gen_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphot
 ct = 0
 
 for dir_base in [interp_dir, gen_dir]:
-  for alphaBin in os.listdir(gen_dir):
+  for alphaBin in os.listdir(dir_base):
     for xx in os.listdir(os.path.join(dir_base,alphaBin)):
       #if(ct > 10): break #For testing
       mydir = "{}/{}/{}".format(gen_dir, alphaBin, xx)

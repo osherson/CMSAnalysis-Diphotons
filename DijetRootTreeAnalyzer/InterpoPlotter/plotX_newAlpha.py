@@ -23,9 +23,12 @@ alphamin, alphamax = 0.005, 0.03
 nalphas = 25+1
 PLOT_ALPHAS = numpy.linspace(alphamin, alphamax, nalphas)
 
+gen_alphas = [0.005, 0.01, 0.015, 0.02, 0.025]
+
 #for alphaBin in range(0,9+1):
 for alphaBin in ["ALL"]:
   for PLOT_ALPHA in PLOT_ALPHAS:
+    if(PLOT_ALPHA in gen_alphas): continue
 
     ialphaDir = "{}/{}".format(I_DIR,alphaBin)
   
