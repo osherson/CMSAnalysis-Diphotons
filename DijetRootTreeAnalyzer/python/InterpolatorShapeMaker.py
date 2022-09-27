@@ -30,7 +30,7 @@ GEN_ALPHAS = [0.005, 0.01, 0.015, 0.02, 0.025, 0.03]
 GEN_X = [200,300,400,500,600,750,1000,1500,2000,3000]
 
 GEN_SHAPE_DIR = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromGen/alphaBinning"
-INTERPO_SHAPE_DIR = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromInterpo/alphaBinning"
+INTERPO_SHAPE_DIR = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromInterpo/unBinned"
 
 #######################################
 
@@ -167,7 +167,6 @@ class HC:
     c1.Print("tc3.png")
     ##
 
-
     return RHI.Clone(signame+"new"), inxhists
 
 def linearInterpolate(x, x1, y1, x2, y2):
@@ -236,64 +235,21 @@ def TrimWideHist(lowhist, hihist):
 
   return tl_Hist.Clone(), th_Hist.Clone()
 
-def GetAlphaBinDirectory(alphaBin):
-  adir = GEN_SHAPE_DIR+"/"+str(alphaBin)
-  for ff in os.listdir(adir):
-    ndir = os.path.join(adir,ff)
-    for nf in os.listdir(ndir):
-      if(alphaBin=="ALL"):
-        if(os.path.exists(os.path.join(ndir, "arange.txt")) and os.path.exists(os.path.join(ndir, "PLOTS_0.root"))):
-          return ndir
-      else:
-        if(os.path.exists(os.path.join(ndir, "arange.txt")) and os.path.exists(os.path.join(ndir, "PLOTS_{}.root".format(alphaBin)))):
-          return ndir
-
-def CopyRangeData(outFolder, alphaBin):
-    abin_dir = GetAlphaBinDirectory(alphaBin)
-    os.system("cp {}/arange.txt {}/.".format(abin_dir, outFolder))
-    os.system("cp {}/DATA.root {}/.".format(abin_dir, outFolder))
-    return
-
-def SaveHists(Hist, inputSignal, alphaBin, fname, outDir):
+def SaveHists(Hist, inputSignal, fname, outDir):
     hname = "h_AveDijetMass_1GeV"
 
     if(fname=="nom"):
-      abin_dir = GetAlphaBinDirectory(alphaBin)
-      if(alphaBin=="ALL"):
-        alphaBinFile = ROOT.TFile("{}/PLOTS_0.root".format(abin_dir), "read")
-        outFile = ROOT.TFile(outDir + "/PLOTS_0.root".format(alphaBin), "RECREATE")
-      else:
-        alphaBinFile = ROOT.TFile("{}/PLOTS_{}.root".format(abin_dir, alphaBin), "read")
-        outFile = ROOT.TFile(outDir + "/PLOTS_{}.root".format(alphaBin), "RECREATE")
-      dataXM = alphaBinFile.Get("data_XM")
-      dataXM1 = alphaBinFile.Get("data_XM1")
-      outFile.cd()
-      Hist.Write(hname)
-      dataXM.Write()
-      dataXM1.Write()
+      outFile = ROOT.TFile(outDir + "/PLOTS.root", "RECREATE")
     else:
       outFile = ROOT.TFile("{}/{}.root".format(outDir,fname), "recreate")
-      outFile.cd()
-      Hist.Write(hname)
+    outFile.cd()
+    Hist.Write(hname)
 
     outFile.Close()
 
     return
 
-def GetEfficiency(sig, alphaBin):
-  eFile = "{}/{}/{}/{}.txt".format(GEN_SHAPE_DIR, alphaBin, sig, sig)
-  if(not checkFile(eFile)): return 0
-  eF = open(eFile,"r").readlines()
-  return float(eF[0])
-
-def WriteEff(sig, eff, outDir):
-
-   effFile= open("{}/{}.txt".format(outDir,sig),"w")
-   effFile.write(str(eff))
-   effFile.close()
-   return
-
-def InterpolateHists(inputSignal, alphaBin, fname, doAll, outDir):
+def InterpolateHists(inputSignal, fname, outDir):
 
   in_x = int(inputSignal[1 : inputSignal.find("A")])
   in_phi = float(inputSignal[inputSignal.find("A")+1 :].replace("p","."))
@@ -321,11 +277,6 @@ def InterpolateHists(inputSignal, alphaBin, fname, doAll, outDir):
     wpoint = float(in_x - low_gx) / float(hi_gx - low_gx)
     print("Mixing Term: {}".format(wpoint))
 
-    if(fname=="nom"):
-      leff,heff = GetEfficiency(lowsig,alphaBin),GetEfficiency(hisig,alphaBin)
-      neweff = linearInterpolate(in_x, low_gx, leff, hi_gx, heff)
-      WriteEff(inputSignal, neweff, outDir)
-
   elif(in_alpha not in GEN_ALPHAS and in_x in GEN_X):
     print("Known X Mass, unknown alphas. Interpolating between two signals")
     low_ga, hi_ga = GetClosestAlpha(in_x, in_alpha)
@@ -335,11 +286,6 @@ def InterpolateHists(inputSignal, alphaBin, fname, doAll, outDir):
     print("Interpolating between {} and {} signals".format(lowsig, hisig))
     wpoint = float(in_alpha - low_ga) / float(hi_ga - low_ga)
     print("Mixing Term: {}".format(wpoint))
-
-    if(fname=="nom"):
-      leff,heff = GetEfficiency(lowsig,alphaBin),GetEfficiency(hisig,alphaBin)
-      neweff = linearInterpolate(in_alpha, low_ga, leff, hi_ga, heff)
-      WriteEff(inputSignal, neweff, outDir)
 
     low_gx, hi_gx = in_x, in_x
 
@@ -370,18 +316,11 @@ def InterpolateHists(inputSignal, alphaBin, fname, doAll, outDir):
     print("Mixing Term: {}".format(wpoint))
 
     if(fname=="nom"):
-      leff,heff = GetEfficiency(f1_lowsig,alphaBin),GetEfficiency(f1_hisig,alphaBin)
-      neweff = linearInterpolate(in_alpha, f1_low_ga, leff, f1_hi_ga, heff)
-    if(fname=="nom"):
-      if(alphaBin=="ALL"):
-        f1_lowfile = "{}/ALL/{}/PLOTS_0.root".format(GEN_SHAPE_DIR, f1_lowsig)
-        f1_hifile = "{}/ALL/{}/PLOTS_0.root".format(GEN_SHAPE_DIR, f1_hisig)
-      else:
-        f1_lowfile = "{}/{}/{}/PLOTS_{}.root".format(GEN_SHAPE_DIR, alphaBin, f1_lowsig, alphaBin)
-        f1_hifile = "{}/{}/{}/PLOTS_{}.root".format(GEN_SHAPE_DIR, alphaBin, f1_hisig, alphaBin)
+      f1_lowfile = "{}/ALL/{}/PLOTS_0.root".format(GEN_SHAPE_DIR, f1_lowsig)
+      f1_hifile = "{}/ALL/{}/PLOTS_0.root".format(GEN_SHAPE_DIR, f1_hisig)
     else:
-      f1_lowfile = "{}/{}/{}/{}.root".format(GEN_SHAPE_DIR, alphaBin, f1_lowsig, fname)
-      f1_hifile = "{}/{}/{}/{}.root".format(GEN_SHAPE_DIR, alphaBin, f1_hisig, fname)
+      f1_lowfile = "{}/ALL/{}/{}.root".format(GEN_SHAPE_DIR, f1_lowsig, fname)
+      f1_hifile = "{}/ALL/{}/{}.root".format(GEN_SHAPE_DIR, f1_hisig, fname)
     if(not checkFile(f1_lowfile)): return False
     if(not checkFile(f1_hifile)): return False
 
@@ -393,14 +332,12 @@ def InterpolateHists(inputSignal, alphaBin, fname, doAll, outDir):
     histlist = [f1_hist_low_trim, f1_hist_hi_trim]
     MP = HC(histlist, masslist)
     newHist, _ = MP.morph(f1_in_x, wpoint, faux_sig_low)
-    if(fname=="nom"):
-      midhists.append([faux_sig_low, newHist, neweff])
-    else:
-      midhists.append([faux_sig_low, newHist])
+    midhists.append([faux_sig_low, newHist])
 
     #######
-    f2_in_x = int(faux_sig_hi[1 : faux_sig_low.find("A")])
-    f2_in_phi = float(faux_sig_hi[faux_sig_low.find("A")+1 :].replace("p","."))
+    print(faux_sig_hi)
+    f2_in_x = int(faux_sig_hi[1 : faux_sig_hi.find("A")])
+    f2_in_phi = float(faux_sig_hi[faux_sig_hi.find("A")+1 :].replace("p","."))
     f2_in_alpha = f2_in_phi / f2_in_x
     f2_low_ga, f2_hi_ga = GetClosestAlpha(f2_in_x, f2_in_alpha)
     f2_lowsig=GetSignalString(f2_in_x, f2_low_ga)
@@ -411,18 +348,11 @@ def InterpolateHists(inputSignal, alphaBin, fname, doAll, outDir):
     print("Mixing Term: {}".format(wpoint))
 
     if(fname=="nom"):
-      leff,heff = GetEfficiency(f2_lowsig,alphaBin),GetEfficiency(f2_hisig,alphaBin)
-      neweff = linearInterpolate(in_alpha, f2_low_ga, leff, f2_hi_ga, heff)
-    if(fname=="nom"):
-      if(alphaBin=="ALL"):
-        f2_lowfile = "{}/ALL/{}/PLOTS_0.root".format(GEN_SHAPE_DIR, f2_lowsig)
-        f2_hifile = "{}/ALL/{}/PLOTS_0.root".format(GEN_SHAPE_DIR, f2_hisig)
-      else:
-        f2_lowfile = "{}/{}/{}/PLOTS_{}.root".format(GEN_SHAPE_DIR, alphaBin, f2_lowsig, alphaBin)
-        f2_hifile = "{}/{}/{}/PLOTS_{}.root".format(GEN_SHAPE_DIR, alphaBin, f2_hisig, alphaBin)
+      f2_lowfile = "{}/ALL/{}/PLOTS_0.root".format(GEN_SHAPE_DIR, f2_lowsig)
+      f2_hifile = "{}/ALL/{}/PLOTS_0.root".format(GEN_SHAPE_DIR, f2_hisig)
     else:
-      f2_lowfile = "{}/{}/{}/{}.root".format(GEN_SHAPE_DIR, alphaBin, f2_lowsig, fname)
-      f2_hifile = "{}/{}/{}/{}.root".format(GEN_SHAPE_DIR, alphaBin, f2_hisig, fname)
+      f2_lowfile = "{}/ALL/{}/{}.root".format(GEN_SHAPE_DIR, f2_lowsig, fname)
+      f2_hifile = "{}/ALL/{}/{}.root".format(GEN_SHAPE_DIR, f2_hisig, fname)
     if(not checkFile(f2_lowfile)): return False
     if(not checkFile(f2_hifile)): return False
 
@@ -434,10 +364,7 @@ def InterpolateHists(inputSignal, alphaBin, fname, doAll, outDir):
     histlist = [f2_hist_low_trim, f2_hist_hi_trim]
     MP = HC(histlist, masslist)
     newHist, _ = MP.morph(f2_in_x, wpoint, faux_sig_hi)
-    if(fname=="nom"):
-      midhists.append([faux_sig_hi, newHist, neweff])
-    else:
-      midhists.append([faux_sig_hi, newHist])
+    midhists.append([faux_sig_hi, newHist])
     #######
 
     ##Now midhists contains intermediate signals
@@ -449,11 +376,6 @@ def InterpolateHists(inputSignal, alphaBin, fname, doAll, outDir):
     c_a_low, c_a_hi = c_phi_low/c_x_low, c_phi_hi/c_x_hi
     print("Interpolating between {} and {} signals".format(c_sig_low, c_sig_hi))
 
-    if(fname=="nom"):
-      c_leff,c_heff = midhists[0][2], midhists[1][2]
-      neweff = linearInterpolate(in_x, c_x_low, c_leff, c_x_hi, c_heff)
-      WriteEff(inputSignal, neweff, outDir)
-
     c_wpoint = float(in_x - c_x_low) / float(c_x_hi - c_x_low)
     print("Mixing Term: {}".format(wpoint))
     masslist = [c_x_low, c_x_hi]
@@ -462,21 +384,17 @@ def InterpolateHists(inputSignal, alphaBin, fname, doAll, outDir):
     MP = HC(histlist, masslist)
     newHist, _ = MP.morph(in_x, wpoint, inputSignal)
 
-    SaveHists(newHist, inputSignal, alphaBin, fname, outDir)
+    SaveHists(newHist, inputSignal, fname, outDir)
 
     return True
 
 ####################################
   if(fname=="nom"):
-    if(alphaBin=="ALL"):
-      lowfile = "{}/ALL/{}/PLOTS_0.root".format(GEN_SHAPE_DIR, lowsig)
-      hifile = "{}/ALL/{}/PLOTS_0.root".format(GEN_SHAPE_DIR, hisig)
-    else:
-      lowfile = "{}/{}/{}/PLOTS_{}.root".format(GEN_SHAPE_DIR, alphaBin, lowsig, alphaBin)
-      hifile = "{}/{}/{}/PLOTS_{}.root".format(GEN_SHAPE_DIR, alphaBin, hisig, alphaBin)
+    lowfile = "{}/ALL/{}/PLOTS_0.root".format(GEN_SHAPE_DIR, lowsig)
+    hifile = "{}/ALL/{}/PLOTS_0.root".format(GEN_SHAPE_DIR, hisig)
   else:
-    lowfile = "{}/{}/{}/{}.root".format(GEN_SHAPE_DIR, alphaBin, lowsig, fname)
-    hifile = "{}/{}/{}/{}.root".format(GEN_SHAPE_DIR, alphaBin, hisig, fname)
+    lowfile = "{}/ALL/{}/{}.root".format(GEN_SHAPE_DIR, lowsig, fname)
+    hifile = "{}/ALL/{}/{}.root".format(GEN_SHAPE_DIR, hisig, fname)
     print("Getting file: ", lowfile)
   if(not checkFile(lowfile)): return False
   if(not checkFile(hifile)): return False
@@ -487,74 +405,35 @@ def InterpolateHists(inputSignal, alphaBin, fname, doAll, outDir):
   hiR = ROOT.TFile(hifile, "read")
   hiH = hiR.Get("h_AveDijetMass_1GeV")
 
-  #hist_low_trim = TrimHist(lowH)
-  #hist_hi_trim = TrimHist(hiH)
-  #hist_low_trim, hist_hi_trim = TrimNewHist(lowH, hiH)
   hist_low_trim, hist_hi_trim = TrimWideHist(lowH, hiH)
-  #hist_low_trim.GetXaxis().SetRangeUser(600,1050.)
-  #hist_hi_trim.GetXaxis().SetRangeUser(600,1050.)
-
-#  c1 = ROOT.TCanvas()
-#  c1.cd()
-#  lowH.SetFillColor(ROOT.kBlack)
-#  lowH.SetLineWidth(2)
-#  hiH.SetLineWidth(2)
-#  hist_low_trim.SetLineColor(ROOT.kRed)
-#  hist_low_trim.SetLineWidth(1)
-#  hiH.SetFillColor(ROOT.kBlack)
-#  hist_hi_trim.SetLineColor(ROOT.kRed)
-#  hist_hi_trim.SetLineWidth(1)
-#  lowH.Draw("hist")
-#  hiH.Draw("histsame")
-#  hist_low_trim.Draw("histsame")
-#  hist_hi_trim.Draw("histsame")
-#  c1.Print("tmp.png")
 
   masslist = [low_gx, hi_gx]
-  #histlist = [lowH, hiH]
   histlist = [hist_low_trim, hist_hi_trim]
 
   MP = HC(histlist, masslist)
   newHist, _ = MP.morph(in_x, wpoint, inputSignal)
 
-  #print("Effs: {} - {} - {}".format(leff, neweff, heff))
-  #print("Ints: {} - {} - {}".format(lowH.Integral(), newHist.Integral(), hiH.Integral()))
-
-  SaveHists(newHist, inputSignal, alphaBin, fname,outDir)
-  #newHist.Delete()
+  SaveHists(newHist, inputSignal, fname, outDir)
 
   return True
 
 inputSignal = sys.argv[1]
 treeName = sys.argv[2]
-alphaBin = 1
 
 print(inputSignal)
 print(treeName)
 
-for aa in sys.argv:
-  if("alpha" in aa):
-    alphaBin = aa[5:]
-
-if(alphaBin=="All"):alphaBin="ALL"
-print("Do ALL? : {}".format(doAll))
-print("Starting Alpha Bin {}".format(alphaBin))
-#if(alphaBin != 5): continue
-
-outDir = "{}/{}/{}".format(INTERPO_SHAPE_DIR, alphaBin, inputSignal)
+outDir = "{}/{}".format(INTERPO_SHAPE_DIR, inputSignal)
 MakeFolder(outDir)
 
-saved = InterpolateHists(inputSignal,alphaBin,treeName,doAll,outDir)
-if(saved == True and treeName=="nom"):
-  CopyRangeData(outDir, alphaBin)
-elif(saved == False and treeName=="nom"): 
-  os.system("rm -rf {}".format(outDir))
+InterpolateHists(inputSignal,treeName,outDir)
 
-#InterpolateHists(inputSignal,alphaBin,"Sig_PU",doAll,outDir)
-#InterpolateHists(inputSignal,alphaBin,"Sig_PD",doAll,outDir)
-#InterpolateHists(inputSignal,alphaBin,"Sig_SU",doAll,outDir)
-#InterpolateHists(inputSignal,alphaBin,"Sig_SD",doAll,outDir)
-#InterpolateHists(inputSignal,alphaBin,"Sig_nominal",doAll,outDir)
+#This doesn't work, must call as command line arg
+#InterpolateHists(inputSignal,"Sig_PU",outDir)
+#InterpolateHists(inputSignal,"Sig_PD",outDir)
+#InterpolateHists(inputSignal,"Sig_SU",outDir)
+#InterpolateHists(inputSignal,"Sig_SD",outDir)
+#InterpolateHists(inputSignal,"Sig_nominal",outDir)
 
 
 
