@@ -29,7 +29,7 @@ LUMI["2018"] = 59.320
 GEN_ALPHAS = [0.005, 0.01, 0.015, 0.02, 0.025, 0.03]
 GEN_X = [200,300,400,500,600,750,1000,1500,2000,3000]
 
-GEN_SHAPE_DIR = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromGen/alphaBinning"
+GEN_SHAPE_DIR = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromGen/unBinned"
 INTERPO_SHAPE_DIR = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromInterpo/unBinned"
 
 #######################################
@@ -40,8 +40,15 @@ def Make1BinsFromMinToMax(Min,Max):
     BINS.append(Min+i)
   return numpy.array(BINS)
 
+def Make0p1BinsFromMinToMax(Min,Max):
+  BINS = []
+  for i in range(int(Max-Min)+1):
+    BINS.append(float(Min+i) / float(Max-Min))
+  return numpy.array(BINS)
+
 #XB = [297.0, 303.0, 310.0, 317.0, 324.0, 331.0, 338.0, 345.0, 352.0, 360.0, 368.0, 376.0, 384.0, 392.0, 400.0, 409.0, 418.0, 427.0, 436.0, 445.0, 454.0, 464.0, 474.0, 484.0, 494.0, 504.0, 515.0, 526.0, 537.0, 548.0, 560.0, 572.0, 584.0, 596.0, 609.0, 622.0, 635.0, 648.0, 662.0, 676.0, 690.0, 704.0, 719.0, 734.0, 749.0, 765.0, 781.0, 797.0, 814.0, 831.0, 848.0, 866.0, 884.0, 902.0, 921.0, 940.0, 959.0, 979.0, 999.0, 1020.0, 1041.0, 1063.0, 1085.0, 1107.0, 1130.0, 1153.0, 1177.0, 1201.0, 1226.0, 1251.0, 1277.0, 1303.0, 1330.0, 1357.0, 1385.0, 1413.0, 1442.0, 1472.0, 1502.0, 1533.0, 1564.0, 1596.0, 1629.0, 1662.0, 1696.0]
-X1B = Make1BinsFromMinToMax(297., 3110.)
+X1B = Make1BinsFromMinToMax(297., 3110.) #Steven for making signals over 2000, this becomes a problem. I think you can just change 3110 to something much bigger. Verify this works
+AfineB = numpy.linspace(-0.03,0.03, 1201)
 
 def MakeFolder(N):
     if not os.path.exists(N):
@@ -112,7 +119,7 @@ class HC:
     self._inxhists = []
     self._cutEff = []
 
-  def morph(self, MM, wpoint, signame):
+  def morph(self, MM, wpoint, signame, shape):
     #scaled=True
     #self._lowI, self._hiI = computeBoundingIndices(MM, self._massArr)
     self._lowI, self._hiI = 0,1
@@ -127,14 +134,25 @@ class HC:
 
     rmass = ROOT.RooRealVar("rm_{}".format(signame), "rmass", wpoint, 0., 1.)
 
-    RHL = ROOT.RooDataHist("HL_".format(signame), ";DiCluster Mass [GeV];Events/GeV", ROOT.RooArgList(self._x), HL)
-    RHLR = ROOT.RooHistPdf("HL_AbsReal_{}".format(signame), "", ROOT.RooArgSet(self._x), RHL)
-    RHH = ROOT.RooDataHist("HH_{}".format(signame), ";DiCluster Mass [GeV];Events/GeV", ROOT.RooArgList(self._x), HH)
-    RHHR = ROOT.RooHistPdf("HH_AbsReal_{}".format(signame), "", ROOT.RooArgSet(self._x), RHH)
+    if(shape == "X"):
+      RHL = ROOT.RooDataHist("HL_".format(signame), ";DiCluster Mass [GeV];Events/GeV", ROOT.RooArgList(self._x), HL)
+      RHLR = ROOT.RooHistPdf("HL_AbsReal_{}".format(signame), "", ROOT.RooArgSet(self._x), RHL)
+      RHH = ROOT.RooDataHist("HH_{}".format(signame), ";DiCluster Mass [GeV];Events/GeV", ROOT.RooArgList(self._x), HH)
+      RHHR = ROOT.RooHistPdf("HH_AbsReal_{}".format(signame), "", ROOT.RooArgSet(self._x), RHH)
 
-    RHIM = ROOT.RooIntegralMorph("Hmorph_{}".format(signame), "", RHHR, RHLR, self._x, rmass)
-    self.xframe = self._x.frame(ROOT.RooFit.Title(";DiCluster Mass [GeV];Events/GeV"), ROOT.RooFit.Range(0, 10000))
-    RHI = RHIM.createHistogram("Hinterpo_{}".format(signame), self._x)
+      RHIM = ROOT.RooIntegralMorph("Hmorph_{}".format(signame), "", RHHR, RHLR, self._x, rmass)
+      self.xframe = self._x.frame(ROOT.RooFit.Title(";DiCluster Mass [GeV];Events/GeV"), ROOT.RooFit.Range(0, 10000))
+      RHI = RHIM.createHistogram("Hinterpo_{}".format(signame), self._x)
+
+    elif(shape == "alpha"):
+      RHL = ROOT.RooDataHist("HL_".format(signame), ";#alpha;Events/GeV", ROOT.RooArgList(self._x), HL)
+      RHLR = ROOT.RooHistPdf("HL_AbsReal_{}".format(signame), "", ROOT.RooArgSet(self._x), RHL)
+      RHH = ROOT.RooDataHist("HH_{}".format(signame), ";#alpha;Events/GeV", ROOT.RooArgList(self._x), HH)
+      RHHR = ROOT.RooHistPdf("HH_AbsReal_{}".format(signame), "", ROOT.RooArgSet(self._x), RHH)
+
+      RHIM = ROOT.RooIntegralMorph("Hmorph_{}".format(signame), "", RHHR, RHLR, self._x, rmass)
+      self.xframe = self._x.frame(ROOT.RooFit.Title(";#alpha;Events/GeV"), ROOT.RooFit.Range(0, 1.))
+      RHI = RHIM.createHistogram("Hinterpo_{}".format(signame), self._x)
 
     ##
     ##
@@ -201,26 +219,38 @@ def checkFile(fname):
   return True
 
 
-def getBinIndex(num):
+def getXBinIndex(num):
   for ii in range(0,len(X1B)):
     if num < X1B[ii]:
       return ii
+def getABinIndex(num):
+  for ii in range(0,len(AfineB)):
+    if num < AfineB[ii]:
+      return ii
 
 
-def TrimWideHist(lowhist, hihist):
+def TrimWideHist(lowhist, hihist, shape):
   lowmean,lowrms = lowhist.GetMean(), lowhist.GetRMS()
   himean,hirms = hihist.GetMean(), hihist.GetRMS()
   WW = 2
 
-  botidx = getBinIndex(lowmean - WW*lowrms)
-  topidx = getBinIndex(himean + WW*hirms)
-  bval = X1B[botidx]
-  tval = X1B[topidx]
-
-  newBins = Make1BinsFromMinToMax(0., 10000.)
+  if(shape=="X"):
+    botidx = getXBinIndex(lowmean - WW*lowrms)
+    topidx = getXBinIndex(himean + WW*hirms)
+    newBins = Make1BinsFromMinToMax(0., 10000.)
+    bval = X1B[botidx]
+    tval = X1B[topidx]
+  elif(shape=="alpha"):
+    botidx = getABinIndex(lowmean - WW*lowrms)
+    topidx = getABinIndex(himean + WW*hirms)
+    newBins = numpy.linspace(-0.03,0.03, 1200.+1)
+    #AfineB = numpy.linspace(-0.03,0.03, 1201)
+    bval = AfineB[botidx]
+    tval = AfineB[topidx]
 
   tl_Hist = ROOT.TH1D("{}_t".format(lowhist.GetName),"",len(newBins)-1, numpy.array(newBins))
   th_Hist = ROOT.TH1D("{}_t".format(hihist.GetName),"",len(newBins)-1, numpy.array(newBins))
+
 
   for bb in range(tl_Hist.GetNbinsX()):
     if( tl_Hist.GetBinLowEdge(bb) < bval or tl_Hist.GetBinLowEdge(bb) > tval):
@@ -235,13 +265,13 @@ def TrimWideHist(lowhist, hihist):
 
   return tl_Hist.Clone(), th_Hist.Clone()
 
-def SaveHists(Hist, inputSignal, fname, outDir):
-    hname = "h_AveDijetMass_1GeV"
+def SaveHists(Hist, inputSignal, hname, fname, outDir):
 
-    if(fname=="nom"):
-      outFile = ROOT.TFile(outDir + "/PLOTS.root", "RECREATE")
+    outFname="{}/{}.root".format(outDir,fname)
+    if(hname=="h_AveDijetMass_1GeV"):
+      outFile = ROOT.TFile(outFname, "recreate")
     else:
-      outFile = ROOT.TFile("{}/{}.root".format(outDir,fname), "recreate")
+      outFile = ROOT.TFile(outFname, "update")
     outFile.cd()
     Hist.Write(hname)
 
@@ -249,11 +279,14 @@ def SaveHists(Hist, inputSignal, fname, outDir):
 
     return
 
-def InterpolateHists(inputSignal, fname, outDir):
+def InterpolateHists(inputSignal, shape, fname, outDir):
 
   in_x = int(inputSignal[1 : inputSignal.find("A")])
   in_phi = float(inputSignal[inputSignal.find("A")+1 :].replace("p","."))
   in_alpha = in_phi / in_x
+
+  if(shape=="X"): hname = "h_AveDijetMass_1GeV"
+  elif(shape=="alpha"): hname = "h_alpha_fine"
 
   if(in_alpha < min(GEN_ALPHAS) or in_alpha > max(GEN_ALPHAS)):
     print("Requested alpha outside of range. Cannot interpolate")
@@ -277,6 +310,7 @@ def InterpolateHists(inputSignal, fname, outDir):
     wpoint = float(in_x - low_gx) / float(hi_gx - low_gx)
     print("Mixing Term: {}".format(wpoint))
 
+    low_ga, hi_ga = in_alpha, in_alpha
   elif(in_alpha not in GEN_ALPHAS and in_x in GEN_X):
     print("Known X Mass, unknown alphas. Interpolating between two signals")
     low_ga, hi_ga = GetClosestAlpha(in_x, in_alpha)
@@ -288,7 +322,6 @@ def InterpolateHists(inputSignal, fname, outDir):
     print("Mixing Term: {}".format(wpoint))
 
     low_gx, hi_gx = in_x, in_x
-
 ####################################
 #The hard case
   elif(in_alpha not in GEN_ALPHAS and in_x not in GEN_X): 
@@ -315,23 +348,18 @@ def InterpolateHists(inputSignal, fname, outDir):
     wpoint = float(f1_in_alpha - f1_low_ga) / float(f1_hi_ga - f1_low_ga)
     print("Mixing Term: {}".format(wpoint))
 
-    if(fname=="nom"):
-      f1_lowfile = "{}/ALL/{}/PLOTS_0.root".format(GEN_SHAPE_DIR, f1_lowsig)
-      f1_hifile = "{}/ALL/{}/PLOTS_0.root".format(GEN_SHAPE_DIR, f1_hisig)
-    else:
-      f1_lowfile = "{}/ALL/{}/{}.root".format(GEN_SHAPE_DIR, f1_lowsig, fname)
-      f1_hifile = "{}/ALL/{}/{}.root".format(GEN_SHAPE_DIR, f1_hisig, fname)
+    f1_lowfile = "{}/{}/{}.root".format(GEN_SHAPE_DIR, f1_lowsig, fname)
+    f1_hifile = "{}/{}/{}.root".format(GEN_SHAPE_DIR, f1_hisig, fname)
     if(not checkFile(f1_lowfile)): return False
     if(not checkFile(f1_hifile)): return False
 
     f1_lowR, f1_hiR = ROOT.TFile(f1_lowfile, "read"), ROOT.TFile(f1_hifile, "read")
-    f1_lowH, f1_hiH = f1_lowR.Get("h_AveDijetMass_1GeV"), f1_hiR.Get("h_AveDijetMass_1GeV")
-    #f1_hist_low_trim, f1_hist_hi_trim= TrimHist(f1_lowH), TrimHist(f1_hiH)
-    f1_hist_low_trim, f1_hist_hi_trim= TrimWideHist(f1_lowH, f1_hiH)
+    f1_lowH, f1_hiH = f1_lowR.Get(hname), f1_hiR.Get(hname)
+    f1_hist_low_trim, f1_hist_hi_trim= TrimWideHist(f1_lowH, f1_hiH, shape)
     masslist = [f1_in_x, f1_in_x]
     histlist = [f1_hist_low_trim, f1_hist_hi_trim]
     MP = HC(histlist, masslist)
-    newHist, _ = MP.morph(f1_in_x, wpoint, faux_sig_low)
+    newHist, _ = MP.morph(f1_in_x, wpoint, faux_sig_low, shape)
     midhists.append([faux_sig_low, newHist])
 
     #######
@@ -347,23 +375,19 @@ def InterpolateHists(inputSignal, fname, outDir):
     wpoint = float(f2_in_alpha - f2_low_ga) / float(f2_hi_ga - f2_low_ga)
     print("Mixing Term: {}".format(wpoint))
 
-    if(fname=="nom"):
-      f2_lowfile = "{}/ALL/{}/PLOTS_0.root".format(GEN_SHAPE_DIR, f2_lowsig)
-      f2_hifile = "{}/ALL/{}/PLOTS_0.root".format(GEN_SHAPE_DIR, f2_hisig)
-    else:
-      f2_lowfile = "{}/ALL/{}/{}.root".format(GEN_SHAPE_DIR, f2_lowsig, fname)
-      f2_hifile = "{}/ALL/{}/{}.root".format(GEN_SHAPE_DIR, f2_hisig, fname)
+    f2_lowfile = "{}/{}/{}.root".format(GEN_SHAPE_DIR, f2_lowsig, fname)
+    f2_hifile = "{}/{}/{}.root".format(GEN_SHAPE_DIR, f2_hisig, fname)
     if(not checkFile(f2_lowfile)): return False
     if(not checkFile(f2_hifile)): return False
 
     f2_lowR, f2_hiR = ROOT.TFile(f2_lowfile, "read"), ROOT.TFile(f2_hifile, "read")
-    f2_lowH, f2_hiH = f2_lowR.Get("h_AveDijetMass_1GeV"), f2_hiR.Get("h_AveDijetMass_1GeV")
+    f2_lowH, f2_hiH = f2_lowR.Get(hname), f2_hiR.Get(hname)
     #f2_hist_low_trim, f2_hist_hi_trim= TrimHist(f2_lowH), TrimHist(f2_hiH)
-    f2_hist_low_trim, f2_hist_hi_trim= TrimWideHist(f2_lowH, f2_hiH)
+    f2_hist_low_trim, f2_hist_hi_trim= TrimWideHist(f2_lowH, f2_hiH, shape)
     masslist = [f2_in_x, f2_in_x]
     histlist = [f2_hist_low_trim, f2_hist_hi_trim]
     MP = HC(histlist, masslist)
-    newHist, _ = MP.morph(f2_in_x, wpoint, faux_sig_hi)
+    newHist, _ = MP.morph(f2_in_x, wpoint, faux_sig_hi, shape)
     midhists.append([faux_sig_hi, newHist])
     #######
 
@@ -382,51 +406,52 @@ def InterpolateHists(inputSignal, fname, outDir):
     histlist = [midhists[0][1], midhists[1][1]]
 
     MP = HC(histlist, masslist)
-    newHist, _ = MP.morph(in_x, wpoint, inputSignal)
+    newHist, _ = MP.morph(in_x, wpoint, inputSignal, shape)
 
-    SaveHists(newHist, inputSignal, fname, outDir)
+    SaveHists(newHist, inputSignal, hname, fname, outDir)
 
     return True
 
 ####################################
-  if(fname=="nom"):
-    lowfile = "{}/ALL/{}/PLOTS_0.root".format(GEN_SHAPE_DIR, lowsig)
-    hifile = "{}/ALL/{}/PLOTS_0.root".format(GEN_SHAPE_DIR, hisig)
-  else:
-    lowfile = "{}/ALL/{}/{}.root".format(GEN_SHAPE_DIR, lowsig, fname)
-    hifile = "{}/ALL/{}/{}.root".format(GEN_SHAPE_DIR, hisig, fname)
-    print("Getting file: ", lowfile)
+  lowfile = "{}/{}/{}.root".format(GEN_SHAPE_DIR, lowsig, fname)
+  hifile = "{}/{}/{}.root".format(GEN_SHAPE_DIR, hisig, fname)
+  print("Getting file: ", lowfile)
   if(not checkFile(lowfile)): return False
   if(not checkFile(hifile)): return False
 
   lowR = ROOT.TFile(lowfile, "read")
-  lowH = lowR.Get("h_AveDijetMass_1GeV")
+  lowH = lowR.Get(hname)
 
   hiR = ROOT.TFile(hifile, "read")
-  hiH = hiR.Get("h_AveDijetMass_1GeV")
+  hiH = hiR.Get(hname)
 
-  hist_low_trim, hist_hi_trim = TrimWideHist(lowH, hiH)
+  hist_low_trim, hist_hi_trim = TrimWideHist(lowH, hiH, shape)
 
-  masslist = [low_gx, hi_gx]
+  if(shape=="X"):
+    masslist = [low_gx, hi_gx]
+  elif(shape=="alpha"):
+    masslist = [low_ga, hi_ga]
   histlist = [hist_low_trim, hist_hi_trim]
 
   MP = HC(histlist, masslist)
-  newHist, _ = MP.morph(in_x, wpoint, inputSignal)
+  newHist, _ = MP.morph(in_x, wpoint, inputSignal, shape)
 
-  SaveHists(newHist, inputSignal, fname, outDir)
+  SaveHists(newHist, inputSignal, hname, fname, outDir)
 
   return True
 
 inputSignal = sys.argv[1]
-treeName = sys.argv[2]
+shape = sys.argv[2]
+treeName = sys.argv[3]
 
 print(inputSignal)
+print(shape)
 print(treeName)
 
 outDir = "{}/{}".format(INTERPO_SHAPE_DIR, inputSignal)
 MakeFolder(outDir)
 
-InterpolateHists(inputSignal,treeName,outDir)
+InterpolateHists(inputSignal,shape,treeName,outDir)
 
 #This doesn't work, must call as command line arg
 #InterpolateHists(inputSignal,"Sig_PU",outDir)
