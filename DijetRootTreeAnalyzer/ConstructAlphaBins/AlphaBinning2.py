@@ -6,6 +6,7 @@ import os
 import math
 import sys
 import time
+from array import array
 
 RDF = ROOT.RDataFrame.RDataFrame
 
@@ -68,6 +69,7 @@ galphas = [0.005, 0.01, 0.015, 0.02, 0.025]
 
 useAlphaBins = []
 
+pts = {}
 for galpha in galphas:
   mybins = []
   print("DOING ALPHA = {}".format(galpha))
@@ -98,6 +100,16 @@ for galpha in galphas:
 
   alphahist = Rdf.Histo1D(("alphafine","alphafine",1000,0,0.03),"alpha")
 
+  mean = alphahist.GetMean()
+  rms = alphahist.GetRMS()
+
+  pts[galpha] = (mean,rms)
+
+#  useAlphaBins.append(round(mean-rms,4))
+#  useAlphaBins.append(round(mean,4))
+#  useAlphaBins.append(round(mean+rms,4))
+
+
   ahist = alphahist.GetValue().Clone()
   nTot = ahist.GetEntries()
 
@@ -105,12 +117,13 @@ for galpha in galphas:
 
   sigW = 999999.
   bestbins = (0,0,0)
-  for nbins in range(200,2,-1):
+  #for nbins in range(200,2,-1):
+  for nbins in range(2,400):
     newbins = numpy.linspace(0,0.03,nbins)
     newhist = ahist.Rebin(nbins-1, "n", newbins)
 
     (tsw, ccs, bins) = GetSignalWidth(newhist, galpha)
-    if(tsw < sigW and sum(ccs) / nTot >= 0.75):
+    if(tsw < sigW and sum(ccs) / nTot >= 0.68):
       sigW = tsw
       bestbins = bins
   if(bestbins == (0,0,0)): print("PROBLEM COMPUTING BINS")
@@ -126,11 +139,30 @@ for galpha in galphas:
   #useAlphaBins.append(a1)
   #useAlphaBins.append(a2)
   #useAlphaBins.append(a3)
-  useAlphaBins.append(bestbins[0])
-  useAlphaBins.append(bestbins[1])
-  useAlphaBins.append(bestbins[2])
+  useAlphaBins.append(round(bestbins[0],4))
+  useAlphaBins.append(round(bestbins[1],4))
+  useAlphaBins.append(round(bestbins[2],4))
 
+print("Start Loop")
+
+useAlphaBins.sort()
 print(useAlphaBins)
+
+p_alphas = [aa for aa in pts.keys()]
+p_means = [aa-mm for (aa,(mm,rr)) in zip(p_alphas,pts.values())]
+p_widths = [mm for (mm,rr) in pts.values()]
+p_zs = [0 for (mm,rr) in pts.values()]
+
+plt = ROOT.TGraphErrors(len(p_alphas),array('d', p_alphas), array('d',p_means), array('d',p_zs), array('d',p_widths))
+plt.GetXaxis().SetTitle("Gen Alpha")
+plt.GetYaxis().SetTitle("Gen Alpha - Mean Alpha #pm RMS")
+plt.SetMarkerColor(4)
+plt.SetMarkerStyle(21)
+
+c1 = ROOT.TCanvas()
+c1.cd()
+plt.Draw("ALP")
+c1.Print("errorPlot.png")
 
 outfile = open("alphaBinEdges.txt","w")
 for aa in useAlphaBins:

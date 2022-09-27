@@ -37,6 +37,8 @@ def findClosestG(ga, aa):
     return ng
 
 
+print("I am here")
+
 N_SLICE = 30
 want_alphas = np.linspace(0.005, 0.025, N_SLICE)
 use_was = []
@@ -55,6 +57,7 @@ for wa in want_alphas:
     if(abs(eu - wa) < thresh or abs(ed-wa)<thresh): continue
     else: use_was.append(wa)
 
+print("done with loop")
 plt.figure(figsize=(6,6))
 plt.scatter(edges,edges, color='black', label='Gen Points')
 plt.scatter(use_was, use_was, color='orange', label="Int Points")
