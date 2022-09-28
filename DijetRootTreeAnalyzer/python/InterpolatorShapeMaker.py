@@ -46,6 +46,19 @@ def Make0p1BinsFromMinToMax(Min,Max):
     BINS.append(float(Min+i) / float(Max-Min))
   return numpy.array(BINS)
 
+def GetEfficiency(sig):
+  eFile = "{}/{}/{}.txt".format(GEN_SHAPE_DIR, sig, sig)
+  if(not checkFile(eFile)): return 0
+  eF = open(eFile,"r").readlines()
+  return float(eF[0])
+
+def WriteEff(sig, eff, outDir):
+
+   effFile= open("{}/{}.txt".format(outDir,sig),"w")
+   effFile.write(str(eff))
+   effFile.close()
+   return
+
 #XB = [297.0, 303.0, 310.0, 317.0, 324.0, 331.0, 338.0, 345.0, 352.0, 360.0, 368.0, 376.0, 384.0, 392.0, 400.0, 409.0, 418.0, 427.0, 436.0, 445.0, 454.0, 464.0, 474.0, 484.0, 494.0, 504.0, 515.0, 526.0, 537.0, 548.0, 560.0, 572.0, 584.0, 596.0, 609.0, 622.0, 635.0, 648.0, 662.0, 676.0, 690.0, 704.0, 719.0, 734.0, 749.0, 765.0, 781.0, 797.0, 814.0, 831.0, 848.0, 866.0, 884.0, 902.0, 921.0, 940.0, 959.0, 979.0, 999.0, 1020.0, 1041.0, 1063.0, 1085.0, 1107.0, 1130.0, 1153.0, 1177.0, 1201.0, 1226.0, 1251.0, 1277.0, 1303.0, 1330.0, 1357.0, 1385.0, 1413.0, 1442.0, 1472.0, 1502.0, 1533.0, 1564.0, 1596.0, 1629.0, 1662.0, 1696.0]
 X1B = Make1BinsFromMinToMax(297., 3110.) #Steven for making signals over 2000, this becomes a problem. I think you can just change 3110 to something much bigger. Verify this works
 AfineB = numpy.linspace(-0.03,0.03, 1201)
@@ -310,6 +323,11 @@ def InterpolateHists(inputSignal, shape, fname, outDir):
     wpoint = float(in_x - low_gx) / float(hi_gx - low_gx)
     print("Mixing Term: {}".format(wpoint))
 
+    if(fname=="Sig_nominal" and shape=="X"): #Just so I only do this once
+      leff,heff = GetEfficiency(lowsig),GetEfficiency(hisig)
+      neweff = linearInterpolate(in_x, low_gx, leff, hi_gx, heff)
+      WriteEff(inputSignal, neweff, outDir)
+
     low_ga, hi_ga = in_alpha, in_alpha
   elif(in_alpha not in GEN_ALPHAS and in_x in GEN_X):
     print("Known X Mass, unknown alphas. Interpolating between two signals")
@@ -320,6 +338,11 @@ def InterpolateHists(inputSignal, shape, fname, outDir):
     print("Interpolating between {} and {} signals".format(lowsig, hisig))
     wpoint = float(in_alpha - low_ga) / float(hi_ga - low_ga)
     print("Mixing Term: {}".format(wpoint))
+
+    if(fname=="Sig_nominal" and shape=="X"): #Just so I only do this once
+      leff,heff = GetEfficiency(lowsig),GetEfficiency(hisig)
+      neweff = linearInterpolate(in_alpha, low_ga, leff, hi_ga, heff)
+      WriteEff(inputSignal, neweff, outDir)
 
     low_gx, hi_gx = in_x, in_x
 ####################################
@@ -348,6 +371,9 @@ def InterpolateHists(inputSignal, shape, fname, outDir):
     wpoint = float(f1_in_alpha - f1_low_ga) / float(f1_hi_ga - f1_low_ga)
     print("Mixing Term: {}".format(wpoint))
 
+    leff,heff = GetEfficiency(f1_lowsig),GetEfficiency(f1_hisig)
+    neweff = linearInterpolate(in_alpha, f1_low_ga, leff, f1_hi_ga, heff)
+
     f1_lowfile = "{}/{}/{}.root".format(GEN_SHAPE_DIR, f1_lowsig, fname)
     f1_hifile = "{}/{}/{}.root".format(GEN_SHAPE_DIR, f1_hisig, fname)
     if(not checkFile(f1_lowfile)): return False
@@ -360,7 +386,7 @@ def InterpolateHists(inputSignal, shape, fname, outDir):
     histlist = [f1_hist_low_trim, f1_hist_hi_trim]
     MP = HC(histlist, masslist)
     newHist, _ = MP.morph(f1_in_x, wpoint, faux_sig_low, shape)
-    midhists.append([faux_sig_low, newHist])
+    midhists.append([faux_sig_low, newHist, neweff])
 
     #######
     print(faux_sig_hi)
@@ -375,6 +401,9 @@ def InterpolateHists(inputSignal, shape, fname, outDir):
     wpoint = float(f2_in_alpha - f2_low_ga) / float(f2_hi_ga - f2_low_ga)
     print("Mixing Term: {}".format(wpoint))
 
+    leff,heff = GetEfficiency(f2_lowsig),GetEfficiency(f2_hisig)
+    neweff = linearInterpolate(in_alpha, f2_low_ga, leff, f2_hi_ga, heff)
+
     f2_lowfile = "{}/{}/{}.root".format(GEN_SHAPE_DIR, f2_lowsig, fname)
     f2_hifile = "{}/{}/{}.root".format(GEN_SHAPE_DIR, f2_hisig, fname)
     if(not checkFile(f2_lowfile)): return False
@@ -388,7 +417,7 @@ def InterpolateHists(inputSignal, shape, fname, outDir):
     histlist = [f2_hist_low_trim, f2_hist_hi_trim]
     MP = HC(histlist, masslist)
     newHist, _ = MP.morph(f2_in_x, wpoint, faux_sig_hi, shape)
-    midhists.append([faux_sig_hi, newHist])
+    midhists.append([faux_sig_hi, newHist, neweff])
     #######
 
     ##Now midhists contains intermediate signals
@@ -402,6 +431,12 @@ def InterpolateHists(inputSignal, shape, fname, outDir):
 
     c_wpoint = float(in_x - c_x_low) / float(c_x_hi - c_x_low)
     print("Mixing Term: {}".format(wpoint))
+
+    if(fname=="Sig_nominal" and shape=="X"): #Just so I only do this once
+      c_leff,c_heff = midhists[0][2], midhists[1][2]
+      neweff = linearInterpolate(in_x, c_x_low, c_leff, c_x_hi, c_heff)
+      WriteEff(inputSignal, neweff, outDir)
+
     masslist = [c_x_low, c_x_hi]
     histlist = [midhists[0][1], midhists[1][1]]
 
