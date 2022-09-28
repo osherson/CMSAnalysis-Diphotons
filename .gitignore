@@ -9,6 +9,10 @@
 *.jdl
 *.png
 
+getEtas/
+getClassifierTrees/
+Diphoton-Treemaker/ParticleGun/
+DijetRootTreeAnalyzer/python/rootTools/__pycache__
 DijetRootTreeAnalyzer/rootTools/__pycache__/
 DijetRootTreeAnalyzer/DoAlphaFits/ShapeCombinedCards/
 DijetRootTreeAnalyzer/DoAlphaFits/combineOutput/
