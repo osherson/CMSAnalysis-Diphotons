@@ -55,7 +55,7 @@ for ff in os.listdir(xaastorage):
     thisxa = ff[ : ff.find("_")]
     this_x = int(thisxa[1:thisxa.find("A")])
     this_phi = float(thisxa[thisxa.find("A")+1:].replace("p","."))
-    if(this_phi / this_x > 0.026 ): continue
+    if(this_phi / this_x > 0.031 ): continue
     if(thisxa in SignalsGenerated.keys()):
       SignalsGenerated[thisxa].append(os.path.join(xaastorage, ff))
     else:
