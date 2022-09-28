@@ -36,6 +36,24 @@ def doOneInput(sig, h, H, S, norm = False):
     toF.Save()
     toF.Close()
 
+def lookup(N):
+  ysum = 0
+  for year in [2016, 2017, 2018]:
+    LH = []
+    f = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/Diphoton-Treemaker/HelperFiles/Signal_NEvents_{}.csv".format(year)
+    r = open(f)
+    for i in r.readlines():
+      #print i
+      LH.append(i.split(','))
+
+    X = N.split('A')[0].split('X')[1]
+    A = N.split('A')[1].replace('p', '.')
+    for r in LH:
+      if r[0] == X and r[1] == A:
+        print(year, r[2].rstrip())
+        ysum += int(r[2].rstrip())
+  print("Total Events: {}".format(ysum))
+  return ysum
 
 #Analysis Cuts
 # masym, eta, dipho, iso
@@ -76,7 +94,8 @@ for thisSigIndex, oneSig in SignalsGenerated.items():
   #if(thisX != 600): continue
 
   print("\nSignal: {}".format(whichSig))
-  PL.MakeFolder("{}/../inputs/Shapes_fromGen/unBinned/{}/".format(dir_path,whichSig))
+  new_dir = "{}/../inputs/Shapes_fromGen/unBinned/{}/".format(dir_path,whichSig)
+  PL.MakeFolder(new_dir)
 
   (sXr, sX1r, sA1r, sXvAr) = PL.GetDiphoShapeAnalysisPlusAlpha(SignalsGenerated[thisSigIndex], thisAlpha, "pico_nom", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeight*weight*10.*5.99")
   doOneInput(whichSig, sX1r, "h_AveDijetMass_1GeV", "Sig_nominal", True)
@@ -86,6 +105,12 @@ for thisSigIndex, oneSig in SignalsGenerated.items():
   (sXpd, sX1pd, sA1pd, sXvApd) = PL.GetDiphoShapeAnalysisPlusAlpha(SignalsGenerated[thisSigIndex], thisAlpha, "pico_nom", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton","puWeightDown*weight*10.*5.99")
   (sXsu, sX1su, sA1su, sXvAsu) = PL.GetDiphoShapeAnalysisPlusAlpha(SignalsGenerated[thisSigIndex], thisAlpha, "pico_scale_up", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton","weight*10.*5.99")
   (sXsd, sX1sd, sA1sd, sXvAsd) = PL.GetDiphoShapeAnalysisPlusAlpha(SignalsGenerated[thisSigIndex], thisAlpha, "pico_scale_down", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton","weight*10.*5.99")
+
+  with open(new_dir + whichSig+".txt", 'w') as eff:
+      E = sX1r.GetEntries()
+      G = lookup(whichSig)
+      print "eff ("+whichSig+")---> " + str(float(E)/float(G))
+      eff.write(str(float(E)/float(G)))
 
   doOneInput(whichSig, sX1pu, "h_AveDijetMass_1GeV", "Sig_PU", True)
   doOneInput(whichSig, sA1pu, "h_alpha_fine", "Sig_PU", True)
