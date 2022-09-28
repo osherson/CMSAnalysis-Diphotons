@@ -22,12 +22,12 @@ if( len(sys.argv) >= 1):
 
 #print(xmass)
 
-
 xaastorage = "/cms/xaastorage-2/DiPhotonsTrees/"
 const_alpha = False #Use this to get signals at one alpha val
 this_alpha = 0.005 #Set this to the alpha you want. If const_alpha = False, this does nothing
 
 def doOneInput(N, sig, h, H, S, norm = False):
+
     toF = TFile("{}/../inputs/Shapes_fromGen/alphaBinning/{}/{}/{}.root".format(dir_path,N,sig,S), "recreate")
     if norm:
         try:
@@ -276,7 +276,7 @@ for abin_num in range(0,len(AlphaBins)-1):
     n_postcut = float(sX1r.GetEntries())
     n_gen = float(lookup(whichSig))
     eff = n_postcut / n_gen * 100
-    if(eff < 10):
+    if(eff < 1):
       print("Efficiency is {:.3f} %, skipping signal".format(eff))
       continue
     else:

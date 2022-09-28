@@ -18,8 +18,8 @@ def MakeLimit(anum, sxa):
       cc = "CARD_multi_{}_alpha{}.txt".format(sxa,anum)
       print("Starting Card {}".format(os.path.join(card_dir,cc)))
       MakeFolder("combineOutput/alpha{}".format(anum))
-      os.system("combine {} -M AsymptoticLimits".format(os.path.join(card_dir,cc)))
-      os.system("mv higgsCombineTest.AsymptoticLimits.mH120.root combineOutput/alpha{}/higgsCombine_alpha{}_{}_AsymptoticLimits_mH120_root".format(anum,anum,sxa))
+      os.system("combine {} -M AsymptoticLimits -n {}_{}".format(os.path.join(card_dir,cc),anum,sxa))
+      os.system("mv higgsCombine{}_{}.AsymptoticLimits.mH120.root combineOutput/alpha{}/higgsCombine_alpha{}_{}_AsymptoticLimits_mH120.root".format(anum,sxa,anum,anum,sxa))
       return
 
 tf = time.time()

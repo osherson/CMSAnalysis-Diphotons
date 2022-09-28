@@ -95,7 +95,7 @@ def makeThisLimit(xmass):
   #fitfuncs = ["dijet","moddijet","atlas","dipho","myexp"] #FourParams
   fitfuncs = ["dijet","moddijet","atlas","dipho"] #Five and Three
   #fitfuncs = ["dijet","atlas","dipho"] #Six
-  fitfuncs = ["dijet"]
+  fitfuncs = ["atlas","dipho","moddijet"]
 
   for (dd,anum,la,ha) in dirs:
     sig = dd.split("/")[-1]

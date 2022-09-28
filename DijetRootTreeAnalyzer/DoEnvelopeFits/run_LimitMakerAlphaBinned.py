@@ -4,6 +4,8 @@ import sys
 clean=False
 goLim = False
 fast=False
+doAll = False
+doInterpo = False
 fnum=999
 
 #xmasslist = ['600','400','500','300','750','1000','1500','2000']
@@ -16,11 +18,10 @@ for arg in sys.argv:
     fast=True
     print("Only doing alpha bin {}".format(fnum))
 
-if ('clean' in sys.argv):
-  clean=True
-
-if ('limit' in sys.argv):
-  goLim = True
+if ('clean' in sys.argv): clean=True
+if ('limit' in sys.argv): goLim = True
+if ('ALL' in sys.argv): doAll = True
+if ('Interpo' in sys.argv): doInterpo = True
 
 if clean:
   print("Deleting ALL output files")
@@ -49,22 +50,38 @@ def getEff(s, d):
 def makeThisLimit(xmass):
   global year, lumi
 
-  data_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromGen/alphaBinning/"
+  if(doInterpo):
+    data_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromInterpo/alphaBinning/"
+  else:
+    data_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromGen/alphaBinning/"
   dirs = []
 
-  for dd in os.listdir(data_dir):
-    anum = int(dd)
-    if(fast and anum!=fnum): continue
-    for xx in os.listdir(os.path.join(data_dir,dd)):
-      if("X{}A".format(xmass) in xx and os.path.exists("{}{}/{}/PLOTS_{}.root".format(data_dir,dd,xx,anum))):
-        sig=xx
-        rangeFile = open("{}{}/{}/arange.txt".format(data_dir,dd,sig),"r")
-        rr = rangeFile.readline().rstrip()
-        la = float(rr.split(",")[0])
-        ha = float(rr.split(",")[-1])
-        dirs.append(("{}{}/{}".format(data_dir,dd,sig), anum,la,ha))
+  if(doAll == True):
+      for xx in os.listdir(os.path.join(data_dir,"ALL")):
+          if("X{}A".format(xmass) in xx and os.path.exists("{}ALL/{}/PLOTS_0.root".format(data_dir,xx))):
+            sig=xx
+            rangeFile = open("{}ALL/{}/arange.txt".format(data_dir,sig),"r")
+            rr = rangeFile.readline().rstrip()
+            la = float(rr.split(",")[0])
+            ha = float(rr.split(",")[-1])
+            dirs.append(("{}ALL/{}".format(data_dir,sig),"ALL",la,ha))
 
-    if(goLim): MakeFolder("combineOutput")
+  else:
+    for dd in os.listdir(data_dir):
+      if(dd=="ALL"): continue
+      anum = int(dd)
+      if(fast and anum!=fnum): continue
+      for xx in os.listdir(os.path.join(data_dir,dd)):
+        if("X{}A".format(xmass) in xx and os.path.exists("{}{}/{}/PLOTS_{}.root".format(data_dir,dd,xx,anum))):
+          sig=xx
+          rangeFile = open("{}{}/{}/arange.txt".format(data_dir,dd,sig),"r")
+          rr = rangeFile.readline().rstrip()
+          la = float(rr.split(",")[0])
+          ha = float(rr.split(",")[-1])
+          dirs.append(("{}{}/{}".format(data_dir,dd,sig), anum,la,ha))
+
+
+  if(goLim): MakeFolder("combineOutput")
 
   for (dd,anum,la,ha) in dirs:
     #if(anum > 0): continue
@@ -72,7 +89,7 @@ def makeThisLimit(xmass):
     sigX = float(sig[1 : sig.find("A")])
     sigPhi = float(sig[sig.find("A")+1:].replace("p","."))
     sigAlpha = sigPhi / sigX
-    abin_num = int(dd.split("/")[-2])
+    abin_num = dd.split("/")[-2]
 
     #if(sig != "X400A2"): continue
     #if(sigAlpha != 0.005): continue
@@ -81,7 +98,7 @@ def makeThisLimit(xmass):
     MakeFolder("output/alpha_{}/{}".format(abin_num,sig))
     os.system("cp {}/{}/{}/arange.txt output/alpha_{}/{}/.".format(data_dir,abin_num,sig,abin_num,sig))
     
-    if(os.path.exists("output/combineCards/CARD_envelope_alpha{}_{}.txt".format(abin_num,sig))):
+    if(os.path.exists("output/combineCards/CARD_multi_{}_alpha{}.txt".format(sig,abin_num))):
       print(abin_num, sig)
       print("Already done, moving on. ")
       continue
@@ -93,12 +110,15 @@ def makeThisLimit(xmass):
           eff = float(f.readline().rstrip())
           print(eff)
 
-    mycommand = "python ../python/BinnedDiphotonFit.py -c ../config/envelope2/diphoton_multi.config -y {} -l {} -b DIPHOM {}/PLOTS_{}.root -d output --fit-spectrum --write-fit --words test --lowA {} --hiA {}".format(year,lumi,dd,abin_num, la, ha)
+    if(doAll):
+      mycommand = "python ../python/BinnedDiphotonFit.py -c ../config/envelope2/diphoton_multi.config -y {} -l {} -b DIPHOM {}/PLOTS_0.root -d output --fit-spectrum --write-fit --words test --lowA {} --hiA {}".format(year,lumi,dd, la, ha)
+    else:
+      mycommand = "python ../python/BinnedDiphotonFit.py -c ../config/envelope2/diphoton_multi.config -y {} -l {} -b DIPHOM {}/PLOTS_{}.root -d output --fit-spectrum --write-fit --words test --lowA {} --hiA {}".format(year,lumi,dd,abin_num, la, ha)
     print(mycommand)
 
     os.system(mycommand)
-    os.system("mv output/fit_mjj_Full_diphoton_multi_2018.png output/alpha_{}/{}/fit_mjj_Full_diphoton_{}_{}.png ".format(abin_num,sig,sig,abin_num))
-    os.system("mv output/fit_mjj_Full_diphoton_multi_2018.C output/alpha_{}/{}/fit_mjj_Full_diphoton_{}_{}.C ".format(abin_num,sig,sig,abin_num))
+    os.system("mv output/fit_mjj_Full_DIPHOM_2018.png output/alpha_{}/{}/fit_mjj_Full_diphoton_{}_{}.png ".format(abin_num,sig,sig,abin_num))
+    os.system("mv output/fit_mjj_Full_DIPHOM_2018.C output/alpha_{}/{}/fit_mjj_Full_diphoton_{}_{}.C ".format(abin_num,sig,sig,abin_num))
     os.system("mv output/DijetFitResults_*2018.root output/alpha_{}/{}/DijetFitResults_diphoton_{}_DIPHOM.root ".format(abin_num,sig,sig))
     if clean:
       os.system("mv output/*.* output/alpha_{}/{}/.".format(abin_num,sig))
@@ -141,9 +161,22 @@ def makeThisLimit(xmass):
           print(comb_command)
           os.system(comb_command)
           os.system("mv higgsCombine_alpha{}_{}.AsymptoticLimits.mH120.root combineOutput/higgsCombine_envelope_alpha{}_{}.root".format(abin_num,sig,abin_num,sig))
+    exit()
 
-#xmasslist=[xmasslist[0]]
-#xmasslist=["400"]
-for xm in xmasslist:
-  print("\nStarting X Mass {}\n".format(xm))
-  makeThisLimit(xm)
+if(doInterpo):
+  print("Using interpolated shapes")
+  i_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromInterpo/alphaBinning/ALL"
+  xmlist = []
+  for xa in os.listdir(i_dir):
+    xm = int(xa[1 : xa.find("A")])
+    xmlist.append(xm)
+  
+  for xm in xmlist:
+    makeThisLimit(xm)
+
+else:
+  #xmasslist=[xmasslist[0]]
+  #xmasslist=["400"]
+  for xm in xmasslist:
+    print("\nStarting X Mass {}\n".format(xm))
+    makeThisLimit(xm)

@@ -11,9 +11,10 @@ BD = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/D
 
 anum=1
 
-anums = range(0,16)
+#anums = range(0,16)
+anums = range(0,10)
 functions = ["dijet","atlas","dipho","moddijet"]
-functions=["moddijet"]
+#functions=["moddijet"]
 
 pValue = 0.05
 
@@ -25,6 +26,7 @@ else:
 for function in functions:
   for anum in anums:
     #if(anum < 8): continue
+    #if(anum != 0): continue
     #if(anum > 1): break
     c21=0
 

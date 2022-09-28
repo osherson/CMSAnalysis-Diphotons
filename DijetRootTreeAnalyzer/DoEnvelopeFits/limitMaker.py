@@ -17,7 +17,9 @@ doAlpha = 1
 
 #for doAlpha in [0,1,2,3]:
 #for doAlpha in [4,5,6,7,8,9]:
-for doAlpha in [0]:
+#for doAlpha in [0]:
+#for doAlpha in [1,2,3,4,5,6,7,8,9]:
+for doAlpha in ["ALL"]:
 
   for cc in os.listdir(card_dir):
     if(cc.endswith(".txt")):
@@ -25,9 +27,15 @@ for doAlpha in [0]:
       sxa = sp[2]
       salpha = sp[-1][:sp[-1].find(".txt")]
 
-      anum = int(salpha[5:])
+      if("X3" not in sxa  and "X5" not in sxa): continue
+      #anum = int(salpha[5:])
+      anum=doAlpha
 
-      if(anum != doAlpha): continue
+      if(os.path.exists("combineOutput/alpha{}/higgsCombine_alpha{}_{}_AsymptoticLimits_mH120_root".format(anum,anum,sxa))):
+        print("File exists, skipping")
+        continue
+
+      print("Starting Card {}".format(os.path.join(card_dir,cc)))
 
       MakeFolder("combineOutput/alpha{}".format(anum))
 

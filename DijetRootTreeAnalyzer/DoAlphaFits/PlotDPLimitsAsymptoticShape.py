@@ -106,8 +106,9 @@ def makeAFillGraph(listx,listy1,listy2,linecolor, fillcolor, fillstyle):
 	return gr
 
 
-def MakeLimitPlots(function):
-  combine_dir = "shapeCombineOutput/"
+def MakeLimitPlots(function, doAll):
+  if(doAll==True): combine_dir = "combineOutput/alphaALL/"
+  else: combine_dir = "shapeCombineOutput/"
 
   alphas = [0.005,0.01,0.015,0.02,0.025]
   #alphas = [0.01]
@@ -115,14 +116,17 @@ def MakeLimitPlots(function):
   for alpha in alphas:
     flist = []
 
-    if(alpha != 0.015 or function != "dijet"): continue
+    #if(alpha != 0.015 or function != "dijet"): continue
 
     print("Starting {} function, alpha = {}".format(function,alpha))
 
     for ff in os.listdir(combine_dir):
       if("_{}_".format(function) not in ff): continue
       sf = ff.split("_")
-      xa = sf[1]
+      if(doAll==True):
+        xa = sf[2]
+      else:
+        xa = sf[1]
       this_x = int(xa[1:xa.find("A")])
       this_phi = float(xa[xa.find("A")+1 : ].replace("p","."))
       this_alpha = this_phi / float(this_x)
@@ -225,14 +229,26 @@ def MakeLimitPlots(function):
     Obs.Draw("LPsame")
     #L.Draw("same")
     AddCMSLumi(gPad, str(LUMI["RunII"]), "Preliminary")
-    MakeFolder("LimitPlotsShape/{}".format(function))
-    savename="LimitPlotsShape/{}/Lim_RunII_alpha{}_{}.png".format(function, str(alpha).replace(".","p"), function)
+    if(doAll==True):
+      MakeFolder("LimitPlotsShape/ALL/{}".format(function))
+      savename="LimitPlotsShape/ALL/{}/Lim_RunII_alpha{}_{}.png".format(function, str(alpha).replace(".","p"), function)
+    else:
+      MakeFolder("LimitPlotsShape/{}".format(function))
+      savename="LimitPlotsShape/{}/Lim_RunII_alpha{}_{}.png".format(function, str(alpha).replace(".","p"), function)
     #print("Saving plot as: {}".format(savename))
     C.Print(savename)
 
   return
 
-#function="dijet"
-functions=["dijet","atlas","dipho","moddijet","myexp"]
-for function in functions:
-  MakeLimitPlots(function)
+if("ALL" in sys.argv):
+  functions=["dijet","atlas","dipho","moddijet"]
+  for function in functions:
+    MakeLimitPlots(function, True)
+
+else:
+  #function="dijet"
+  functions=["dijet","atlas","dipho","moddijet","myexp"]
+  for function in functions:
+    MakeLimitPlots(function, False)
+
+

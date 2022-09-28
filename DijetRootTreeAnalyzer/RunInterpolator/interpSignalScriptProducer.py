@@ -1,10 +1,6 @@
 import numpy as np
 import sys
 
-if("ALL" in sys.argv):
-  doAll = "ALL"
-else: doAll = ""
-
 xmin, xmax = 320, 2000
 xstep = 10
 #xmin, xmax = 400,550
@@ -29,15 +25,10 @@ for mx in xlist:
 
 shfile = open("InterpoProducerScript.sh","w")
 
-treeList = ["nom","Sig_PU", "Sig_PD", "Sig_SU", "Sig_SD", "Sig_nominal"]
+treeList = ["Sig_nominal","Sig_PU", "Sig_PD", "Sig_SU", "Sig_SD"]
 
-if(doAll == False):
-  for aa in range(0,9+1):
-    for tname in treeList:
-      for ii, (xx, pp) in enumerate(xapairs):
-        shfile.write("python ../python/Interpolator.py X{}A{} {} {} alpha{}\n".format(xx, str(round(pp,3)).replace(".","p"), tname, doAll, aa))
 
-else:
-  for ii, (xx, pp) in enumerate(xapairs):
+for ii, (xx, pp) in enumerate(xapairs):
+  for xora in ["X","alpha"]:
     for tname in treeList:
-      shfile.write("python ../python/Interpolator.py X{}A{} {} {} alphaALL\n".format(xx, str(round(pp,3)).replace(".","p"), tname, doAll, aa))
+      shfile.write("python ../python/InterpolatorShapeMaker.py X{}A{} {} {}\n".format(xx, str(round(pp,3)).replace(".","p"), xora, tname))

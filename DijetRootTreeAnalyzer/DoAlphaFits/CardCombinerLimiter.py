@@ -1,7 +1,8 @@
 import os 
 import sys
 
-card_dir = "./output/combineCards"
+#card_dir = "./output/combineCards"
+card_dir = "./saveOutput/FourParams/combineCards"
 shape_dir = "./ShapeCombinedCards"
 
 xas = []
@@ -38,7 +39,8 @@ for XA in xas:
     print("Running: {}".format(mycommand))
     os.system(mycommand)
 
-sed_command = "sed -i \"s/\.\/output\/combineCards\///g\" {}/*.txt".format(shape_dir)
+#sed_command = "sed -i \"s/\.\/output\/combineCards\///g\" {}/*.txt".format(shape_dir)
+sed_command = "sed -i \"s/\.\/saveOutput\/combineCards\///g\" {}/*.txt".format(shape_dir)
 print("Now Running: {}".format(sed_command))
 os.system(sed_command)
 
