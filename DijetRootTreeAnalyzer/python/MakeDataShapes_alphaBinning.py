@@ -51,8 +51,10 @@ for abin_num in range(0,len(AlphaBins)-1):
   dfile = ROOT.TFile(dfname, "recreate")
   dX1.SetName("data_XM1")
   dX.SetName("data_XM")
+  dXvA.SetName("data_XvA")
   dX1.Write()
   dX.Write()
+  dXvA.Write()
   dfile.Close()
 
 
