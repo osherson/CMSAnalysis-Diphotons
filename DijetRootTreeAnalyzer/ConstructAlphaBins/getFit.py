@@ -99,21 +99,45 @@ for galpha in galphas:
     Rdf = Rdf.Filter("clu1_pt > 90. && clu2_pt > 90. && masym < " + str(masym) + " && deta <     " + str(deta) + " && clu1_dipho > " + str(dipho) + " && clu2_dipho > " + str(dipho) + " && clu1_iso > " + str(iso) + " && clu2_iso > " + str(iso))
 
     alphahist = Rdf.Histo1D(("alphafine","alphafine",1000,0,0.03),"alpha")
-
     mean = alphahist.GetMean()
     rms = alphahist.GetRMS()
-    if(rms < min_rms):
-      min_rms = rms
+
+    ah = alphahist.GetValue().Clone()
+
+    fit = TF1("fit","gaus(0)");
+
+
+    ww = 2
+    fitmin, fitmax = mean-ww*rms, mean+ww*rms
+    ah.Fit(fit, "N","",fitmin, fitmax)
+
+    gmean = fit.GetParameter("Mean")
+    gsig = fit.GetParameter("Sigma")
+
+    if("show" in sys.argv):
+      c1 = TCanvas()
+      c1.cd()
+      ah.Draw("hist")
+      fit.Draw("same")
+      c1.Print("tmp.png")
+
+#    if(rms < min_rms):
+#      min_rms = rms
+#      use_mean = mean
+#      from_x = this_x
+
+    if(gsig < min_rms):
+      min_rms = gsig
       use_mean = mean
       from_x = this_x
 
-    pts[galpha] = (mean,rms)
+  pts[galpha] = (use_mean,min_rms)
 
   print(from_x, use_mean, min_rms)
 
-  useAlphaBins.append(use_mean-min_rms)
+  useAlphaBins.append(use_mean-2*min_rms)
   useAlphaBins.append(use_mean)
-  useAlphaBins.append(use_mean+min_rms)
+  useAlphaBins.append(use_mean+2*min_rms)
 
 print("Start Loop")
 
