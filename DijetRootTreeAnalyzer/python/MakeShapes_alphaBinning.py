@@ -42,19 +42,24 @@ def doOneInput(N, sig, h, H, S, norm = False):
     toF.Save()
     toF.Close()
 
-
-LH = []
-f = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/Diphoton-Treemaker/HelperFiles/Signal_NEvents_{}.csv".format(year)
-r = open(f)
-for i in r.readlines():
-    #print i
-    LH.append(i.split(','))
-
 def lookup(N):
+  ysum = 0
+  for year in [2016, 2017, 2018]:
+    LH = []
+    f = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/Diphoton-Treemaker/HelperFiles/Signal_NEvents_{}.csv".format(year)
+    r = open(f)
+    for i in r.readlines():
+      #print i
+      LH.append(i.split(','))
+
     X = N.split('A')[0].split('X')[1]
     A = N.split('A')[1].replace('p', '.')
     for r in LH:
-        if r[0] == X and r[1] == A: return r[2]
+      if r[0] == X and r[1] == A:
+        print(year, r[2].rstrip())
+        ysum += int(r[2].rstrip())
+  print("Total Events: {}".format(ysum))
+  return ysum
 
 def SaveHists(N, sig, sXr, sX1r, sXvAr, sX, sX1, dX, dX1, dXvA, sX1pu, sX1pd, sX1su, sX1sd):
     header = "{}/../inputs/Shapes_fromGen/alphaBinning/{}/{}/".format(dir_path,N,sig)
@@ -159,41 +164,7 @@ CUTS = [0.25, 1.5, 0.9, 0.1] #Loose Analysis Cuts
 
 #################################################
 
-AlphaBins = [
-             0.0,
-             0.00428,
-             0.00467,
-             0.00506,
-             0.00568,
-             0.00637,
-             0.00706,
-             0.00775,
-             0.00844,
-             0.00935,
-#             0.00974,
-#             0.01012,
-#             0.01120,
-#             0.01189,
-#             0.01285,
-#             0.0139285714286,
-#             0.015,
-#             0.01603,
-#             0.01672,
-#             0.01741,
-#             0.01810,
-#             0.01897,
-#             0.01959,
-#             0.02020,
-#             0.02086,
-#             0.02155,
-#             0.02224,
-#             0.02322,
-#             0.02419,
-#             0.02516,
-             0.03
-             ]
-
-#AlphaBins = [0.,0.03]
+AlphaBins = [0.0,0.00454,0.00508,0.00561,0.00615,0.00669,0.00723,0.00777,0.00831,0.00885,0.009405,0.00998,0.01055,0.01108,0.01161,0.01214,0.01267,0.0132,0.013935,0.01482,0.0155,0.01606,0.01662,0.01718,0.01774,0.018475,0.01945,0.02025,0.02082,0.02139,0.02196,0.02265,0.02367,0.02457,0.02525,0.02593,0.02661,0.02729,0.02797,0.02865,0.03]
 
 def getNearestAlpha(in_a, g_alphas):
 
@@ -218,21 +189,26 @@ if(xmass not in genXs):
   exit()
 
 print("Using X = {} GeV Signals".format(xmass))
-time.sleep(1)
 
 SignalsGenerated = {}
 for ff in os.listdir(xaastorage):
-  if(ff[0]=="X" and "X{}A".format(xmass) in ff and year in ff):
+  if(ff[0]=="X" and "X{}A".format(xmass) in ff ):
     thisxa = ff[ : ff.find("_")]
     this_x = int(thisxa[1:thisxa.find("A")])
     this_phi = float(thisxa[thisxa.find("A")+1:].replace("p","."))
     if(this_phi / this_x > 0.026): continue
-    SignalsGenerated[this_phi/this_x] = [os.path.join(xaastorage, ff)]
+    if(this_phi/this_x in SignalsGenerated.keys()):
+      SignalsGenerated[this_phi/this_x].append(os.path.join(xaastorage, ff))
+    else:
+      SignalsGenerated[this_phi/this_x] = [os.path.join(xaastorage, ff)]
+
+for aa,fi in SignalsGenerated.items():
+  print(aa, fi)
 
 g_alphas = SignalsGenerated.keys()
 
 for abin_num in range(0,len(AlphaBins)-1):
-  #if(abin_num != 3): continue
+  #if(abin_num > 3): continue
 
   lA = AlphaBins[abin_num]
   hA = AlphaBins[abin_num+1]
@@ -245,7 +221,11 @@ for abin_num in range(0,len(AlphaBins)-1):
 
   nearestAlpha = getNearestAlpha((lA+hA)/2, g_alphas)
 
-  (dX, dX1, dXvA) = PL.GetDiphoShapeAnalysis(DATA, "pico_skim", "data", CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "1.", saveTree, year+"/"+str(abin_num))
+  dataFile = ROOT.TFile("{}/../inputs/Shapes_DATA/alphaBinning/{}/DATA.root".format(dir_path,abin_num))
+  dX = dataFile.Get("data_XM")
+  dX1 = dataFile.Get("data_XM1")
+  dXvA = dataFile.Get("data_XvA")
+
   print("Data Entries: {}".format(dX1.GetEntries()))
 
   for thisSigIndex, oneSig in SignalsGenerated.items():
