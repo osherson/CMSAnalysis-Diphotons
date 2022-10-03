@@ -237,6 +237,7 @@ for abin_num in range(0,len(AlphaBins)-1):
     PL.MakeFolder("{}{}/".format(newd,whichSig))
     rfile = open("{}{}/arange.txt".format(newd,whichSig),"w")
     rfile.write("{},{}".format(lA,hA))
+    rfile.close()
 
     (sXr, sX1r, sXvAr) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_nom", str(abin_num), CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeight*weight*10.*5.99")
     print("Signal sX1r Entries, Integral: {}, {}".format(sX1r.GetEntries(), sX1r.Integral()))

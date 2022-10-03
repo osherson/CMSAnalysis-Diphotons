@@ -31,7 +31,7 @@ CUTS = [0.25, 1.5, 0.9, 0.1] #Loose Analysis Cuts
 
 #################################################
 
-AlphaBins = [0.0,0.00454,0.00508,0.00561,0.00615,0.00669,0.00723,0.00777,0.00831,0.00885,0.009405,0.00998,0.01055,0.01108,0.01161,0.01214,0.01267,0.0132,0.013935,0.01482,0.0155,0.01606,0.01662,0.01718,0.01774,0.018475,0.01945,0.02025,0.02082,0.02139,0.02196,0.02265,0.02367,0.02457,0.02525,0.02593,0.02661,0.02729,0.02797,0.02865,0.03]
+AlphaBins = [0.0,0.00041,0.00083,0.00126,0.0017,0.00214,0.00259,0.00305,0.00352,0.004,0.00449,0.00499,0.0055,0.00602,0.00655,0.00709,0.00764,0.0082,0.00877,0.00935,0.00994,0.01054,0.01115,0.01178,0.01242,0.01307,0.01373,0.01441,0.0151,0.0158,0.01652,0.01725,0.01799,0.01875,0.01952,0.02031,0.02111,0.02193,0.02276,0.02361,0.02448,0.02536,0.02626,0.02718,0.02812,0.02907,0.03]
 
 for abin_num in range(0,len(AlphaBins)-1):
 
@@ -42,6 +42,10 @@ for abin_num in range(0,len(AlphaBins)-1):
   print("{}: {} - {}".format(abin_num, lA, hA))
   newd = "{}/../inputs/Shapes_DATA/alphaBinning/{}/".format(dir_path,abin_num)
   PL.MakeFolder(newd)
+
+  rfile = open("{}/arange.txt".format(newd),"w")
+  rfile.write("{},{}".format(lA,hA))
+  rfile.close()
 
   saveTree = False
   (dX, dX1, dXvA) = PL.GetDiphoShapeAnalysis(DATA, "pico_skim", "data", CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "1.", saveTree, "RunII/"+str(abin_num))
@@ -56,6 +60,7 @@ for abin_num in range(0,len(AlphaBins)-1):
   dX.Write()
   dXvA.Write()
   dfile.Close()
+
 
 
 
