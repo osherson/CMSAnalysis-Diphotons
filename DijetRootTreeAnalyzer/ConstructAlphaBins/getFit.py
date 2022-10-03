@@ -71,6 +71,7 @@ galphas = [0.005, 0.01, 0.015, 0.02, 0.025]
 #galphas = galphas[0:2]
 
 useAlphaBins = []
+sigdic = {}
 
 pts = {}
 for galpha in galphas:
@@ -78,6 +79,7 @@ for galpha in galphas:
   print("DOING ALPHA = {}".format(galpha))
 
   min_rms = 999
+  sig_err = 0
   use_mean = 0
   use_rms = 0
   from_x = 0
@@ -113,6 +115,7 @@ for galpha in galphas:
 
     gmean = fit.GetParameter("Mean")
     gsig = fit.GetParameter("Sigma")
+    gsigerr = fit.GetParError(2)
 
     if("show" in sys.argv):
       c1 = TCanvas()
@@ -121,13 +124,9 @@ for galpha in galphas:
       fit.Draw("same")
       c1.Print("tmp.png")
 
-#    if(rms < min_rms):
-#      min_rms = rms
-#      use_mean = mean
-#      from_x = this_x
-
     if(gsig < min_rms):
       min_rms = gsig
+      sig_err = gsigerr
       use_mean = mean
       from_x = this_x
 
@@ -138,6 +137,8 @@ for galpha in galphas:
   useAlphaBins.append(use_mean-2*min_rms)
   useAlphaBins.append(use_mean)
   useAlphaBins.append(use_mean+2*min_rms)
+
+  sigdic[galpha] = (min_rms, sig_err)
 
 print("Start Loop")
 
@@ -169,4 +170,9 @@ c1.Print("errorPlot.png")
 outfile = open("alphaBinEdges.txt","w")
 for aa in useAlphaBins:
   outfile.write(str(aa)+"\n")
+outfile.close()
 
+outfile = open("alphaSigma.txt","w")
+for aa, (sig, err) in sigdic.items():
+  outfile.write("{},{},{}\n".format(aa,sig, err))
+outfile.close()
