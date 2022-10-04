@@ -164,20 +164,7 @@ CUTS = [0.25, 1.5, 0.9, 0.1] #Loose Analysis Cuts
 
 #################################################
 
-AlphaBins = [0.0,0.00454,0.00508,0.00561,0.00615,0.00669,0.00723,0.00777,0.00831,0.00885,0.009405,0.00998,0.01055,0.01108,0.01161,0.01214,0.01267,0.0132,0.013935,0.01482,0.0155,0.01606,0.01662,0.01718,0.01774,0.018475,0.01945,0.02025,0.02082,0.02139,0.02196,0.02265,0.02367,0.02457,0.02525,0.02593,0.02661,0.02729,0.02797,0.02865,0.03]
-
-def getNearestAlpha(in_a, g_alphas):
-
-  minDiff = 999
-  ng = 0
-  for ga in g_alphas:
-    diff = abs(ga-in_a)
-    if(diff < minDiff): 
-      minDiff = diff
-      ng = ga
-  
-  return ng
-
+AlphaBins = [0.003, 0.00347, 0.00395, 0.00444, 0.00494, 0.00545, 0.00597, 0.0065, 0.00704, 0.00759, 0.00815, 0.00872, 0.0093, 0.00989, 0.01049, 0.0111, 0.01173, 0.01237, 0.01302, 0.01368, 0.01436, 0.01505, 0.01575, 0.01647, 0.0172, 0.01794, 0.0187, 0.01947, 0.02026, 0.02106, 0.02188, 0.02271, 0.02356, 0.02443, 0.02531, 0.02621, 0.02713, 0.02806, 0.02901, 0.03]
 
 print("Doing Generated Signals")
 
@@ -196,7 +183,7 @@ for ff in os.listdir(xaastorage):
     thisxa = ff[ : ff.find("_")]
     this_x = int(thisxa[1:thisxa.find("A")])
     this_phi = float(thisxa[thisxa.find("A")+1:].replace("p","."))
-    if(this_phi / this_x > 0.026): continue
+    if(this_phi / this_x > 0.031): continue
     if(this_phi/this_x in SignalsGenerated.keys()):
       SignalsGenerated[this_phi/this_x].append(os.path.join(xaastorage, ff))
     else:
@@ -219,8 +206,6 @@ for abin_num in range(0,len(AlphaBins)-1):
   newd = "{}/../inputs/Shapes_fromGen/alphaBinning/{}/".format(dir_path,abin_num)
   PL.MakeFolder(newd)
 
-  nearestAlpha = getNearestAlpha((lA+hA)/2, g_alphas)
-
   dataFile = ROOT.TFile("{}/../inputs/Shapes_DATA/alphaBinning/{}/DATA.root".format(dir_path,abin_num))
   dX = dataFile.Get("data_XM")
   dX1 = dataFile.Get("data_XM1")
@@ -233,14 +218,19 @@ for abin_num in range(0,len(AlphaBins)-1):
     whichSig = whichSig.split("/")[-1]
     #if(whichSig != "X200A1"):continue
 
-    print("\nSignal: {}".format(whichSig))
-    PL.MakeFolder("{}{}/".format(newd,whichSig))
-    rfile = open("{}{}/arange.txt".format(newd,whichSig),"w")
-    rfile.write("{},{}".format(lA,hA))
-    rfile.close()
 
+    (sXr_ub, sX1r_ub, sXvAr_ub) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_nom", str(abin_num), CUTS[0], CUTS[1], CUTS[2], CUTS[3], [0,0.03], "HLT_DoublePhoton", "puWeight*weight*10.*5.99")
     (sXr, sX1r, sXvAr) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_nom", str(abin_num), CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeight*weight*10.*5.99")
     print("Signal sX1r Entries, Integral: {}, {}".format(sX1r.GetEntries(), sX1r.Integral()))
+
+    alpha_denom = sX1r_ub.GetEntries()
+    alpha_num = sX1r.GetEntries()
+    alpha_eff = alpha_num / alpha_denom
+    if(alpha_eff < 0.1): 
+      print("Not enough signal in Alpha Window. Skipping")
+      continue
+    else:
+      print("Efficiency in this alpha window: {:.2f}%".format(alpha_eff * 100))
 
     if(sX1r.GetEntries()<100 or sXr.GetEntries() < 100): 
       print("skipping, too few events")
@@ -248,6 +238,12 @@ for abin_num in range(0,len(AlphaBins)-1):
     if(sX1r.Integral()<0.00001 or sXr.Integral() < 0.00001): 
       print("Skipping, Integral = 0")
       continue
+
+    print("\nSignal: {}".format(whichSig))
+    PL.MakeFolder("{}{}/".format(newd,whichSig))
+    rfile = open("{}{}/arange.txt".format(newd,whichSig),"w")
+    rfile.write("{},{}".format(lA,hA))
+    rfile.close()
 
     (sXpu, sX1pu, sXvApu) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_nom", str(abin_num), CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeightUp*weight*10.*5.99")
     (sXpd, sX1pd, sXvApd) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_nom", str(abin_num), CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeightDown*weight*10.*5.99")
@@ -257,11 +253,7 @@ for abin_num in range(0,len(AlphaBins)-1):
     n_postcut = float(sX1r.GetEntries())
     n_gen = float(lookup(whichSig))
     eff = n_postcut / n_gen * 100
-    if(eff < 1):
-      print("Efficiency is {:.3f} %, skipping signal".format(eff))
-      continue
-    else:
-      print("Efficiency: {:.3f} %".format(eff))
+    print("Total Efficiency: {:.3f} %".format(eff))
 
     SaveHists(str(abin_num), whichSig, sXr, sX1r, sXvAr, sX, sX1, dX, dX1, dXvA, sX1pu, sX1pd, sX1su, sX1sd)
 
