@@ -31,14 +31,14 @@ plt.xlim(0,0.031)
 plt.savefig("sigma_vs_alpha.png")
 plt.show()
 
-start = 0.00
+start = 0.003
 tv = start
 bin_edges = [start]
 tw = np.polyval(line,start)
 
 prec=5
 
-while(tv < 0.03):
+while(tv < (0.03-tw)):
   tw = round(np.polyval(line, tv+tw/2),prec)
   tv = round(tv + tw, prec)
   bin_edges.append(tv)
