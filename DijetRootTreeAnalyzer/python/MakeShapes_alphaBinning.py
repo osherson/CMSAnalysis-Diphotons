@@ -219,8 +219,8 @@ for abin_num in range(0,len(AlphaBins)-1):
     #if(whichSig != "X200A1"):continue
 
 
-    (sXr_ub, sX1r_ub, sXvAr_ub) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_nom", str(abin_num), CUTS[0], CUTS[1], CUTS[2], CUTS[3], [0,0.03], "HLT_DoublePhoton", "puWeight*weight*10.*5.99")
-    (sXr, sX1r, sXvAr) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_nom", str(abin_num), CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeight*weight*10.*5.99")
+    (sXr_ub, sX1r_ub, sXvAr_ub) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_nom", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [0,0.03], "HLT_DoublePhoton", "puWeight*weight*10.*5.99")
+    (sXr, sX1r, sXvAr) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_nom", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeight*weight*10.*5.99")
     print("Signal sX1r Entries, Integral: {}, {}".format(sX1r.GetEntries(), sX1r.Integral()))
 
     alpha_denom = sX1r_ub.GetEntries()
@@ -245,11 +245,11 @@ for abin_num in range(0,len(AlphaBins)-1):
     rfile.write("{},{}".format(lA,hA))
     rfile.close()
 
-    (sXpu, sX1pu, sXvApu) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_nom", str(abin_num), CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeightUp*weight*10.*5.99")
-    (sXpd, sX1pd, sXvApd) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_nom", str(abin_num), CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeightDown*weight*10.*5.99")
-    (sX, sX1, sXvA) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_nom", str(abin_num), CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeight*weight*10.*5.99")
-    (sXsu, sX1su, sXvAsu) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_scale_up", str(abin_num), CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "weight*10.*5.99")
-    (sXsd, sX1sd, sXvAsd) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_scale_down", str(abin_num), CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "weight*10.*5.99")
+    (sXpu, sX1pu, sXvApu) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_nom", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeightUp*weight*10.*5.99")
+    (sXpd, sX1pd, sXvApd) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_nom", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeightDown*weight*10.*5.99")
+    (sX, sX1, sXvA) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_nom", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeight*weight*10.*5.99")
+    (sXsu, sX1su, sXvAsu) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_scale_up", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "weight*10.*5.99")
+    (sXsd, sX1sd, sXvAsd) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_scale_down", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "weight*10.*5.99")
     n_postcut = float(sX1r.GetEntries())
     n_gen = float(lookup(whichSig))
     eff = n_postcut / n_gen * 100

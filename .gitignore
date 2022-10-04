@@ -38,6 +38,7 @@ DijetRootTreeAnalyzer/RunInterpolator/condor_logfiles/
 DijetRootTreeAnalyzer/RunInterpolator/old/
 DijetRootTreeAnalyzer/inputs/X*
 DijetRootTreeAnalyzer/FTestPlots/Plots
+DijetRootTreeAnalyzer/inputs/Shapes_DATA
 DijetRootTreeAnalyzer/inputs/Shapes_fromInterpo/*
 DijetRootTreeAnalyzer/inputs/Shapes_fromGen/*
 DijetRootTreeAnalyzer/InterpoPlotter/FineScanAnalysis/Plots
