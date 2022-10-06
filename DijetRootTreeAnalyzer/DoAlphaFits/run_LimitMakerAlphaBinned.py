@@ -71,10 +71,9 @@ def makeThisLimit(xmass):
     if(goLim): MakeFolder("combineOutput/alpha_{}/{}/".format(anum,sig))
     #os.system("cp {}{}/{}/arange.txt output/alpha_{}/{}/.".format(data_dir,dd,sig,anum,sig))
 
-  #fitfuncs = ["dijet","moddijet","atlas","dipho","myexp"] #FourParams
-  fitfuncs = ["dijet","moddijet","atlas","dipho"] #Five and Three
+  fitfuncs = ["dijet","moddijet","atlas","dipho","myexp"] #FourParams
+  #fitfuncs = ["dijet","moddijet","atlas","dipho"] #Five and Three
   #fitfuncs = ["dijet","atlas","dipho"] #Six
-  fitfuncs = ["atlas","dipho","moddijet"]
 
   for (dd,anum,la,ha) in dirs:
     sig = dd.split("/")[-1]
@@ -102,7 +101,7 @@ def makeThisLimit(xmass):
       os.system(mycommand)
       os.system("mv output/fit_mjj_Full_diphoton_{}_2018_{}_alpha{}.png output/alpha_{}/{}/fit_mjj_Full_diphoton_{}_{}_{}.png ".format(ff,sig,abin_num,abin_num,sig,sig,ff,abin_num))
       os.system("rm output/fit_mjj_Full_diphoton_{}_2018_{}_alpha{}.C".format(ff,sig,abin_num))
-      os.system("rm crudeFitPlot_{}_{}_alpha{}.png".format(ff,sig,abin_num))
+      os.system("rm crudeFitPlot_diphoton_{}_{}_alpha{}.png".format(ff,sig,abin_num))
       os.system("mv output/DijetFitResults_diphoton_{}_2018_{}_alpha{}.root output/alpha_{}/{}/DijetFitResults_diphoton_{}_{}_alpha{}.root ".format(ff,sig,abin_num,abin_num,sig,sig,ff,abin_num))
       if clean:
         os.system("mv output/*.* output/alpha_{}/{}/.".format(abin_num,sig))
@@ -145,10 +144,12 @@ def makeThisLimit(xmass):
 
 if(DoInterpo):
   print("Using interpolated shapes")
-  i_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromInterpo/alphaBinning/"
+  #i_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromInterpo/alphaBinning/"
+  i_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromInterpo/unBinned/"
   xmlist = []
   for xa in os.listdir(i_dir):
     xm = int(xa[1 : xa.find("A")])
+    if(xm != 600): continue
     xmlist.append(xm)
 
   for xm in xmlist:
