@@ -255,6 +255,10 @@ if __name__ == '__main__':
                   help="save fit as a 1 GeV-binned histogram")
     parser.add_option('--words', dest="CUTSTRING", default=" ~~~~ ~~~~~ ", action='store_true',
                   help="what to write on canvas")
+    parser.add_option('--sig',dest="signal", default="X100A10" ,type="string",
+                  help="XxxAaa Signal")
+    parser.add_option('--abin',dest="abin", default=999 ,type="int",
+                  help="Alpha Bin Number")
     parser.add_option('--lowA',dest="lA", default=0. ,type="float",
                   help="alphaLow")
     parser.add_option('--hiA',dest="hA", default=0.3,type="float",
@@ -273,6 +277,7 @@ if __name__ == '__main__':
     noFit = options.noFit
     fitRegion = options.fitRegion
     plotRegion = options.plotRegion
+    signal = options.signal
     histoName = cfg.getVariables(box, "histoName")
 
     fitfunc=""
@@ -414,7 +419,7 @@ if __name__ == '__main__':
     rt.gStyle.SetOptStat(0)
     rt.gStyle.SetOptTitle(0)
     canv = rt.TCanvas('c','c',600,700)
-    rootFile = rt.TFile.Open(options.outDir + '/' + 'Plots_%s'%box + '.root','recreate')
+    rootFile = rt.TFile.Open(options.outDir + '/' + 'Plots_%s_%s_alpha%s'%(box,options.signal,options.abin) + '.root','recreate')
     tdirectory = rootFile.GetDirectory(options.outDir)
     if tdirectory==None:
         print "making directory"
@@ -652,7 +657,7 @@ if __name__ == '__main__':
     
     pullplot.Draw("histsame")
 
-    ccc.Print("crudeFitPlot_{}.png".format(box))
+    ccc.Print("crudeFitPlot_{}_{}_alpha{}.png".format(box,signal,options.abin))
 #############################################
     
 
@@ -934,12 +939,12 @@ if __name__ == '__main__':
         rt.gPad.Modified()
         rt.gPad.Update()
     
-    canv.Print(options.outDir+"/fit_mjj_%s_%s_%s.png"%(fitRegion.replace(',','_'),box,year))
-    canv.Print(options.outDir+"/fit_mjj_%s_%s_%s.C"%(fitRegion.replace(',','_'),box,year))
+    canv.Print(options.outDir+"/fit_mjj_%s_%s_%s_%s_alpha%s.png"%(fitRegion.replace(',','_'),box,year,signal,options.abin))
+    canv.Print(options.outDir+"/fit_mjj_%s_%s_%s_%s_alpha%s.C"%(fitRegion.replace(',','_'),box,year,signal,options.abin))
     tdirectory.cd()
     canv.Write()
 
-    outFileName = "DijetFitResults_%s_%s.root"%(box,year)
+    outFileName = "DijetFitResults_%s_%s_%s_alpha%s.root"%(box,year,signal,options.abin)
     outFile = rt.TFile(options.outDir+"/"+outFileName,'recreate')
     outFile.cd()
     w.Write()

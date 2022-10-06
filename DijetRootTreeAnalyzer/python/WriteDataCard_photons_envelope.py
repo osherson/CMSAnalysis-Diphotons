@@ -467,6 +467,8 @@ if __name__ == '__main__':
     #              help="using RooMultiPdf for total background")
     parser.add_option('--multi',dest="multi",default=False,
                   help="using RooMultiPdf for total background")
+    parser.add_option('--abin',dest="abin",default=999,
+                  help="AlphaBin Number")
     parser.add_option('--mc',dest="mcFile", default=None,type="string",
                   help="file containing MC-based background prediciton inputs")
 
@@ -489,6 +491,7 @@ if __name__ == '__main__':
     massPoint = options.mass
     saveMassPoint = options.savemass
     year = options.year
+    abin = options.abin
     histoName = cfg.getVariables(box, "histoName")
 
     myTH1 = None
@@ -764,7 +767,7 @@ if __name__ == '__main__':
         rootTools.Utils.importToWS(w,mcDataHist_mjj)
 
  
-    outFile = 'dijet_combine_%s_%s_lumi-%.3f_%s_%s.root'%(model,saveMassPoint,lumi/1000.,year,box)  
+    outFile = 'dijet_combine_%s_%s_alpha%s_lumi-%.3f_%s_%s.root'%(model,saveMassPoint,abin,lumi/1000.,year,box)  
     outputFile = rt.TFile.Open(options.outDir+"/"+outFile,"recreate")
     print("BACKGROUNDS: ", bkgs)
     if options.mcFile is not None:

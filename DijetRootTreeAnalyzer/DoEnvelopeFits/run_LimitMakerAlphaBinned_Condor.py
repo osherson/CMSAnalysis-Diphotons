@@ -97,20 +97,22 @@ def makeThisLimit(signal, alphaBin):
   if(doAll):
     mycommand = "python ../python/BinnedDiphotonFit.py -c ../config/envelope2/diphoton_multi.config -y {} -l {} -b DIPHOM {}/PLOTS_0.root -d output --fit-spectrum --write-fit --words test --lowA {} --hiA {}".format(year,lumi,mydir, la, ha)
   else:
-    mycommand = "python ../python/BinnedDiphotonFit.py -c ../config/envelope2/diphoton_multi.config -y {} -l {} -b DIPHOM {}/PLOTS_{}.root -d output --fit-spectrum --write-fit --words test --lowA {} --hiA {}".format(year,lumi,mydir,abin_num, la, ha)
+    mycommand = "python ../python/BinnedDiphotonFit.py -c ../config/envelope2/diphoton_multi.config -y {} -l {} -b DIPHOM {}/PLOTS_{}.root -d output --fit-spectrum --write-fit --words test --sig {} --abin {} --lowA {} --hiA {}".format(year,lumi,mydir,abin_num, signal, abin_num, la, ha)
   print(mycommand)
 
   os.system(mycommand)
-  os.system("mv output/fit_mjj_Full_DIPHOM_2018.png output/alpha_{}/{}/fit_mjj_Full_diphoton_{}_{}.png ".format(abin_num,signal,signal,abin_num))
-  os.system("mv output/fit_mjj_Full_DIPHOM_2018.C output/alpha_{}/{}/fit_mjj_Full_diphoton_{}_{}.C ".format(abin_num,signal,signal,abin_num))
-  os.system("mv output/DijetFitResults_*2018.root output/alpha_{}/{}/DijetFitResults_diphoton_{}_DIPHOM.root ".format(abin_num,signal,signal))
+  os.system("mv output/fit_mjj_Full_DIPHOM_2018_{}_alpha{}.png output/alpha_{}/{}/fit_mjj_Full_diphoton_{}_{}.png ".format(signal,abin_num,abin_num,signal,signal,abin_num))
+  os.system("rm output/fit_mjj_Full_DIPHOM_2018_{}_alpha{}.C ".format(signal,abin_num))
+  os.system("rm crudeFitPlot_DIPHOM_{}_alpha{}.png".format(signal,abin_num))
+  os.system("rm output/Plots_DIPHOM_{}_alpha{}.root".format(signal,abin_num))
+  os.system("mv output/DijetFitResults_DIPHOM_2018_{}_alpha{}.root output/alpha_{}/{}/. ".format(signal,abin_num,abin_num,signal))
 
   lcommand = "python ../python/DiphotonCardMakerAlphaBinSingle_envelope.py -f DIPHOM -l {} -y {} -a {} -s {} -x {}".format(lumi/10, year, abin_num, signal, eff)
   print(lcommand)
   MakeFolder("output/combineCards")
   os.system(lcommand)
 
-  cname = "output/dijet_combine_gg_{}_lumi-1.370_2018_DIPHOM".format(signal)
+  cname = "output/dijet_combine_gg_{}_alpha{}_lumi-1.370_2018_DIPHOM".format(signal,abin_num)
   ocname = "output/combineCards/CARD_multi_{}_alpha{}".format(signal,abin_num)
   fpname = "{}/output/combineCards/CARD_multi_{}_alpha{}".format(os.getcwd(),signal,abin_num)
 
@@ -129,12 +131,7 @@ def makeThisLimit(signal, alphaBin):
   except IOError:
     print("Something went wrong")
     return
-
   
-  os.system("rm crude*")
-  os.system("rm stuff*")
-  os.system("rm output/corr*")
-
   print(goLim)
   if goLim:
     for of in os.listdir("output/combineCards"):

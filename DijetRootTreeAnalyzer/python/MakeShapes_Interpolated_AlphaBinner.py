@@ -86,7 +86,7 @@ SignalsGenerated.keys()
 
 for sig,fil in SignalsGenerated.items():
   #if("X5" not in sig and "X6" not in sig): continue
-  if("X5" in sig or "X6" in sig): continue
+  #if("X5" in sig or "X6" in sig): continue
 
   if(sig[-1]=="p"): sig = sig[:-1]
   print("Beginning Signal {}".format(sig))
@@ -143,6 +143,7 @@ for sig,fil in SignalsGenerated.items():
     PL.MakeFolder(newFolder)
 
     dataFile = ROOT.TFile("{}/../inputs/Shapes_DATA/alphaBinning/{}/DATA.root".format(dir_path,abin_num))
+    os.system("cp {}/../inputs/Shapes_DATA/alphaBinning/{}/DATA.root {}/DATA.root".format(dir_path,abin_num, newd))
     dX = dataFile.Get("data_XM")
     dX1 = dataFile.Get("data_XM1")
     dXvA = dataFile.Get("data_XvA")
