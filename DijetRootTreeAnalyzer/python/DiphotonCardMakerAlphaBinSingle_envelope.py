@@ -34,11 +34,10 @@ def RunDataCardMaker(o):
     alphabin = " --abin {}".format(abin)
 
     if(os.path.exists(dir_path + "/../inputs/Shapes_fromGen/alphaBinning/" + abin + "/" + str(o.SIG) + "/DATA.root")):
-      #if(env):
-        #inputs = " -i output/alpha_{}/{}/DijetFitResults_diphoton_{}_{}.root".format(abin,sig,sig,str(o.FIT))
-      inputs = " -i output/alpha_{}/{}/DijetFitResults_DIPHOM_2018_{}_alpha{}.root".format(abin,sig,sig,abin)
-      #else:
-      #  inputs = " -i output/alpha_{}/{}/DijetFitResults_diphoton_{}_{}_alpha{}.root".format(abin,sig,sig,str(o.FIT),abin)
+      if(env):
+        inputs = " -i output/alpha_{}/{}/DijetFitResults_DIPHOM_2018_{}_alpha{}.root".format(abin,sig,sig,abin)
+      else:
+        inputs = " -i output/alpha_{}/{}/DijetFitResults_diphoton_{}_{}_alpha{}.root".format(abin,sig,sig,str(o.FIT),abin)
       inputs += " {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path)  + abin+"/"+sig+ "/DATA.root"
       inputs += " {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_nominal.root"
       jesup = " --jesUp {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_SU.root"
@@ -47,11 +46,10 @@ def RunDataCardMaker(o):
       jerdown = " --jerDown {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_PD.root"
 
     elif(os.path.exists(dir_path + "/../inputs/Shapes_fromInterpo/alphaBinning/" + abin + "/" + str(o.SIG) + "/DATA.root")):
-      #if(env):
-      #  inputs = " -i output/alpha_{}/{}/DijetFitResults_diphoton_{}_{}.root".format(abin,sig,sig,str(o.FIT))
-      #else:
-      #  inputs = " -i output/alpha_{}/{}/DijetFitResults_diphoton_{}_{}_alpha{}.root".format(abin,sig,sig,str(o.FIT),abin)
-      inputs = " -i output/alpha_{}/{}/DijetFitResults_DIPHOM_2018_{}_alpha{}.root".format(abin,sig,sig,abin)
+      if(env):
+        inputs = " -i output/alpha_{}/{}/DijetFitResults_DIPHOM_2018_{}_alpha{}.root".format(abin,sig,sig,abin)
+      else:
+        inputs = " -i output/alpha_{}/{}/DijetFitResults_diphoton_{}_{}_alpha{}.root".format(abin,sig,sig,str(o.FIT),abin)
       inputs += " {}/../inputs/Shapes_fromInterpo/alphaBinning/".format(dir_path)  + abin+"/"+sig+ "/DATA.root"
       inputs += " {}/../inputs/Shapes_fromInterpo/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_nominal.root"
       jesup = " --jesUp {}/../inputs/Shapes_fromInterpo/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_SU.root"
