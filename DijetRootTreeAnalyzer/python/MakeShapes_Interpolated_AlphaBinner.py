@@ -123,7 +123,7 @@ for ff in os.listdir(Interp_Dir):
     #if(thisxa != "X570A10p83"):continue #Testing
     this_x = int(thisxa[1:thisxa.find("A")])
     this_phi = float(thisxa[thisxa.find("A")+1:].replace("p","."))
-    if(this_x != 600): continue
+    #if(this_x != 600): continue
     if(os.path.exists("{}/{}/Sig_nominal.root".format(Interp_Dir,ff))): 
       SignalsGenerated[thisxa] = os.path.join(Interp_Dir, ff)
 
