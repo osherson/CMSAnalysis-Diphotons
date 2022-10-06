@@ -56,11 +56,13 @@ DijetRootTreeAnalyzer/InterpoPlotter/effPlots
 /DijetRootTreeAnalyzer/DoAlphaFits/combineOutput
 /DijetRootTreeAnalyzer/DoAlphaFits/fitOutput
 /DijetRootTreeAnalyzer/DoAlphaFits/Plots
+/DijetRootTreeAnalyzer/DoAlphaFits/fitPlots
 /DijetRootTreeAnalyzer/DoEnvelopeFits/output/
 /DijetRootTreeAnalyzer/DoEnvelopeFits/saveCards/
 /DijetRootTreeAnalyzer/DoEnvelopeFits/saveOutput
 /DijetRootTreeAnalyzer/DoEnvelopeFits/combineOutput
 /DijetRootTreeAnalyzer/DoEnvelopeFits/LimitPlots
+/DijetRootTreeAnalyzer/DoEnvelopeFits/fitPlots
 /DijetRootTreeAnalyzer/DoEnvelopeFits/Condor_LimitMaker/condor_submitFiles
 /DijetRootTreeAnalyzer/DoEnvelopeFits/Condor_LimitMaker/condor_logfiles
 /DijetRootTreeAnalyzer/DoEnvelopeFits/Condor_LimitMaker/CallFiles
