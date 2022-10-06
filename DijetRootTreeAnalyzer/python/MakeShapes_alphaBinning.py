@@ -27,6 +27,7 @@ const_alpha = False #Use this to get signals at one alpha val
 this_alpha = 0.005 #Set this to the alpha you want. If const_alpha = False, this does nothing
 
 def doOneInput(N, sig, h, H, S, norm = False):
+    dir_path = os.path.dirname(os.path.realpath(__file__))
 
     toF = TFile("{}/../inputs/Shapes_fromGen/alphaBinning/{}/{}/{}.root".format(dir_path,N,sig,S), "recreate")
     if norm:
@@ -56,12 +57,11 @@ def lookup(N):
     A = N.split('A')[1].replace('p', '.')
     for r in LH:
       if r[0] == X and r[1] == A:
-        print(year, r[2].rstrip())
         ysum += int(r[2].rstrip())
-  print("Total Events: {}".format(ysum))
   return ysum
 
 def SaveHists(N, sig, sXr, sX1r, sXvAr, sX, sX1, dX, dX1, dXvA, sX1pu, sX1pd, sX1su, sX1sd):
+    dir_path = os.path.dirname(os.path.realpath(__file__))
     header = "{}/../inputs/Shapes_fromGen/alphaBinning/{}/{}/".format(dir_path,N,sig)
     PL.MakeFolder(header)
     with open(sig+".txt", 'w') as eff:
@@ -164,7 +164,49 @@ CUTS = [0.25, 1.5, 0.9, 0.1] #Loose Analysis Cuts
 
 #################################################
 
-AlphaBins = [0.003, 0.00347, 0.00395, 0.00444, 0.00494, 0.00545, 0.00597, 0.0065, 0.00704, 0.00759, 0.00815, 0.00872, 0.0093, 0.00989, 0.01049, 0.0111, 0.01173, 0.01237, 0.01302, 0.01368, 0.01436, 0.01505, 0.01575, 0.01647, 0.0172, 0.01794, 0.0187, 0.01947, 0.02026, 0.02106, 0.02188, 0.02271, 0.02356, 0.02443, 0.02531, 0.02621, 0.02713, 0.02806, 0.02901, 0.03]
+#AlphaBins = [0.003, 0.00347, 0.00395, 0.00444, 0.00494, 0.00545, 0.00597, 0.0065, 0.00704, 0.00759, 0.00815, 0.00872, 0.0093, 0.00989, 0.01049, 0.0111, 0.01173, 0.01237, 0.01302, 0.01368, 0.01436, 0.01505, 0.01575, 0.01647, 0.0172, 0.01794, 0.0187, 0.01947, 0.02026, 0.02106, 0.02188, 0.02271, 0.02356, 0.02443, 0.02531, 0.02621, 0.02713, 0.02806, 0.02901, 0.03]
+
+AlphaBins = [
+               0.003,
+               0.00347, 
+               0.00395,   
+               0.00444, 
+               0.00494, 
+               0.00545, 
+               0.00597, 
+               0.0065, 
+               0.00704, 
+               0.00759, 
+               0.00815, 
+               0.00872, 
+               0.0093, 
+               #0.00989, 
+               0.01049, 
+               #0.0111, 
+               #0.01173, 
+               #0.01237, 
+               #0.01302, 
+               #0.01368, 
+               #0.01436,
+               0.01505, 
+               #0.01575, 
+               #0.01647, 
+               #0.0172, 
+               #0.01794, 
+               #0.0187, 
+               #0.01947, 
+               #0.02026, 
+               #0.02106, 
+               #0.02188, 
+               #0.02271, 
+               #0.02356, 
+               #0.02443, 
+               #0.02531, 
+               #0.02621, 
+               #0.02713, 
+               #0.02806, 
+               #0.02901, 
+               0.03]
 
 print("Doing Generated Signals")
 
@@ -196,6 +238,7 @@ g_alphas = SignalsGenerated.keys()
 
 for abin_num in range(0,len(AlphaBins)-1):
   #if(abin_num > 3): continue
+  d_path = os.path.dirname(os.path.realpath(__file__))
 
   lA = AlphaBins[abin_num]
   hA = AlphaBins[abin_num+1]
@@ -203,10 +246,10 @@ for abin_num in range(0,len(AlphaBins)-1):
   print("Alpha bin: ")
   print("{}: {} - {}".format(abin_num, lA, hA))
   saveTree = False
-  newd = "{}/../inputs/Shapes_fromGen/alphaBinning/{}/".format(dir_path,abin_num)
+  newd = "{}/../inputs/Shapes_fromGen/alphaBinning/{}/".format(d_path,abin_num)
   PL.MakeFolder(newd)
 
-  dataFile = ROOT.TFile("{}/../inputs/Shapes_DATA/alphaBinning/{}/DATA.root".format(dir_path,abin_num))
+  dataFile = ROOT.TFile("{}/../inputs/Shapes_DATA/alphaBinning/{}/DATA.root".format(d_path,abin_num))
   dX = dataFile.Get("data_XM")
   dX1 = dataFile.Get("data_XM1")
   dXvA = dataFile.Get("data_XvA")
@@ -216,8 +259,12 @@ for abin_num in range(0,len(AlphaBins)-1):
   for thisSigIndex, oneSig in SignalsGenerated.items():
     whichSig = oneSig[0][0 : oneSig[0].find("_")]
     whichSig = whichSig.split("/")[-1]
+    thisX = int(whichSig[whichSig.find("X")+1 : whichSig.find("A")])
+    thisPhi = float(whichSig[whichSig.find("A")+1 : ].replace("p","."))
+    thisAlpha = thisPhi/thisX
     #if(whichSig != "X200A1"):continue
 
+    print("\nSignal: {}".format(whichSig))
 
     (sXr_ub, sX1r_ub, sXvAr_ub) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_nom", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [0,0.03], "HLT_DoublePhoton", "puWeight*weight*10.*5.99")
     (sXr, sX1r, sXvAr) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_nom", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeight*weight*10.*5.99")
@@ -226,35 +273,43 @@ for abin_num in range(0,len(AlphaBins)-1):
     alpha_denom = sX1r_ub.GetEntries()
     alpha_num = sX1r.GetEntries()
     alpha_eff = alpha_num / alpha_denom
-    if(alpha_eff < 0.1): 
-      print("Not enough signal in Alpha Window. Skipping")
-      continue
-    else:
+
+    #if(alpha_eff < 0.1): 
+    #  print("Not enough signal in Alpha Window. Skipping")
+    #  continue
+    #else:
+    #  print("Efficiency in this alpha window: {:.2f}%".format(alpha_eff * 100))
+    
+    if(alpha_eff > 0.1 or (abin_num < 4 and thisAlpha==0.005)):
       print("Efficiency in this alpha window: {:.2f}%".format(alpha_eff * 100))
 
-    if(sX1r.GetEntries()<100 or sXr.GetEntries() < 100): 
-      print("skipping, too few events")
+      if(sX1r.GetEntries()<1 or sXr.GetEntries() < 1): 
+        print("skipping, too few events")
+        continue
+      if(sX1r.Integral()<0.00001 or sXr.Integral() < 0.00001): 
+        print("Skipping, Integral = 0")
+        continue
+
+      print("\nSignal: {}".format(whichSig))
+      PL.MakeFolder("{}{}/".format(newd,whichSig))
+      rfile = open("{}{}/arange.txt".format(newd,whichSig),"w")
+      rfile.write("{},{}".format(lA,hA))
+      rfile.close()
+
+      (sXpu, sX1pu, sXvApu) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_nom", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeightUp*weight*10.*5.99")
+      (sXpd, sX1pd, sXvApd) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_nom", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeightDown*weight*10.*5.99")
+      (sX, sX1, sXvA) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_nom", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeight*weight*10.*5.99")
+      (sXsu, sX1su, sXvAsu) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_scale_up", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "weight*10.*5.99")
+      (sXsd, sX1sd, sXvAsd) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_scale_down", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "weight*10.*5.99")
+      n_postcut = float(sX1r.GetEntries())
+      n_gen = float(lookup(whichSig))
+      eff = n_postcut / n_gen * 100
+      print("Total Efficiency: {:.3f} %".format(eff))
+
+      SaveHists(str(abin_num), whichSig, sXr, sX1r, sXvAr, sX, sX1, dX, dX1, dXvA, sX1pu, sX1pd, sX1su, sX1sd)
+
+    else:
+      print("Not enough signal in Alpha Window. Skipping")
       continue
-    if(sX1r.Integral()<0.00001 or sXr.Integral() < 0.00001): 
-      print("Skipping, Integral = 0")
-      continue
-
-    print("\nSignal: {}".format(whichSig))
-    PL.MakeFolder("{}{}/".format(newd,whichSig))
-    rfile = open("{}{}/arange.txt".format(newd,whichSig),"w")
-    rfile.write("{},{}".format(lA,hA))
-    rfile.close()
-
-    (sXpu, sX1pu, sXvApu) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_nom", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeightUp*weight*10.*5.99")
-    (sXpd, sX1pd, sXvApd) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_nom", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeightDown*weight*10.*5.99")
-    (sX, sX1, sXvA) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_nom", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeight*weight*10.*5.99")
-    (sXsu, sX1su, sXvAsu) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_scale_up", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "weight*10.*5.99")
-    (sXsd, sX1sd, sXvAsd) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_scale_down", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "weight*10.*5.99")
-    n_postcut = float(sX1r.GetEntries())
-    n_gen = float(lookup(whichSig))
-    eff = n_postcut / n_gen * 100
-    print("Total Efficiency: {:.3f} %".format(eff))
-
-    SaveHists(str(abin_num), whichSig, sXr, sX1r, sXvAr, sX, sX1, dX, dX1, dXvA, sX1pu, sX1pd, sX1su, sX1sd)
 
 
