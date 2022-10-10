@@ -132,7 +132,7 @@ SignalsGenerated.keys()
 
 for sig,fil in SignalsGenerated.items():
   #if("X5" not in sig and "X6" not in sig and "X4" not in sig): continue
-  #if("X5" in sig or "X6" in sig or "X4" in sig): continue
+  if("X5" in sig or "X6" in sig or "X4" in sig): continue
   #if("X510A4" not in sig): continue
 
   if(sig[-1]=="p"): sig = sig[:-1]
@@ -157,7 +157,7 @@ for sig,fil in SignalsGenerated.items():
     sX1.Scale(1/sX1.Integral())
     sX1.SetName("h_AveDijetMass_1GeV")
     sX = sX1.Clone("{}_XM1".format(sig))
-    sX.Rebin(len(XB)-1, "{}_XM".format(sig), numpy.array(XB))
+    sX = sX.Rebin(len(XB)-1, "{}_XM".format(sig), numpy.array(XB))
     aHist = sigFile.Get("h_alpha_fine")
     eF = open(effFile,"r").readlines()
     eff = float(eF[0])
