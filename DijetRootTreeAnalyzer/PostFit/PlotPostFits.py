@@ -7,9 +7,12 @@ import sys
 import array
 import os
 
-gROOT.SetBatch()
+#gROOT.SetBatch()
 
-GoodBins = [297.0, 303.0, 310.0, 317.0, 324.0, 331.0, 338.0, 345.0, 352.0, 360.0, 368.0, 376.0, 384.0, 392.0, 400.0, 409.0, 418.0, 427.0, 436.0, 445.0, 454.0, 464.0, 474.0, 484.0, 494.0, 504.0, 515.0, 526.0, 537.0, 548.0, 560.0, 572.0, 584.0, 596.0, 609.0, 622.0, 635.0, 648.0, 662.0, 676.0, 690.0, 704.0, 719.0, 734.0, 749.0, 765.0, 781.0, 797.0, 814.0, 831.0, 848.0, 866.0, 884.0, 902.0, 921.0, 940.0, 959.0, 979.0, 999.0, 1020.0, 1041.0, 1063.0, 1085.0, 1107.0, 1130.0, 1153.0, 1177.0, 1201.0, 1226.0, 1251.0, 1277.0, 1303.0, 1330.0, 1357.0, 1385.0, 1413.0, 1442.0, 1472.0, 1502.0, 1533.0, 1564.0, 1596.0, 1629.0, 1662.0, 1696.0]
+NEVENTS_TOGEN = 10000
+
+GoodBins = [297.0, 303.0, 310.0, 317.0, 324.0, 331.0, 338.0, 345.0, 352.0, 360.0, 368.0, 376.0, 384.0, 392.0, 400.0, 409.0, 418.0, 427.0, 436.0, 445.0, 454.0, 464.0, 474.0, 484.0, 494.0, 504.0, 515.0, 526.0, 537.0, 548.0, 560.0, 572.0, 584.0, 596.0, 609.0, 622.0, 635.0, 648.0, 662.0, 676.0, 690.0, 704.0, 719.0, 734.0, 749.0, 765.0, 781.0, 797.0, 814.0, 831.0, 848.0, 866.0, 884.0, 902.0, 921.0, 940.0, 959.0, 979.0, 999.0, 1020.0, 1041.0, 1063.0, 1085.0, 1107.0, 1130.0, 1153.0, 1177.0, 1201.0, 1226.0, 1251.0, 1277.0, 1303.0, 1330.0, 1357.0, 1385.0, 1413.0, 1442.0, 1472.0, 1502.0, 1533.0, 1564.0, 1596.0, 1629.0, 1662.0, 1696.0, 1731.0, 1766.0, 1802.0, 1839.0, 1877.0, 1915.0, 1954.0, 1994.0, 2035.0, 2077.0, 2119.0, 2162.0, 2206.0, 2251.0, 2297.0, 2344.0, 2392.0, 2441.0, 2491.0, 2542.0, 2594.0, 2647.0, 2701.0, 2756.0, 2812.0, 2869.0, 2927.0, 2987.0, 3048.0, 3110.0]
+
 Template = TH1F("temp", ";;Events / GeV", len(GoodBins)-1, numpy.array(GoodBins))
 Template.GetXaxis().SetLabelSize(0.)
 PullTemplate = TH1F("tempP", ";Di-cluster mass [GeV];#frac{data - bkg}{#sigma_{data}}", len(GoodBins)-1, numpy.array(GoodBins))
@@ -88,6 +91,8 @@ mm = cps[2]
 fit = cps[3]
 fit = fit[ :fit.find(".")]
 print(an, mm, fit)
+anum = an[5:]
+
 
 fList = []
 
@@ -96,6 +101,65 @@ comName = "_{}_{}".format(an,mm)
 newDir = "combineOutput/{}_{}_{}".format(an,mm,fit)
 os.system("mkdir {}".format(newDir))
 
+sig_file = "../inputs/Shapes_fromGen/alphaBinning/{}/{}/PLOTS_{}.root".format(anum, mm, anum)
+print(sig_file)
+if(os.path.exists(sig_file)):
+  sfile = ROOT.TFile(sig_file, "READ")
+  sig_hist = sfile.Get("{}_XM".format(mm))
+elif(os.path.exists(sig_file.replace("Gen","Interpo"))):
+  print(sig_file.replace("Gen","Interpo"))
+  sfile = ROOT.TFile(sig_file.replace("Gen","Interpo"), "READ")
+  #sig_hist = sfile.Get("{}_XM".format(mm))
+  sig_hist1 = sfile.Get("h_AveDijetMass_1GeV")
+
+  ffile = open("../inputs/Shapes_fromInterpo/alphaBinning/{}/{}/alphaFracion_alpha{}_{}.txt".format(anum,mm,anum,mm), "r")
+  frac = float(ffile.readline())
+  ffile.close()
+  eff_file = open("../inputs/Shapes_fromInterpo/alphaBinning/{}/{}/{}.txt".format(anum,mm,mm), "r")
+  eff = float(eff_file.readline())
+  eff_file.close()
+  
+  sig_hist1.Scale(NEVENTS_TOGEN * frac * eff)
+  sig_hist = sig_hist1.Rebin(len(GoodBins)-1, "{}_XM".format(mm), numpy.array(GoodBins))
+
+try:
+  sig_hist.SetLineColor(2)
+  sig_hist.SetFillColor(ROOT.kRed-10)
+  data_hist = sfile.Get("data_XM")
+  
+  data_hist.SetMarkerStyle(20)
+  data_hist.SetMarkerSize(0.65)
+  data_hist.SetLineColor(kBlack)
+  data_hist.SetLineWidth(1)
+
+  print(data_hist.Integral())
+  print(sig_hist.Integral())
+
+  for h in [sig_hist, data_hist]:
+    h.SetTitle("{} Signal".format(mm))
+    h.GetXaxis().SetTitle("Dicluster Mass (GeV)")
+    h.GetYaxis().SetTitle("Events")
+
+  L = TLegend(0.11,0.8,0.89,0.89)
+  L.SetFillColor(0)
+  L.SetLineColor(0)
+  L.AddEntry(sig_hist, "Signal")
+  L.AddEntry(data_hist, "Data")
+
+  c1=ROOT.TCanvas()
+  c1.cd()
+  FindAndSetMax([data_hist,sig_hist])
+  sig_hist.Draw("hist")
+  data_hist.Draw("E0same")
+  c1.SetLogx()
+  c1.Print("{}/signal.png".format(newDir))
+
+  sig_hist = sfile.Get("{}_XM".format(mm))
+
+except AttributeError:
+  print("Error getting signal file")
+
+exit()
 os.system("combine "+sys.argv[1]+" -M Significance --name {}".format(comName))
 os.system("combine "+sys.argv[1]+" -M AsymptoticLimits --name {}".format(comName))
 F = ROOT.TFile("higgsCombine{}.AsymptoticLimits.mH120.root".format(comName))
@@ -117,6 +181,7 @@ T.GetEntry(0)
 significance = T.limit
 
 F = TFile("fitDiagnostics{}.root".format(comName))
+print("Reading {}".format(F.GetName()))
 fList.append("fitDiagnostics{}.root".format(comName))
 data = convertAsymGraph(F.Get("shapes_prefit/"+sys.argv[2]+"/data"), Template, "data")
 b = convertBinNHist(F.Get("shapes_fit_b/"+sys.argv[2]+"/total_background"), Template, "b")
