@@ -296,6 +296,10 @@ for abin_num in range(0,len(AlphaBins)-1):
       rfile.write("{},{}".format(lA,hA))
       rfile.close()
 
+      aeffFile= open("{}{}/alphaFraction_alpha{}_{}.txt".format(newd,whichSig,abin_num,whichSig),"w")
+      aeffFile.write(str(alpha_eff))
+      aeffFile.close()
+
       (sXpu, sX1pu, sXvApu) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_nom", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeightUp*weight*10.*5.99")
       (sXpd, sX1pd, sXvApd) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_nom", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeightDown*weight*10.*5.99")
       (sX, sX1, sXvA) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_nom", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeight*weight*10.*5.99")
