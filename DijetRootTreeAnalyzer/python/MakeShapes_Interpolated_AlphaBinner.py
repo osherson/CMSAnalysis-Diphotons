@@ -118,7 +118,7 @@ def WriteEff(sig, eff, odir):
 
 def WriteFrac(sig, abin, eff, odir):
 
-   effFile= open("{}/alphaFracion_alpha{}_{}.txt".format(odir,abin,sig),"w")
+   effFile= open("{}/alphaFraction_alpha{}_{}.txt".format(odir,abin,sig),"w")
    effFile.write(str(eff))
    effFile.close()
    return
@@ -138,7 +138,7 @@ SignalsGenerated.keys()
 #print(SignalsGenerated)
 
 for sig,fil in SignalsGenerated.items():
-  if("X5" not in sig and "X6" not in sig and "X4" not in sig): continue
+  #if("X5" not in sig and "X6" not in sig and "X4" not in sig): continue
   #if("X5" in sig or "X6" in sig or "X4" in sig): continue
   #if("X510A4" not in sig): continue
 
