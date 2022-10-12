@@ -32,7 +32,8 @@ def MakeFolder(N):
      os.makedirs(N)
 
 year = 2018
-lumi = 13.7
+LUMI = 13.7
+XS = 1 #pb
 
 def getEff(s, d):
   effFile = "{}/{}.txt".format(d,s)
@@ -42,7 +43,7 @@ def getEff(s, d):
 
 
 def makeThisLimit(xmass):
-  global year, lumi
+  global year, LUMI
 
   print("\n")
   print("_______________________________________________")
@@ -96,7 +97,7 @@ def makeThisLimit(xmass):
         print("Already done, moving on. ")
         continue
 
-      mycommand = "python ../python/BinnedDiphotonFit.py -c ../config/diphoton_{}.config -y {} -l {} -b diphoton_{} {}/PLOTS_{}.root -d output --fit-spectrum --write-fit --words test --sig {} --abin {} --lowA {} --hiA {}".format(ff,year,lumi,ff,dd,abin_num,sig,abin_num,la,ha)
+      mycommand = "python ../python/BinnedDiphotonFit.py -c ../config/diphoton_{}.config -y {} -l {} -b diphoton_{} {}/PLOTS_{}.root -d output --fit-spectrum --write-fit --words test --sig {} --abin {} --lowA {} --hiA {}".format(ff,year,LUMI,ff,dd,abin_num,sig,abin_num,la,ha)
       print(mycommand)
       os.system(mycommand)
       os.system("mv output/fit_mjj_Full_diphoton_{}_2018_{}_alpha{}.png output/alpha_{}/{}/fit_mjj_Full_diphoton_{}_{}_{}.png ".format(ff,sig,abin_num,abin_num,sig,sig,ff,abin_num))
@@ -106,11 +107,11 @@ def makeThisLimit(xmass):
       if clean:
         os.system("mv output/*.* output/alpha_{}/{}/.".format(abin_num,sig))
 
-      lcommand = "python ../python/DiphotonCardMakerAlphaBinSingle_envelope.py -f {} -l {} -y {} -a {} -s {} -x {}".format(ff,lumi/10, year, abin_num, sig, eff)
+      lcommand = "python ../python/DiphotonCardMakerAlphaBinSingle_envelope.py -f {} -l {} -y {} -a {} -s {} -x {}".format(ff,LUMI, year, abin_num, sig, XS*LUMI*eff)
       print(lcommand)
       MakeFolder("output/combineCards")
       os.system(lcommand)
-      cname = "output/dijet_combine_gg_{}_alpha{}_lumi-1.370_2018_diphoton_{}".format(sig,abin_num,ff)
+      cname = "output/dijet_combine_gg_{}_alpha{}_lumi-13.700_2018_diphoton_{}".format(sig,abin_num,ff)
       ocname = "output/combineCards/CARD_alpha{}_{}_{}".format(abin_num,sig,ff)
       fpname = "{}/output/combineCards/CARD_alpha{}_{}_{}".format(os.getcwd(),abin_num,sig,ff)
 
