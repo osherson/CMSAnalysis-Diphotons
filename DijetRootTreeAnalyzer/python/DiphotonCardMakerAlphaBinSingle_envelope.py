@@ -12,10 +12,7 @@ def RunDataCardMaker(o):
     sig = str(o.SIG)
 
     if(env):
-      print("STEVEN LOOK HERE IF YOUR ENVELOPE HAS WRONG FUNCTIONS")
-      #config = " -c {}/../config/envelope2/diphoton_multi_alpha{}.config".format(dir_path,abin)
-      config = " -c {}/../config/envelope2/diphoton_multi.config".format(dir_path)
-      #config = " -c {}/../config/fourjet_inclusive_multipdf_3_func.config".format(dir_path)
+      config = " -c {}/../config/envelope2/diphoton_multi_alpha{}.config".format(dir_path,abin)
       box=" -b "
     else:
       config = " -c {}/../config/diphoton_{}".format(dir_path,str(o.FIT)) + ".config"

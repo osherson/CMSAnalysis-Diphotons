@@ -10,6 +10,7 @@ fnum=999
 
 #xmasslist = ['600','400','500','300','750','1000','1500','2000']
 xmasslist = ['600','400','500','200','300','750','1000','1500','2000']
+xmasslist = ['600']
 
 #To run test on one alpha bin, add fast# to command line arg
 for arg in sys.argv:
@@ -38,7 +39,8 @@ def MakeFolder(N):
      os.makedirs(N)
 
 year = 2018
-lumi = 13.7
+LUMI = 13.7
+XS = 1
 
 def getEff(s, d):
   effFile = "{}/{}.txt".format(d,s)
@@ -48,7 +50,7 @@ def getEff(s, d):
 
 
 def makeThisLimit(xmass):
-  global year, lumi
+  global year, LUMI
 
   if(doInterpo):
     data_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromInterpo/alphaBinning/"
@@ -56,29 +58,18 @@ def makeThisLimit(xmass):
     data_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromGen/alphaBinning/"
   dirs = []
 
-  if(doAll == True):
-      for xx in os.listdir(os.path.join(data_dir,"ALL")):
-          if("X{}A".format(xmass) in xx and os.path.exists("{}ALL/{}/PLOTS_0.root".format(data_dir,xx))):
-            sig=xx
-            rangeFile = open("{}ALL/{}/arange.txt".format(data_dir,sig),"r")
-            rr = rangeFile.readline().rstrip()
-            la = float(rr.split(",")[0])
-            ha = float(rr.split(",")[-1])
-            dirs.append(("{}ALL/{}".format(data_dir,sig),"ALL",la,ha))
-
-  else:
-    for dd in os.listdir(data_dir):
-      if(dd=="ALL"): continue
-      anum = int(dd)
-      if(fast and anum!=fnum): continue
-      for xx in os.listdir(os.path.join(data_dir,dd)):
-        if("X{}A".format(xmass) in xx and os.path.exists("{}{}/{}/PLOTS_{}.root".format(data_dir,dd,xx,anum))):
-          sig=xx
-          rangeFile = open("{}{}/{}/arange.txt".format(data_dir,dd,sig),"r")
-          rr = rangeFile.readline().rstrip()
-          la = float(rr.split(",")[0])
-          ha = float(rr.split(",")[-1])
-          dirs.append(("{}{}/{}".format(data_dir,dd,sig), anum,la,ha))
+  for dd in os.listdir(data_dir):
+    if(dd=="ALL"): continue
+    anum = int(dd)
+    if(fast and anum!=fnum): continue
+    for xx in os.listdir(os.path.join(data_dir,dd)):
+      if("X{}A".format(xmass) in xx and os.path.exists("{}{}/{}/PLOTS_{}.root".format(data_dir,dd,xx,anum))):
+        sig=xx
+        rangeFile = open("{}{}/{}/arange.txt".format(data_dir,dd,sig),"r")
+        rr = rangeFile.readline().rstrip()
+        la = float(rr.split(",")[0])
+        ha = float(rr.split(",")[-1])
+        dirs.append(("{}{}/{}".format(data_dir,dd,sig), anum,la,ha))
 
 
   if(goLim): MakeFolder("combineOutput")
@@ -110,26 +101,23 @@ def makeThisLimit(xmass):
           eff = float(f.readline().rstrip())
           print(eff)
 
-    if(doAll):
-      mycommand = "python ../python/BinnedDiphotonFit.py -c ../config/envelope2/diphoton_multi.config -y {} -l {} -b DIPHOM {}/PLOTS_0.root -d output --fit-spectrum --write-fit --words test --lowA {} --hiA {}".format(year,lumi,dd, la, ha)
-    else:
-      mycommand = "python ../python/BinnedDiphotonFit.py -c ../config/envelope2/diphoton_multi.config -y {} -l {} -b DIPHOM {}/PLOTS_{}.root -d output --fit-spectrum --write-fit --words test --sig {} --abin {} --lowA {} --hiA {}".format(year,lumi,dd,abin_num,sig,abin_num,la,ha)
+    mycommand = "python ../python/BinnedDiphotonFit.py -c ../config/envelope2/diphoton_multi_alpha{}.config -y {} -l {} -b DIPHOM_alpha{} {}/PLOTS_{}.root -d output --fit-spectrum --write-fit --words test --sig {} --abin {} --lowA {} --hiA {}".format(abin_num,year,LUMI,abin_num,dd,abin_num,sig,abin_num,la,ha)
     print(mycommand)
 
     os.system(mycommand)
-    os.system("mv output/fit_mjj_Full_DIPHOM_2018_{}_alpha{}.png output/alpha_{}/{}/fit_mjj_Full_diphoton_{}_{}.png ".format(sig,abin_num,abin_num,sig,sig,abin_num))
-    os.system("rm output/fit_mjj_Full_DIPHOM_2018_{}_alpha{}.C ".format(sig,abin_num))
-    os.system("rm crudeFitPlot_DIPHOM_{}_alpha{}.png".format(sig,abin_num))
-    os.system("mv output/DijetFitResults_DIPHOM_2018_{}_alpha{}.root output/alpha_{}/{}/DijetFitResults_diphoton_{}_DIPHOM.root ".format(sig,abin_num,abin_num,sig,sig))
+    os.system("mv output/fit_mjj_Full_DIPHOM_alpha{}_2018_{}_alpha{}.png output/alpha_{}/{}/fit_mjj_Full_diphoton_{}_{}.png ".format(abin_num,sig,abin_num,abin_num,sig,sig,abin_num))
+    os.system("rm output/fit_mjj_Full_DIPHOM_alpha{}_2018_{}_alpha{}.C ".format(abin_num,sig,abin_num))
+    os.system("rm crudeFitPlot_DIPHOM_alpha{}_{}_alpha{}.png".format(abin_num,sig,abin_num))
+    os.system("mv output/DijetFitResults_DIPHOM_alpha{}_2018_{}_alpha{}.root output/alpha_{}/{}/DijetFitResults_DIPHOM_2018_{}_alpha{}.root ".format(abin_num,sig,abin_num,abin_num,sig,sig,abin_num))
     if clean:
       os.system("mv output/*.* output/alpha_{}/{}/.".format(abin_num,sig))
 
-    lcommand = "python ../python/DiphotonCardMakerAlphaBinSingle_envelope.py -f DIPHOM -l {} -y {} -a {} -s {} -x {}".format(lumi/10, year, abin_num, sig, eff)
+    lcommand = "python ../python/DiphotonCardMakerAlphaBinSingle_envelope.py -f DIPHOM_alpha{} -l {} -y {} -a {} -s {} -x {}".format(abin_num, LUMI, year, abin_num, sig, LUMI*XS*eff)
     print(lcommand)
     MakeFolder("output/combineCards")
     os.system(lcommand)
 
-    cname = "output/dijet_combine_gg_{}_alpha{}_lumi-1.370_2018_DIPHOM".format(sig,abin_num)
+    cname = "output/dijet_combine_gg_{}_alpha{}_lumi-13.700_2018_DIPHOM_alpha{}".format(sig,abin_num,abin_num)
     ocname = "output/combineCards/CARD_multi_{}_alpha{}".format(sig,abin_num)
     fpname = "{}/output/combineCards/CARD_multi_{}_alpha{}".format(os.getcwd(),sig,abin_num)
 
@@ -160,7 +148,6 @@ def makeThisLimit(xmass):
           print(comb_command)
           os.system(comb_command)
           os.system("mv higgsCombine_alpha{}_{}.AsymptoticLimits.mH120.root combineOutput/higgsCombine_envelope_alpha{}_{}.root".format(abin_num,sig,abin_num,sig))
-    exit()
 
 if(doInterpo):
   print("Using interpolated shapes")
