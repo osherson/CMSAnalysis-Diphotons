@@ -18,7 +18,7 @@ def RunDataCardMaker(o):
       config = " -c {}/../config/diphoton_{}".format(dir_path,str(o.FIT)) + ".config"
       box = " -b diphoton_"
 
-    lumi = " --lumi " + str(int(float(o.LUM)*1000.))
+    lumi = " --lumi " + str(int(float(o.LUM)))
     if o.FIT != "combine": box += "%s" % str(o.FIT)
     mass = " --mass " + str(o.SIG).split("X")[1].split("A")[0]
     savemass = " --savemass " + str(o.SIG)

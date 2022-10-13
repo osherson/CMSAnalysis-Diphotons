@@ -4,13 +4,16 @@ import sys
 clean=False
 goLim = False
 fast=False
-doAll = False
 doInterpo = False
 fnum=999
 
 #xmasslist = ['600','400','500','300','750','1000','1500','2000']
 xmasslist = ['600','400','500','200','300','750','1000','1500','2000']
-xmasslist = ['600']
+#xmasslist = ['600','400']
+
+year = 2018
+LUMI = 13.7 * 1000  #provide lumi in PB
+XS = 0.001
 
 #To run test on one alpha bin, add fast# to command line arg
 for arg in sys.argv:
@@ -21,7 +24,6 @@ for arg in sys.argv:
 
 if ('clean' in sys.argv): clean=True
 if ('limit' in sys.argv): goLim = True
-if ('ALL' in sys.argv): doAll = True
 if ('Interpo' in sys.argv): doInterpo = True
 
 if clean:
@@ -38,9 +40,6 @@ def MakeFolder(N):
     if not os.path.exists(N):
      os.makedirs(N)
 
-year = 2018
-LUMI = 13.7
-XS = 1
 
 def getEff(s, d):
   effFile = "{}/{}.txt".format(d,s)
@@ -75,7 +74,7 @@ def makeThisLimit(xmass):
   if(goLim): MakeFolder("combineOutput")
 
   for (dd,anum,la,ha) in dirs:
-    #if(anum > 0): continue
+    #if(anum != 3 and anum != 4): continue
     sig = dd.split("/")[-1]
     sigX = float(sig[1 : sig.find("A")])
     sigPhi = float(sig[sig.find("A")+1:].replace("p","."))
@@ -112,7 +111,7 @@ def makeThisLimit(xmass):
     if clean:
       os.system("mv output/*.* output/alpha_{}/{}/.".format(abin_num,sig))
 
-    lcommand = "python ../python/DiphotonCardMakerAlphaBinSingle_envelope.py -f DIPHOM_alpha{} -l {} -y {} -a {} -s {} -x {}".format(abin_num, LUMI, year, abin_num, sig, LUMI*XS*eff)
+    lcommand = "python ../python/DiphotonCardMakerAlphaBinSingle_envelope.py -f DIPHOM_alpha{} -l {} -y {} -a {} -s {} -x {}".format(abin_num, LUMI, year, abin_num, sig, XS*eff)
     print(lcommand)
     MakeFolder("output/combineCards")
     os.system(lcommand)

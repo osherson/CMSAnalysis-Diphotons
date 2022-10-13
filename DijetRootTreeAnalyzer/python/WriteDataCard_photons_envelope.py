@@ -486,6 +486,7 @@ if __name__ == '__main__':
     box = options.box
     if(box[-1]=="_"): box=box[:-1]
     lumi = options.lumi
+    print("LOOOK LUMI: {}".format(lumi))
 
     signalXsec = options.xsec
 
