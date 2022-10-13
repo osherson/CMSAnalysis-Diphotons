@@ -32,8 +32,8 @@ def MakeFolder(N):
      os.makedirs(N)
 
 year = 2018
-LUMI = 13.7
-XS = 1 #pb
+LUMI = 13.7 * 1000
+XS = 0.001 #pb
 
 def getEff(s, d):
   effFile = "{}/{}.txt".format(d,s)
@@ -107,7 +107,7 @@ def makeThisLimit(xmass):
       if clean:
         os.system("mv output/*.* output/alpha_{}/{}/.".format(abin_num,sig))
 
-      lcommand = "python ../python/DiphotonCardMakerAlphaBinSingle_envelope.py -f {} -l {} -y {} -a {} -s {} -x {}".format(ff,LUMI, year, abin_num, sig, XS*LUMI*eff)
+      lcommand = "python ../python/DiphotonCardMakerAlphaBinSingle_envelope.py -f {} -l {} -y {} -a {} -s {} -x {}".format(ff,LUMI, year, abin_num, sig, XS*eff)
       print(lcommand)
       MakeFolder("output/combineCards")
       os.system(lcommand)
