@@ -66,6 +66,11 @@ DijetRootTreeAnalyzer/InterpoPlotter/effPlots
 /DijetRootTreeAnalyzer/DoEnvelopeFits/Condor_LimitMaker/condor_submitFiles
 /DijetRootTreeAnalyzer/DoEnvelopeFits/Condor_LimitMaker/condor_logfiles
 /DijetRootTreeAnalyzer/DoEnvelopeFits/Condor_LimitMaker/CallFiles
+/DijetRootTreeAnalyzer/DoEnvelopeFits/allAlphaLimitMaker/condor_submitFiles
+/DijetRootTreeAnalyzer/DoEnvelopeFits/allAlphaLimitMaker/condor_logfiles
+/DijetRootTreeAnalyzer/DoEnvelopeFits/allAlphaLimitMaker/CallFiles
+DijetRootTreeAnalyzer/EfficiencyInterpolator/EffPlots
+DijetRootTreeAnalyzer/EfficiencyInterpolator/EfficiencyFiles
 DijetRootTreeAnalyzer/combineOutput/*
 DijetRootTreeAnalyzer/output/*.txt
 DijetRootTreeAnalyzer/output/*.C
