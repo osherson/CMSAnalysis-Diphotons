@@ -438,7 +438,7 @@ XB = [297.0, 303.0, 310.0, 317.0, 324.0, 331.0, 338.0, 345.0, 352.0, 360.0, 368.
 #X1B = MakeNBinsFromMinToMax(1399, 300., 1696.)
 X1B = Make1BinsFromMinToMax(297., 3110.)
 AB = [0.0, 0.001, 0.002, 0.003, 0.004, 0.005, 0.006, 0.007, 0.008, 0.009, 0.01, 0.011, 0.012, 0.013, 0.014, 0.015, 0.016, 0.017, 0.018, 0.019, 0.02, 0.021, 0.022, 0.023, 0.024, 0.025, 0.027, 0.029, 0.031, 0.033, 0.035]
-AfineB = numpy.linspace(-0.03,0.03, 1201)
+AfineB = numpy.linspace(0.00,0.03, 10000)
 def GetDiphoShapeAnalysis(F, T, N, masym, deta, dipho, iso, alpha, trigger, scale, saveTree=False, saveSignal=""):
     # Load files:
     Chain = ROOT.TChain(T)
@@ -488,7 +488,6 @@ def GetDiphoShapeAnalysisPlusAlpha(F, trueAlpha, T, N, masym, deta, dipho, iso, 
     for f in F:
         Chain.Add(f)
     Rdf         =   RDF(Chain)
-    print("Initial values", Rdf.Count().GetValue())
     # Make cuts:
     Rdf         =   Rdf.Filter(trigger+" > 0.")
     Rdf         =   Rdf.Filter("clu1_pt > 90. && clu2_pt > 90. && alpha >= " + str(alpha[0]) + " && alpha < " + str(alpha[1]) + " && masym < " + str(masym) + " && deta < " + str(deta) + " && clu1_dipho > " + str(dipho) + " && clu2_dipho > " + str(dipho) + " && clu1_iso > " + str(iso) + " && clu2_iso > " + str(iso))
