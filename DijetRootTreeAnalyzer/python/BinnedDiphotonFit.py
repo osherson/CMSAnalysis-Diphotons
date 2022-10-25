@@ -721,8 +721,8 @@ if __name__ == '__main__':
     myRebinnedDensityTH1.SetMarkerColor(rt.kWhite)
     myRebinnedDensityTH1.SetLineWidth(0)    
     #Plot mins and maxes
-    myRebinnedDensityTH1.SetMaximum(20)#20
-    myRebinnedDensityTH1.SetMinimum(5e-4)#2e-8
+    myRebinnedDensityTH1.SetMaximum(2e-2)#20 #Steven changed Oct 25, 2022
+    myRebinnedDensityTH1.SetMinimum(5e-8)#2e-8
     myRebinnedDensityTH1.Draw("axis")
     
 #    if options.doTriggerFit or options.doSimultaneousFit or options.doSpectrumFit or options.noFit:
