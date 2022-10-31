@@ -438,7 +438,22 @@ XB = [297.0, 303.0, 310.0, 317.0, 324.0, 331.0, 338.0, 345.0, 352.0, 360.0, 368.
 #X1B = MakeNBinsFromMinToMax(1399, 300., 1696.)
 X1B = Make1BinsFromMinToMax(297., 3110.)
 AB = [0.0, 0.001, 0.002, 0.003, 0.004, 0.005, 0.006, 0.007, 0.008, 0.009, 0.01, 0.011, 0.012, 0.013, 0.014, 0.015, 0.016, 0.017, 0.018, 0.019, 0.02, 0.021, 0.022, 0.023, 0.024, 0.025, 0.027, 0.029, 0.031, 0.033, 0.035]
-AfineB = numpy.linspace(0.00,0.03, 10000)
+#AfineB = numpy.linspace(0.00,0.03, 300001)
+
+#Read AfineB from file
+#fineFile = open("{}/DijetRootTreeAnalyzer/ConstructAlphaBins/FineBinEdges.txt".format(dir_path),"r")
+#AfineB = []
+#for line in fineFile.readlines():
+#  val = float(line)
+#  AfineB.append(val)
+#fineFile.close()
+
+AfineB = list(numpy.linspace(0.0,0.03, 10000))
+AlphaBins = [ 0.003, 0.00347, 0.00395, 0.00444, 0.00494, 0.00545, 0.00597, 0.0065, 0.00704, 0.00759, 0.00815, 0.00872, 0.0093, 0.01049, 0.01505, 0.03]
+for aa in AlphaBins:
+  if(aa not in AfineB): AfineB.append(aa)
+AfineB = sorted(AfineB)
+
 def GetDiphoShapeAnalysis(F, T, N, masym, deta, dipho, iso, alpha, trigger, scale, saveTree=False, saveSignal=""):
     # Load files:
     Chain = ROOT.TChain(T)
