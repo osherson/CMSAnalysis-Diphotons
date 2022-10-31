@@ -7,7 +7,7 @@ import pandas
 import time
 import gc
 
-ROOT.gROOT.SetBatch()
+#ROOT.gROOT.SetBatch()
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(dir_path+"/../../.")
@@ -68,7 +68,19 @@ def LookupAndWriteEff(sig,ix, ia, outDir):
 
 #XB = [297.0, 303.0, 310.0, 317.0, 324.0, 331.0, 338.0, 345.0, 352.0, 360.0, 368.0, 376.0, 384.0, 392.0, 400.0, 409.0, 418.0, 427.0, 436.0, 445.0, 454.0, 464.0, 474.0, 484.0, 494.0, 504.0, 515.0, 526.0, 537.0, 548.0, 560.0, 572.0, 584.0, 596.0, 609.0, 622.0, 635.0, 648.0, 662.0, 676.0, 690.0, 704.0, 719.0, 734.0, 749.0, 765.0, 781.0, 797.0, 814.0, 831.0, 848.0, 866.0, 884.0, 902.0, 921.0, 940.0, 959.0, 979.0, 999.0, 1020.0, 1041.0, 1063.0, 1085.0, 1107.0, 1130.0, 1153.0, 1177.0, 1201.0, 1226.0, 1251.0, 1277.0, 1303.0, 1330.0, 1357.0, 1385.0, 1413.0, 1442.0, 1472.0, 1502.0, 1533.0, 1564.0, 1596.0, 1629.0, 1662.0, 1696.0]
 X1B = Make1BinsFromMinToMax(297., 3110.) #Steven for making signals over 2000, this becomes a problem. I think you can just change 3110 to something much bigger. Verify this works
-AfineB = numpy.linspace(0.0,0.03, 10000)
+
+#Read AfineB from file
+#fineFile = open("/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/ConstructAlphaBins/FineBinEdges.txt","r")
+#AfineB = []
+#for line in fineFile.readlines():
+#  val = float(line)
+#  AfineB.append(val)
+#fineFile.close()
+AfineB = list(numpy.linspace(0.0,0.03, 10000))
+AlphaBins = [ 0.003, 0.00347, 0.00395, 0.00444, 0.00494, 0.00545, 0.00597, 0.0065, 0.00704, 0.00759, 0.00815, 0.00872, 0.0093, 0.01049, 0.01505, 0.03] 
+for aa in AlphaBins:
+  if(aa not in AfineB): AfineB.append(aa)
+AfineB = sorted(AfineB)
 
 def MakeFolder(N):
     if not os.path.exists(N):
@@ -134,6 +146,8 @@ class HC:
     self._histArr = histArr
     self._x  = ROOT.RooRealVar("x","x",histArr[0].GetXaxis().GetXmin(),histArr[0].GetXaxis().GetXmax())
     #self._x  = ROOT.RooRealVar("x","x",histArr[0].GetXaxis().GetXmin(),2100.)
+    print("Xmin, xmax: ", histArr[0].GetXaxis().GetXmin(),histArr[0].GetXaxis().GetXmax())
+    print("Hist n bins ", histArr[0].GetNbinsX())
     self._x.setBins(histArr[0].GetNbinsX())
     self._histInts = [h.Integral() for h in histArr]
     self._inxhists = []
@@ -203,6 +217,7 @@ class HC:
     rr.Draw("histsame")
     ll.Draw("same")
     c1.Print("tc3.png")
+
     ##
 
     return RHI.Clone(signame+"new"), inxhists
@@ -250,6 +265,7 @@ def getABinIndex(num):
 
 
 def TrimWideHist(lowhist, hihist, shape):
+  global AfineB
   lowmean,lowrms = lowhist.GetMean(), lowhist.GetRMS()
   himean,hirms = hihist.GetMean(), hihist.GetRMS()
   WW = 2
@@ -261,27 +277,41 @@ def TrimWideHist(lowhist, hihist, shape):
     bval = X1B[botidx]
     tval = X1B[topidx]
   elif(shape=="alpha"):
-    botidx = getABinIndex(lowmean - WW*lowrms)
-    topidx = getABinIndex(himean + WW*hirms)
-    newBins = numpy.linspace(0.0,0.03, 10000.+1)
+    botidx = getABinIndex(lowmean - (WW+1)*lowrms)
+    topidx = getABinIndex(himean + (WW+1)*hirms)
+    newBins = AfineB
     #AfineB = numpy.linspace(-0.03,0.03, 1201)
+
+    #Read AfineB from file
+    #fineFile = open("/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/ConstructAlphaBins/FineBinEdges.txt","r")
+    #newBins = []
+    #for (ii,line) in enumerate(fineFile.readlines()):
+    #  if(ii %2 == 1): continue
+    #  val = float(line)
+    #  newBins.append(val)
+    #fineFile.close()
+
     bval = AfineB[botidx]
     tval = AfineB[topidx]
+
+    print(bval, tval)
 
   tl_Hist = ROOT.TH1D("{}_t".format(lowhist.GetName),"",len(newBins)-1, numpy.array(newBins))
   th_Hist = ROOT.TH1D("{}_t".format(hihist.GetName),"",len(newBins)-1, numpy.array(newBins))
 
-
   for bb in range(tl_Hist.GetNbinsX()):
     if( tl_Hist.GetBinLowEdge(bb) < bval or tl_Hist.GetBinLowEdge(bb) > tval):
+      continue
       tl_Hist.SetBinContent(bb,0)
+      th_Hist.SetBinContent(bb,0)
     else:
       tl_Hist.SetBinContent(bb, lowhist.GetBinContent(lowhist.FindBin(tl_Hist.GetBinLowEdge(bb))))
       th_Hist.SetBinContent(bb, hihist.GetBinContent(hihist.FindBin(tl_Hist.GetBinLowEdge(bb))))
 
-  #Maybe
-  #tl_Hist.Smooth()
-  #th_Hist.Smooth()
+  if(shape=="alpha"):
+   #Maybe
+    tl_Hist.Smooth()
+    th_Hist.Smooth()
 
   return tl_Hist.Clone(), th_Hist.Clone()
 
@@ -299,7 +329,7 @@ def SaveHists(Hist, inputSignal, hname, fname, outDir):
 
     return
 
-def InterpolateHists(inputSignal, shape, fname, outDir):
+def InterpolateHists(inputSignal, shape, fname, outDir, force=False):
 
   in_x = int(inputSignal[1 : inputSignal.find("A")])
   in_phi = float(inputSignal[inputSignal.find("A")+1 :].replace("p","."))
@@ -316,9 +346,46 @@ def InterpolateHists(inputSignal, shape, fname, outDir):
     print("Requested X Mass outside of range. Cannot interpolate")
     return False
 
-  elif(in_x in GEN_X and in_alpha in GEN_ALPHAS):
+  elif(in_x in GEN_X and in_alpha in GEN_ALPHAS and force==False):
     print("Known Signal. Doing nothing")
     return False
+
+  elif(in_x in GEN_X and in_alpha in GEN_ALPHAS and force==True):
+    print("Forcing Interpolation of Known Signal")
+#    idx_ina = [a for a in range(len(GEN_ALPHAS)) if GEN_ALPHAS[a] == in_alpha][0]
+#    if(idx_ina == 0 or idx_ina == len(GEN_ALPHAS)-1): 
+#      print("Can't do that!")
+#      return False
+#    low_ga, hi_ga = GEN_ALPHAS[idx_ina - 1], GEN_ALPHAS[idx_ina + 1]
+#    lowsig=GetSignalString(in_x, low_ga)
+#    hisig=GetSignalString(in_x, hi_ga)
+#
+#    print("Interpolating between {} and {} signals".format(lowsig, hisig))
+#    wpoint = float(in_alpha - low_ga) / float(hi_ga - low_ga)
+#    print("Mixing Term: {}".format(wpoint))
+#
+#    if(fname=="Sig_nominal" and shape=="X"): #Just so I only do this once
+#      LookupAndWriteEff(inputSignal, in_x,in_alpha, outDir)
+#
+#    low_gx, hi_gx = in_x, in_x
+    print("Known alpha, unknown X mass. Interpolating between Two Signals")
+    idx_ina = [a for a in range(len(GEN_X)) if GEN_X[a] == in_x][0]
+    if(idx_ina == 0 or idx_ina == len(GEN_X)-1): 
+      print("Can't do that!")
+      return False
+    low_gx, hi_gx = GEN_X[idx_ina - 1], GEN_X[idx_ina + 1]
+#    low_gx, hi_gx = GetClosestX(in_x, in_alpha)
+    lowsig=GetSignalString(low_gx, in_alpha)
+    hisig=GetSignalString(hi_gx, in_alpha)
+
+    print("Interpolating between {} and {} signals".format(lowsig, hisig))
+    wpoint = float(in_x - low_gx) / float(hi_gx - low_gx)
+    print("Mixing Term: {}".format(wpoint))
+
+    if(fname=="Sig_nominal" and shape=="X"): #Just so I only do this once
+      LookupAndWriteEff(inputSignal, in_x,in_alpha, outDir)
+
+    low_ga, hi_ga = in_alpha, in_alpha
 
   elif(in_alpha in GEN_ALPHAS and in_x not in GEN_X):
     print("Known alpha, unknown X mass. Interpolating between Two Signals")
@@ -479,10 +546,14 @@ print(inputSignal)
 print(shape)
 print(treeName)
 
+forceInt = False
+if(forceInt):
+  INTERPO_SHAPE_DIR += "_Known"
+
 outDir = "{}/{}".format(INTERPO_SHAPE_DIR, inputSignal)
 MakeFolder(outDir)
 
-InterpolateHists(inputSignal,shape,treeName,outDir)
+InterpolateHists(inputSignal,shape,treeName,outDir,force=forceInt)
 
 #This doesn't work, must call as command line arg
 #InterpolateHists(inputSignal,"Sig_PU",outDir)
