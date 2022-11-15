@@ -22,7 +22,6 @@ G_DIR = "../inputs/Shapes_fromGen/unBinned"
 
 GEN_ALPHAS = [0.005, 0.01, 0.015, 0.02, 0.025]
 
-
 for plot_alpha in GEN_ALPHAS:
   int_files, gen_files = [],[]
 
@@ -30,6 +29,8 @@ for plot_alpha in GEN_ALPHAS:
     for si in os.listdir(alphaDir):
       xx,pp,aa = GetXPhiAlpha(si)
       if(xx < 297 or xx > 2000): continue
+      if(xx < 500 or xx > 1000): continue
+      if(xx % 50 != 0): continue
       if(aa == plot_alpha):
         xdir = os.path.join(alphaDir, si)
         if(os.path.exists("{}/Sig_nominal.root".format(xdir))):

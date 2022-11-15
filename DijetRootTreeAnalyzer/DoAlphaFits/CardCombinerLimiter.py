@@ -2,8 +2,12 @@ import os
 import sys
 
 #card_dir = "./output/combineCards"
-card_dir = "./saveOutput/FourParams/combineCards"
+card_dir = "./saveOutput/ThreeParams/combineCards"
+card_dir = "./saveOutput/ThreeParams/output_10fb/combineCards"
 shape_dir = "./ShapeCombinedCards"
+
+gx = [300,400,500,600,750,1000,1500,2000,3000]
+ga = [0.005, 0.01, 0.015, 0.02, 0.025, 0.03]
 
 xas = []
 alphas = []
@@ -16,6 +20,11 @@ for cc in os.listdir(card_dir):
     sax = ss[2]
     func = ss[-1]
     func = func[:func.find(".")]
+
+    xm = int(sax[1 : sax.find("A")])
+    phim = float(sax[sax.find("A")+1 : ].replace("p","."))
+    alp = phim/xm
+    if(xm not in gx or alp not in ga): continue
 
     alphas.append(ialpha)
     xas.append(sax)
@@ -40,14 +49,6 @@ for XA in xas:
     os.system(mycommand)
 
 #sed_command = "sed -i \"s/\.\/output\/combineCards\///g\" {}/*.txt".format(shape_dir)
-sed_command = "sed -i \"s/\.\/saveOutput\/combineCards\///g\" {}/*.txt".format(shape_dir)
-print("Now Running: {}".format(sed_command))
-os.system(sed_command)
-
-#ToDo: 
-"""
-
-Then do combineCards.py CARD_alpha*_XxAa_function*.txt -S > shape_newCardName.txt
-Then combine shape_newCardName.txt -M AsymptoticLimits
-"""
-
+#sed_command = "sed -i \"s/\.\/saveOutput\/ThreeParams\/output_10fb\/combineCards\///g\" {}/*.txt".format(shape_dir)
+#print("Now Running: {}".format(sed_command))
+#os.system(sed_command)

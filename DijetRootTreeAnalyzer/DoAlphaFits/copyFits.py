@@ -5,6 +5,7 @@ print("Removing previous plots")
 os.system("rm -rf fitPlots/*")
 
 funcs = ["dijet","atlas","moddijet","myexp","dipho"]
+#funcs = ["dijet"]
 
 for ff in funcs:
   os.system("mkdir fitPlots/{}".format(ff))

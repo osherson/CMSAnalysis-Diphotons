@@ -22,14 +22,18 @@ G_DIR = "../inputs/Shapes_fromGen/unBinned"
 
 GEN_XS = [300,400,500,600,750,1000,1500,2000]
 
+AlphaBins = [ 0.003, 0.00347, 0.00395, 0.00444, 0.00494, 0.00545, 0.00597, 0.0065, 0.00704, 0.00759, 0.00815, 0.00872, 0.0093, 0.01049, 0.01505, 0.03]
+
 for plot_alpha in GEN_XS:
   int_files, gen_files = [],[]
+  #if(plot_alpha != 1000): continue
 
   for ii,alphaDir in enumerate([I_DIR, G_DIR]):
     for si in os.listdir(alphaDir):
       xx,pp,aa = GetXPhiAlpha(si)
       if(xx < 297 or xx > 2000): continue
       if(aa > 0.026): continue
+      if(aa not in [0.005,0.007,0.01]): continue
       if(xx == plot_alpha):
         xdir = os.path.join(alphaDir, si)
         if(os.path.exists("{}/Sig_nominal.root".format(xdir))):
@@ -55,6 +59,9 @@ for plot_alpha in GEN_XS:
     tf = ROOT.TFile(fil, "read")
     hist = tf.Get("h_alpha_fine")
     try:
+      #hist = hist.Rebin(len(AlphaBins)-1,hist.GetName()+"_rebin",numpy.array(AlphaBins))
+      #hist.Scale(1, "width")
+      #hist.Scale(1/hist.Integral())
       maxes.append(hist.GetMaximum())
     except AttributeError: continue
     if(xm > xmassmax): xmassmax = xm
@@ -62,6 +69,7 @@ for plot_alpha in GEN_XS:
 
   top = 0.11
   top = max(maxes)*1.15
+  print(top)
 
   c1 = ROOT.TCanvas()
   c1.cd()
@@ -79,10 +87,15 @@ for plot_alpha in GEN_XS:
       print("Problem with {}".format(fil))
       continue
 
+    #myhist = myhist.Rebin(len(AlphaBins)-1,myhist.GetName()+"_rebin",numpy.array(AlphaBins))
+    #myhist.Scale(1, "width")
+    #myhist.Scale(1/myhist.Integral())
+    print(myhist.Integral())
     myhist.SetStats(0)
     #myhist.GetXaxis().SetRangeUser(0, 2200)
     myhist.GetXaxis().SetRangeUser(0,0.035)
     myhist.GetYaxis().SetRangeUser(0, top)
+    myhist.Smooth() #
     myhist.SetTitle("#alpha Shape, X = {} GeV".format(plot_alpha))
     myhist.GetXaxis().SetTitle("Dicluster Mass")
     myhist.GetYaxis().SetTitle("Entries")

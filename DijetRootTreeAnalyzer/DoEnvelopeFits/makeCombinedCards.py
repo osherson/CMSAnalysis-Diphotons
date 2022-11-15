@@ -1,7 +1,7 @@
 import os
 import sys
 
-card_dir = "output/combineCards/"
+card_dir = "saveOutput/loose2/combineCards/"
 
 masses = []
 for ff in os.listdir(card_dir):
@@ -15,8 +15,8 @@ for mass in masses:
   if(ct % 100 == 0): print("{} / {} completed".format(ct, len(masses)))
   os.system("combineCards.py {}/*{}*.txt > AllAlphaCards/{}_alphaAll.txt".format(card_dir, mass, mass))
   ct += 1
-os.system("sed -i \"s/output\/combineCards\/\/cms/\/cms/g\" AllAlphaCards/*.txt")
+#os.system("sed -i \"s/output\/combineCards\/\/cms/\/cms/g\" AllAlphaCards/*.txt")
 
-scom = "sed -i \"s/output\/combineCards\/\/cms/\/cms/g\" AllAlphaCards/*.txt"
-print(scom)
-os.system(scom)
+#scom = "sed -i \"s/output\/combineCards\/\/cms/\/cms/g\" AllAlphaCards/*.txt"
+#print(scom)
+#os.system(scom)

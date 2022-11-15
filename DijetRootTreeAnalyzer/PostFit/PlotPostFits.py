@@ -8,7 +8,7 @@ import os
 import time
 import PlotDataSigTogether as PT
 
-#gROOT.SetBatch()
+gROOT.SetBatch()
 
 NEVENTS_TOGEN = 1000
 XS = 1
@@ -119,9 +119,9 @@ comName = "_{}_{}".format(an,mm)
 newDir = "combineOutput/{}/{}/{}".format(mm,an,fit)
 os.system("mkdir -p {}".format(newDir))
 
-PT.PlotTogether(infile)
+PT.PlotTogether(infile, False)
+exit()
 
-#exit()
 os.system("combine "+sys.argv[1]+" -M Significance --name {}".format(comName))
 os.system("combine "+sys.argv[1]+" -M AsymptoticLimits --name {}".format(comName))
 F = ROOT.TFile("higgsCombine{}.AsymptoticLimits.mH120.root".format(comName))
@@ -257,24 +257,29 @@ gPad.RedrawAxis()
 C_KS.Print("{}/GoF_{}_{}_{}.png".format(newDir,an,mm,fit))
 C_KS.Print("{}/GoF_{}_{}_{}.root".format(newDir,an,mm,fit))
 
-for i,j in zip(Lc,Ln):
-	os.system("combine "+sys.argv[1]+" -M GenerateOnly -t 500 --saveToys --toysFrequentist  --expectSignal "+str(i)+" -n _{}{} --bypassFrequentistFit ".format(j,comName))
-	os.system("combine "+sys.argv[1]+" -M FitDiagnostics --bypassFrequentistFit --skipBOnlyFit -t 500 --toysFile higgsCombine_{}{}.GenerateOnly.mH120.123456.root --rMin -10 --rMax 10 --saveWorkspace -n _{}{}".format(j,comName,j,comName))
-	F = ROOT.TFile("fitDiagnostics_{}{}.root".format(j,comName))
-	fList.append("fitDiagnostics_{}{}.root".format(j,comName))
-	T = F.Get("tree_fit_sb")
-	H = ROOT.TH1F("Bias Test, injected r="+j, ";(#mu_{measured} - #mu_{injected})/#sigma_{#mu};toys", 50, -5., 5.)
-	T.Draw("(r-%f)"%i+"/rErr>>Bias Test, injected r=" + j)
-	#T.Draw("(r-%f)"%i+"/rErr>>Bias Test, injected r=" + j, "fit_status == 0")
-	G = ROOT.TF1("f", "gaus(0)", -5.,5.)
-	H.Fit(G)
-	ROOT.gStyle.SetOptFit(1111)
-	C_B = ROOT.TCanvas()
-	C_B.cd()
-	H.Draw("e0")
-	C_B.Print(newDir+"/"+j+"_{}_{}_{}.png".format(an,mm,fit))
-	C_B.Print(newDir+"/"+j+"_{}_{}_{}.root".format(an,mm,fit))
+print("Before loop")
 
+for i,j in zip(Lc,Ln):
+  import os #it is weird that I have to do this
+  os.system("combine "+sys.argv[1]+" -M GenerateOnly -t 500 --saveToys --toysFrequentist  --expectSignal "+str(i)+" -n _{}{} --bypassFrequentistFit ".format(j,comName))
+  os.system("combine "+sys.argv[1]+" -M FitDiagnostics --bypassFrequentistFit --skipBOnlyFit -t 500 --toysFile higgsCombine_{}{}.GenerateOnly.mH120.123456.root --rMin -10 --rMax 10 --saveWorkspace -n _{}{}".format(j,comName,j,comName))
+  F = ROOT.TFile("fitDiagnostics_{}{}.root".format(j,comName))
+  fList.append("fitDiagnostics_{}{}.root".format(j,comName))
+  T = F.Get("tree_fit_sb")
+  H = ROOT.TH1F("Bias Test, injected r="+j, ";(#mu_{measured} - #mu_{injected})/#sigma_{#mu};toys", 50, -5., 5.)
+  T.Draw("(r-%f)"%i+"/rErr>>Bias Test, injected r=" + j)
+  #T.Draw("(r-%f)"%i+"/rErr>>Bias Test, injected r=" + j, "fit_status == 0")
+  G = ROOT.TF1("f", "gaus(0)", -5.,5.)
+  H.Fit(G)
+  ROOT.gStyle.SetOptFit(1111)
+  cbb = ROOT.TCanvas()
+  cbb.cd()
+  H.Draw("e0")
+  sname = newDir+"/"+j+"_{}_{}_{}".format(an,mm,fit)
+  cbb.Print("{}.png".format(sname))
+  cbb.Print("{}.root".format(sname))
+  print("Saving as: {}".format(sname))
+print("\nhere\n")
 os.system("rm higgsCombine*{}*.root".format(comName))
 os.system("rm fitDiagnostics*{}*.root".format(comName))
 

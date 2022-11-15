@@ -8,13 +8,16 @@
 *.json
 *.jdl
 *.png
+*.out
 
 getEtas/
 getClassifierTrees/
 Diphoton-Treemaker/ParticleGun/
 DijetRootTreeAnalyzer/python/rootTools/__pycache__
+DijetRootTreeAnalyzer/BiasTestExample/
 DijetRootTreeAnalyzer/rootTools/__pycache__/
 DijetRootTreeAnalyzer/DoAlphaFits/ShapeCombinedCards/
+DijetRootTreeAnalyzer/DoAlphaFits/Condorize_cardmaker/
 DijetRootTreeAnalyzer/DoAlphaFits/combineOutput/
 DijetRootTreeAnalyzer/DoAlphaFits/copyfits.sh
 DijetRootTreeAnalyzer/DoAlphaFits/limitMaker.py
@@ -63,9 +66,9 @@ DijetRootTreeAnalyzer/InterpoPlotter/effPlots
 /DijetRootTreeAnalyzer/DoEnvelopeFits/combineOutput
 /DijetRootTreeAnalyzer/DoEnvelopeFits/LimitPlots
 /DijetRootTreeAnalyzer/DoEnvelopeFits/fitPlots
-/DijetRootTreeAnalyzer/DoEnvelopeFits/Condor_LimitMaker/condor_submitFiles
-/DijetRootTreeAnalyzer/DoEnvelopeFits/Condor_LimitMaker/condor_logfiles
-/DijetRootTreeAnalyzer/DoEnvelopeFits/Condor_LimitMaker/CallFiles
+/DijetRootTreeAnalyzer/DoEnvelopeFits/AllAlphaCards
+/DijetRootTreeAnalyzer/DoEnvelopeFits/allAlphaLimitMaker
+/DijetRootTreeAnalyzer/DoEnvelopeFits/Condor_LimitMaker
 /DijetRootTreeAnalyzer/DoEnvelopeFits/allAlphaLimitMaker/condor_submitFiles
 /DijetRootTreeAnalyzer/DoEnvelopeFits/allAlphaLimitMaker/condor_logfiles
 /DijetRootTreeAnalyzer/DoEnvelopeFits/allAlphaLimitMaker/CallFiles
@@ -85,7 +88,14 @@ DijetRootTreeAnalyzer/PostFit/combineOutputEnvelope
 DijetRootTreeAnalyzer/PostFit/condor_logfiles
 DijetRootTreeAnalyzer/PostFit/envelopeCards
 DijetRootTreeAnalyzer/PostFit/combineCards
+DijetRootTreeAnalyzer/PostFit/combineCardsFull
+DijetRootTreeAnalyzer/PostFit/MeanPlots
 DijetRootTreeAnalyzer/PostFit/Joined
+DijetRootTreeAnalyzer/PostFit/fb*
+DijetRootTreeAnalyzer/PostFit/*.jdl
+DijetRootTreeAnalyzer/PostFit/Call*.sh
+DijetRootTreeAnalyzer/PostFit/biasOutput
+DijetRootTreeAnalyzer/PostFit/saveCombineOutput
 DijetRootTreeAnalyzer/humpFinder/Plots
 DijetRootTreeAnalyzer/humpFinder/NPlots
 DijetRootTreeAnalyzer/humpFinder/FemtoTrees

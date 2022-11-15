@@ -6,6 +6,7 @@ goLim = False
 DoInterpo = False
 
 xmasslist = ['400','600','1000','300','500','750','1500','2000','3000']
+xmasslist = ['400','1000','300','500','750','1500','2000','3000']
 xmasslist = ['600']
 
 if ("Interpo" in sys.argv):
@@ -72,8 +73,8 @@ def makeThisLimit(xmass):
     if(goLim): MakeFolder("combineOutput/alpha_{}/{}/".format(anum,sig))
     #os.system("cp {}{}/{}/arange.txt output/alpha_{}/{}/.".format(data_dir,dd,sig,anum,sig))
 
-  fitfuncs = ["dijet","moddijet","atlas","dipho","myexp"] #FourParams
-  #fitfuncs = ["dijet","moddijet","atlas","dipho"] #Five and Three
+  #fitfuncs = ["dijet","moddijet","atlas","dipho","myexp"] #FourParams
+  fitfuncs = ["dijet","moddijet","atlas","dipho"] #Five and Three
   #fitfuncs = ["dijet","atlas","dipho"] #Six
 
   for (dd,anum,la,ha) in dirs:
@@ -99,11 +100,13 @@ def makeThisLimit(xmass):
 
       mycommand = "python ../python/BinnedDiphotonFit.py -c ../config/diphoton_{}.config -y {} -l {} -b diphoton_{} {}/PLOTS_{}.root -d output --fit-spectrum --write-fit --words test --sig {} --abin {} --lowA {} --hiA {}".format(ff,year,LUMI,ff,dd,abin_num,sig,abin_num,la,ha)
       print(mycommand)
+      exit() 
       os.system(mycommand)
       os.system("mv output/fit_mjj_Full_diphoton_{}_2018_{}_alpha{}.png output/alpha_{}/{}/fit_mjj_Full_diphoton_{}_{}_{}.png ".format(ff,sig,abin_num,abin_num,sig,sig,ff,abin_num))
       os.system("rm output/fit_mjj_Full_diphoton_{}_2018_{}_alpha{}.C".format(ff,sig,abin_num))
       os.system("rm crudeFitPlot_diphoton_{}_{}_alpha{}.png".format(ff,sig,abin_num))
       os.system("mv output/DijetFitResults_diphoton_{}_2018_{}_alpha{}.root output/alpha_{}/{}/DijetFitResults_diphoton_{}_{}_alpha{}.root ".format(ff,sig,abin_num,abin_num,sig,sig,ff,abin_num))
+      os.system("mv output/Plots_diphoton_{}_{}_alpha{}.root output/alpha_{}/{}/Plots_diphoton_{}_{}_alpha{}.root ".format(ff,sig,abin_num,abin_num,sig,ff,sig,abin_num))
       if clean:
         os.system("mv output/*.* output/alpha_{}/{}/.".format(abin_num,sig))
 
@@ -129,7 +132,6 @@ def makeThisLimit(xmass):
 
       except IOError:
         print("Something broke, moving on")
-    
       #os.system("rm crude*")
       #os.system("rm stuff*")
       #os.system("rm output/corr*")
@@ -142,7 +144,6 @@ def makeThisLimit(xmass):
             os.system(comb_command)
             os.system("mv higgsCombine_{}_{}.AsymptoticLimits.mH120.root combineOutput/alpha_{}/higgsCombine_{}_{}.root".format(year,sig,abin_num,ff,sig))
 
-
 if(DoInterpo):
   print("Using interpolated shapes")
   #i_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromInterpo/alphaBinning/"
@@ -150,7 +151,7 @@ if(DoInterpo):
   xmlist = []
   for xa in os.listdir(i_dir):
     xm = int(xa[1 : xa.find("A")])
-    if(xm != 600): continue
+    #if(xm != 600): continue
     xmlist.append(xm)
 
   for xm in xmlist:

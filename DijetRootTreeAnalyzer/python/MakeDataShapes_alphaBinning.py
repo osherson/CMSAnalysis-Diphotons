@@ -28,8 +28,8 @@ for ff in os.listdir(xaastorage):
 #CUTS = [1.0, 3.5, 0.9, 0.8] #Loose
 #CUTS = [0.25, 1.5, 0.9, 0.8] #Analysis Cuts
 
-CUTS = [0.25, 1.5, 0.9, 0.1] #Loose 1
-#CUTS = [0.5, 2.5, 0.9, 0.1] #Loose 2
+#CUTS = [0.25, 1.5, 0.9, 0.1] #Loose 1
+CUTS = [0.5, 2.5, 0.9, 0.1] #Loose 2
 #CUTS = [0.9, 2.5, 0.9, 0.1] #Loose 3
 #CUTS = [0.9, 2.5, 0.5, 0.1] #Loose 4
 
@@ -76,9 +76,10 @@ AlphaBins = [
                #0.02806, 
                #0.02901, 
                0.03]
+#AlphaBins = [0, 0.03]
 
-#for abin_num in range(0,len(AlphaBins)-1):
-for abin_num in range(len(AlphaBins)-2, 13, -1):
+for abin_num in range(0,len(AlphaBins)-1):
+#for abin_num in range(len(AlphaBins)-2, 13, -1):
 
   lA = AlphaBins[abin_num]
   hA = AlphaBins[abin_num+1]

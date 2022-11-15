@@ -1,7 +1,7 @@
 import numpy as np
 import sys
 
-xmin, xmax = 320, 2000
+xmin, xmax = 320, 3000
 xstep = 10
 #xmin, xmax = 400,550
 #xstep = 50

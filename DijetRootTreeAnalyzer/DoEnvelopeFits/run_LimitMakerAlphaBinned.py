@@ -8,8 +8,8 @@ doInterpo = False
 fnum=999
 
 #xmasslist = ['600','400','500','300','750','1000','1500','2000']
-xmasslist = ['600','400','500','200','300','750','1000','1500','2000']
-#xmasslist = ['600','400']
+xmasslist = ['600','400','500','200','300','750','1000','1500','2000','3000']
+#xmasslist = ['600']
 
 year = 2018
 LUMI = 13.7 * 1000  #provide lumi in PB
@@ -63,6 +63,10 @@ def makeThisLimit(xmass):
     if(fast and anum!=fnum): continue
     for xx in os.listdir(os.path.join(data_dir,dd)):
       if("X{}A".format(xmass) in xx and os.path.exists("{}{}/{}/PLOTS_{}.root".format(data_dir,dd,xx,anum))):
+        fracFile = open("{}/{}/{}/alphaFraction_alpha{}_{}.txt".format(data_dir, anum,xx,anum,xx), "r")
+        frac = float(fracFile.readline())
+        if(frac < 0.1) : continue
+        fracFile.close()
         sig=xx
         rangeFile = open("{}{}/{}/arange.txt".format(data_dir,dd,sig),"r")
         rr = rangeFile.readline().rstrip()
@@ -93,6 +97,7 @@ def makeThisLimit(xmass):
       print("Already done, moving on. ")
       continue
 
+
     #GetSignal and efficiency
     for fil in os.listdir(dd):
       if(fil.startswith("X") and fil.endswith(".txt")):
@@ -108,6 +113,7 @@ def makeThisLimit(xmass):
     os.system("rm output/fit_mjj_Full_DIPHOM_alpha{}_2018_{}_alpha{}.C ".format(abin_num,sig,abin_num))
     os.system("rm crudeFitPlot_DIPHOM_alpha{}_{}_alpha{}.png".format(abin_num,sig,abin_num))
     os.system("mv output/DijetFitResults_DIPHOM_alpha{}_2018_{}_alpha{}.root output/alpha_{}/{}/DijetFitResults_DIPHOM_2018_{}_alpha{}.root ".format(abin_num,sig,abin_num,abin_num,sig,sig,abin_num))
+    os.system("mv output/Plots_DIPHOM_alpha{}_{}_alpha{}.root output/alpha_{}/{}/Plots_DIPHOM_alpha{}_{}.root ".format(abin_num,sig,abin_num,abin_num,sig,abin_num,sig))
     if clean:
       os.system("mv output/*.* output/alpha_{}/{}/.".format(abin_num,sig))
 
@@ -150,7 +156,7 @@ def makeThisLimit(xmass):
 
 if(doInterpo):
   print("Using interpolated shapes")
-  i_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromInterpo/alphaBinning/ALL"
+  i_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromInterpo/alphaBinning"
   xmlist = []
   for xa in os.listdir(i_dir):
     xm = int(xa[1 : xa.find("A")])

@@ -160,7 +160,9 @@ for ff in os.listdir(xaastorage):
 #CUTS = [1.0, 3.5, 0.9, 0.5] #Loose
 #CUTS = [1.0, 3.5, 0.9, 0.8] #Loose
 #CUTS = [0.25, 1.5, 0.9, 0.8] #Analysis Cuts
-CUTS = [0.25, 1.5, 0.9, 0.1] #Loose Analysis Cuts
+
+#CUTS = [0.25, 1.5, 0.9, 0.1] #Loose Analysis Cuts
+CUTS = [0.5, 2.5, 0.9, 0.1] #Loose 2
 
 #################################################
 

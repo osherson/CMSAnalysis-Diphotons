@@ -29,7 +29,7 @@ plt.ylabel(r"$2 \sigma$", fontsize=16)
 plt.ylim(0,max(sigmas)*1.15)
 plt.xlim(0,0.031)
 plt.savefig("sigma_vs_alpha.png")
-plt.show()
+#plt.show()
 
 start = 0.003
 tv = start
@@ -58,9 +58,41 @@ plt.xlabel(r"$\alpha$", fontsize = 16)
 plt.xlim(0,0.0302)
 plt.yticks([])
 plt.savefig("binedges.png")
-plt.show()
+#plt.show()
 
-outfile = open("FinalAlphaBinEdges.txt","w")
+#outfile = open("FinalAlphaBinEdges.txt","w")
+#for bb in bin_edges:
+#  outfile.write(str(bb)+",")
+#outfile.close()
+
+####
+#Now make fine bin edges
+
+nbins = len(bin_edges)
+nfine = 10000
+nbet = nfine // nbins
+print(nbet)
+
+finebins = list(np.linspace(0,bin_edges[0], nbet))
+
+for ii in range(0,len(bin_edges)-1):
+  d,u = bin_edges[ii], bin_edges[ii+1]
+  finebins.append(d)
+  delta = (u-d) / nbet
+  nval = finebins[-1] + delta
+  while(nval < u):
+    nval = finebins[-1] + delta
+    finebins.append(nval)
+  finebins = finebins[:-1]
+
+#finebins = finebins[:-1]
+finebins.append(0.03)
+print(len(finebins))
 for bb in bin_edges:
-  outfile.write(str(bb)+",")
+  if(bb not in finebins): 
+    print("Not in: ",bb)
+
+outfile = open("FineBinEdges.txt","w")
+for bb in finebins:
+  outfile.write(str(bb)+"\n")
 outfile.close()

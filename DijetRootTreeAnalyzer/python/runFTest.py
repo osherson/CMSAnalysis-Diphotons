@@ -11,10 +11,12 @@ BD = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/D
 
 anum=1
 
-#anums = range(0,16)
-anums = range(0,10)
+#anums = range(0,14+1)
+#anums = range(12,14+1)
+anums = range(3,14+1)
+anums=[14]
 functions = ["dijet","atlas","dipho","moddijet"]
-#functions=["moddijet"]
+functions=["moddijet"]
 
 pValue = 0.05
 
@@ -38,13 +40,14 @@ for function in functions:
 
       folder = BD + S + "Params/combineCards/"
       for ff in os.listdir(folder):
-        if (ff.endswith(".txt") and "X600" in ff and "alpha{}_".format(anum) in ff and "_{}".format(function) in ff):
+        if (ff.endswith(".txt") and "X1000" in ff and "alpha{}_".format(anum) in ff and "_{}".format(function) in ff):
           cardL = os.path.join(folder,ff)
 
+      print(cardL)
       folderP = BD + SP + "Params/combineCards/"
       print(folderP)
       for ff in os.listdir(folderP):
-        if (ff.endswith(".txt") and "X600" in ff and "alpha{}_".format(anum) in ff and "_{}".format(function) in ff):
+        if (ff.endswith(".txt") and "X1000" in ff and "alpha{}_".format(anum) in ff and "_{}".format(function) in ff):
           cardH = os.path.join(folderP,ff)
 
       print("Using These Two Cards: ")

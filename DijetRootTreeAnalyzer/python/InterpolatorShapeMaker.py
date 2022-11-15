@@ -546,7 +546,7 @@ print(inputSignal)
 print(shape)
 print(treeName)
 
-forceInt = False
+forceInt = True
 if(forceInt):
   INTERPO_SHAPE_DIR += "_Known"
 

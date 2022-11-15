@@ -53,7 +53,14 @@ def LookupAndWriteEff(sig,ix, ia, outDir):
 
 #XB = [297.0, 303.0, 310.0, 317.0, 324.0, 331.0, 338.0, 345.0, 352.0, 360.0, 368.0, 376.0, 384.0, 392.0, 400.0, 409.0, 418.0, 427.0, 436.0, 445.0, 454.0, 464.0, 474.0, 484.0, 494.0, 504.0, 515.0, 526.0, 537.0, 548.0, 560.0, 572.0, 584.0, 596.0, 609.0, 622.0, 635.0, 648.0, 662.0, 676.0, 690.0, 704.0, 719.0, 734.0, 749.0, 765.0, 781.0, 797.0, 814.0, 831.0, 848.0, 866.0, 884.0, 902.0, 921.0, 940.0, 959.0, 979.0, 999.0, 1020.0, 1041.0, 1063.0, 1085.0, 1107.0, 1130.0, 1153.0, 1177.0, 1201.0, 1226.0, 1251.0, 1277.0, 1303.0, 1330.0, 1357.0, 1385.0, 1413.0, 1442.0, 1472.0, 1502.0, 1533.0, 1564.0, 1596.0, 1629.0, 1662.0, 1696.0]
 X1B = Make1BinsFromMinToMax(297., 3110.) #Steven for making signals over 2000, this becomes a problem. I think you can just change 3110 to something much bigger. Verify this works
-AfineB = numpy.linspace(0.0,0.03, 10000)
+
+#Read AfineB from file
+fineFile = open("/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/ConstructAlphaBins/FineBinEdges.txt","r")
+AfineB = []
+for line in fineFile.readlines():
+  val = float(line)
+  AfineB.append(val)
+fineFile.close()
 
 def MakeFolder(N):
     if not os.path.exists(N):
@@ -170,6 +177,13 @@ class HC:
     HL.SetLineColor(ROOT.kGreen)
     HL.SetLineWidth(2)
     HL.SetTitle("HL")
+    HH.SetFillStyle(3021)
+
+    HL.Scale(1/HL.Integral())
+    HH.Scale(1/HH.Integral())
+
+    print(HL.Integral())
+    print(HH.Integral())
 
     ll.AddEntry(HL, "In_Low")
     ll.AddEntry(HH, "In_High")
@@ -248,25 +262,41 @@ def TrimWideHist(lowhist, hihist, shape):
   elif(shape=="alpha"):
     botidx = getABinIndex(lowmean - WW*lowrms)
     topidx = getABinIndex(himean + WW*hirms)
-    newBins = numpy.linspace(0.0,0.03, 10000.+1)
+    #newBins = numpy.linspace(0.0,0.03, 10000.+1)
     #AfineB = numpy.linspace(-0.03,0.03, 1201)
+
+    #Read AfineB from file
+    fineFile = open("/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/ConstructAlphaBins/FineBinEdges.txt","r")
+    newBins = []
+    for line in fineFile.readlines():
+      val = float(line)
+      newBins.append(val)
+    fineFile.close()
+
     bval = AfineB[botidx]
     tval = AfineB[topidx]
 
-  tl_Hist = ROOT.TH1D("{}_t".format(lowhist.GetName),"",len(newBins)-1, numpy.array(newBins))
-  th_Hist = ROOT.TH1D("{}_t".format(hihist.GetName),"",len(newBins)-1, numpy.array(newBins))
-
+  tl_Hist = ROOT.TH1D("{}_t".format(lowhist.GetName()),"",len(newBins)-1, numpy.array(newBins))
+  th_Hist = ROOT.TH1D("{}_h_t".format(hihist.GetName()),"",len(newBins)-1, numpy.array(newBins))
 
   for bb in range(tl_Hist.GetNbinsX()):
     if( tl_Hist.GetBinLowEdge(bb) < bval or tl_Hist.GetBinLowEdge(bb) > tval):
       tl_Hist.SetBinContent(bb,0)
+      th_Hist.SetBinContent(bb,0)
     else:
       tl_Hist.SetBinContent(bb, lowhist.GetBinContent(lowhist.FindBin(tl_Hist.GetBinLowEdge(bb))))
       th_Hist.SetBinContent(bb, hihist.GetBinContent(hihist.FindBin(tl_Hist.GetBinLowEdge(bb))))
 
-  #Maybe
-  #tl_Hist.Smooth()
-  #th_Hist.Smooth()
+  #if(shape=="alpha"):
+    #Maybe
+    #tl_Hist.Smooth()
+    #th_Hist.Smooth()
+  #cc = ROOT.TCanvas()
+  #tl_Hist.SetLineColor(ROOT.kGreen)
+  #th_Hist.SetLineColor(ROOT.kRed)
+  #tl_Hist.Draw("hist")
+  #th_Hist.Draw("histsame")
+  #cc.Print("tmp.png")
 
   return tl_Hist.Clone(), th_Hist.Clone()
 
@@ -326,11 +356,19 @@ def InterpolateHists(inputSignal, shape, fname, outDir):
   if(not checkFile(hifile)): return False
 
   lowR = ROOT.TFile(lowfile, "read")
-  lowH = lowR.Get(hname)
+  lowH = lowR.Get(hname).Clone("low")
 
   hiR = ROOT.TFile(hifile, "read")
-  hiH = hiR.Get(hname)
-
+  hiH = hiR.Get(hname).Clone("hi")
+  
+  cc = ROOT.TCanvas()
+  lowH.SetLineColor(ROOT.kGreen)
+  hiH.SetLineColor(ROOT.kRed)
+  lowH.SetFillStyle(3021)
+  lowH.Draw("hist")
+  hiH.Draw('histsame')
+  cc.Print('tmp.png')
+  exit()
   hist_low_trim, hist_hi_trim = TrimWideHist(lowH, hiH, shape)
 
   if(shape=="X"):

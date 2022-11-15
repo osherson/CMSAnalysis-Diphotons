@@ -72,6 +72,7 @@ AlphaBins = [
                #0.02901, 
                0.03]
 
+
 AfineB = numpy.linspace(0.0,0.03, 10000)
 #AfineB = AlphaBins
 def lookup(N):
@@ -141,12 +142,11 @@ fracs.append(0)
 alphaeffs.append(0)
 
 for abin_num in range(3,len(AlphaBins)-1):
-  #if(abin_num > 3): continue
+  #if(abin_num != 4): continue
   d_path = os.path.dirname(os.path.realpath(__file__))
 
   lA = AlphaBins[abin_num]
   hA = AlphaBins[abin_num+1]
-
 
   for thisSigIndex, oneSig in SignalsGenerated.items():
     whichSig = oneSig[0][0 : oneSig[0].find("_")]
@@ -155,6 +155,7 @@ for abin_num in range(3,len(AlphaBins)-1):
     thisPhi = float(whichSig[whichSig.find("A")+1 : ].replace("p","."))
     thisAlpha = thisPhi/thisX
     #if(whichSig != "X600A15"):continue
+    if(not whichSig.startswith("X600")):continue
     saveTree = False
 
     if(not os.path.exists("../inputs/Shapes_fromGen/alphaBinning/{}/{}/PLOTS_{}.root".format(abin_num,whichSig,abin_num))):
@@ -165,12 +166,27 @@ for abin_num in range(3,len(AlphaBins)-1):
     ufile = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromGen/unBinned/"
     uf = ROOT.TFile(ufile + whichSig + "/Sig_nominal.root", "read")
     aHist = uf.Get("h_alpha_fine")
-    print("aHistBins before rebin: {}".format(aHist.GetNbinsX()))
+    #print("aHistBins before rebin: {}".format(aHist.GetNbinsX()))
     aHist = aHist.Rebin(len(AlphaBins)-1,aHist.GetName()+"_rebin",numpy.array(AlphaBins))
-    print("aHistBins after rebin: {}".format(aHist.GetNbinsX()))
+    #aHist.Scale(1, "width") #Dont want this
+    aHist.Scale(1/aHist.Integral())
+    #print("aHistBins after rebin: {}".format(aHist.GetNbinsX()))
+    #print("Integral after rebin and scale: {}".format(aHist.Integral()))
 
-    (sXr_ub, sX1r_ub, sA_ub, sXvAr_ub) = GetDiphoShapeAnalysisPlusAlpha(SignalsGenerated[thisSigIndex],thisAlpha, "pico_nom", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [0.,0.03], "HLT_DoublePhoton", "puWeight*weight*10.*5.99")
-    (sXr, sX1r, sA, sXvAr) = GetDiphoShapeAnalysisPlusAlpha(SignalsGenerated[thisSigIndex], thisAlpha,"pico_nom", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeight*weight*10.*5.99")
+    (sXr_ub, sX1r_ub, sA_ub, sXvAr_ub) = PL.GetDiphoShapeAnalysisPlusAlpha(SignalsGenerated[thisSigIndex],thisAlpha, "pico_nom", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [0.,0.03], "HLT_DoublePhoton", "puWeight*weight*10.*5.99")
+    (sXr, sX1r, sA, sXvAr) = PL.GetDiphoShapeAnalysisPlusAlpha(SignalsGenerated[thisSigIndex], thisAlpha,"pico_nom", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeight*weight*10.*5.99")
+    #print("sA_ub bins: {}".format(sA_ub.GetNbinsX()))
+
+    #aHist = sA_ub.Clone()
+    #aHist = aHist.Rebin(len(AlphaBins)-1,aHist.GetName()+"_rebin",numpy.array(AlphaBins))
+    #aHist.Scale(1, "width")
+    #aHist.Scale(1/aHist.Integral())
+    stcount = 0.
+    sacount = 0.
+    for bb in range(sA_ub.GetNbinsX()):
+      if(sA_ub.GetBinCenter(bb) > lA and sA_ub.GetBinCenter(bb) < hA):
+        sacount += sA_ub.GetBinContent(bb)
+      stcount += sA_ub.GetBinContent(bb)
     
     alpha_denom = sX1r_ub.GetEntries()
     alpha_num = sX1r.GetEntries()
@@ -178,52 +194,68 @@ for abin_num in range(3,len(AlphaBins)-1):
 
     lBin,hBin = aHist.FindBin(lA), aHist.FindBin(hA)
     zbin,tbin = aHist.FindBin(0.0), aHist.FindBin(0.03)
-    frac = aHist.Integral(lBin,hBin-1) / aHist.Integral(zbin, tbin)
+    #frac = aHist.Integral(lBin,hBin-1) / aHist.Integral(zbin, tbin)
+
+#    tcount = 0.
+#    acount = 0.
+#    for bb in range(aHist.GetNbinsX()):
+#      if(aHist.GetBinCenter(bb) > lA and aHist.GetBinCenter(bb) < hA):
+#        acount += aHist.GetBinContent(bb)
+#      tcount += aHist.GetBinContent(bb)
+    
+    acount = aHist.GetBinContent(abin_num+1)
+    tcount = aHist.Integral()
+    print(acount, tcount, aHist.Integral())
+
+    frac = acount / tcount
     
     if(alpha_eff > 0.1 or (abin_num < 4 and thisAlpha==0.005)):
     #if(alpha_eff >= 0.33 or (abin_num < 4 and thisAlpha==0.005)):
-      print("Alpha bin: ")
-      print("{}: {} - {}".format(abin_num, lA, hA))
+      print("Alpha bin: {}".format(abin_num))
+      #print("{}: {} - {}".format(abin_num, lA, hA))
 
-      print("Alpha: {} / {} = {}".format(alpha_num, alpha_denom, alpha_eff))
+      print("Nevt Eff              :  {:4f}".format(alpha_eff))
+      print("BinContentIntegral Eff:  {:4f}".format(acount/tcount))
+      continue
 
       n_postcut = float(sX1r.GetEntries())
       n_gen = float(lookup(whichSig))
       eff = n_postcut / n_gen * 100
 
-      pdiff = abs(frac - alpha_eff) / frac * 100
+      pdiff = abs(frac - alpha_eff) / alpha_eff * 100
       print("frac: {:.4f}, alpha: {:.4f}, {:.4f}% diff".format(frac, alpha_eff, pdiff))
-      fracs.append(frac)
-      alphaeffs.append(alpha_eff)
-      pdiffhist.Fill(thisX, thisAlpha, pdiff)
+      #fracs.append(frac)
+      #alphaeffs.append(alpha_eff)
+      #pdiffhist.Fill(thisX, thisAlpha, pdiff)
+
       #if(len(fracs) > 1): break
 
     else:
       print("Not enough signal in Alpha Window. Skipping")
       continue
 
-mx = max([max(fracs),max(alphaeffs)])
-lin = ROOT.TLine(0,0,mx,mx)
+#mx = max([max(fracs),max(alphaeffs)])
+#lin = ROOT.TLine(0,0,mx,mx)
+#
+#c1 = ROOT.TCanvas()
+#c1.cd()
+#gr = TGraph(len(fracs), fracs, alphaeffs)
+#gr.SetLineColor( 2 )
+#gr.SetLineWidth( 4 )
+#gr.SetMarkerColor( 4 )
+#gr.SetMarkerStyle( 21 )
+#gr.SetTitle( "Efficiency in alpha bins")
+#gr.GetXaxis().SetTitle( "Computed from Integral" )
+#gr.GetYaxis().SetTitle( 'Computed from events' )
+#gr.GetXaxis().SetRangeUser(0, mx*1.1)
+#gr.GetYaxis().SetRangeUser(0, mx*1.1)
+#gr.Draw( 'AP' )
+#lin.Draw("same")
+#c1.Print("EffPlots/compare_known.png")
 
-c1 = ROOT.TCanvas()
-c1.cd()
-gr = TGraph(len(fracs), fracs, alphaeffs)
-gr.SetLineColor( 2 )
-gr.SetLineWidth( 4 )
-gr.SetMarkerColor( 4 )
-gr.SetMarkerStyle( 21 )
-gr.SetTitle( "Efficiency in alpha bins")
-gr.GetXaxis().SetTitle( "Computed from Integral" )
-gr.GetYaxis().SetTitle( 'Computed from events' )
-gr.GetXaxis().SetRangeUser(0, mx*1.1)
-gr.GetYaxis().SetRangeUser(0, mx*1.1)
-gr.Draw( 'AP' )
-lin.Draw("same")
-c1.Print("EffPlots/compare_known.png")
-
-c2 = ROOT.TCanvas()
-c2.cd()
-pdiffhist.SetStats(0)
-pdiffhist.Draw("colz")
-c2.Print("EffPlots/compare_pdiff.png")
+#c2 = ROOT.TCanvas()
+#c2.cd()
+#pdiffhist.SetStats(0)
+#pdiffhist.Draw("colz")
+#c2.Print("EffPlots/compare_pdiff.png")
 

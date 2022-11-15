@@ -149,6 +149,9 @@ for sig,fil in SignalsGenerated.items():
   #if(thisx < 500 or thisx > 1000): continue
   #if(thisx < 1000 or thisx > 2000): continue
   if(thisx < 2000 ): continue
+  #if(thisx > 1000 ): continue
+  #if(thisx < 1000 ): continue
+  #if(sig != "X500A12p0"): continue
   print("\n---------------------------------------------------------------------------")
   print("Beginning Signal {}".format(sig))
   print("X: {}, Phi: {}, Alpha: {}".format(thisx, thisphi, thisalpha))
@@ -188,11 +191,19 @@ for sig,fil in SignalsGenerated.items():
     lA = AlphaBins[abin_num]
     hA = AlphaBins[abin_num+1]
 
+    #print("aHist bins: {}".format(aHist.GetNbinsX()))
     aHist = aHist.Rebin(len(AlphaBins)-1,aHist.GetName()+"_rebin",numpy.array(AlphaBins)) #Rebin in alpha binning
+    #aHist.Scale(1,"width")
+    aHist.Scale(1/aHist.Integral())
+    #print("aHist bins: {}".format(aHist.GetNbinsX()))
 
-    lBin,hBin = aHist.FindBin(lA), aHist.FindBin(hA)
-    zbin,tbin = aHist.FindBin(0.0), aHist.FindBin(0.03)
-    frac = aHist.Integral(lBin,hBin-1) / aHist.Integral(zbin, tbin) #Get integral in just one bin / total Integral
+    #lBin,hBin = aHist.FindBin(lA), aHist.FindBin(hA)
+    #zbin,tbin = aHist.FindBin(0.0), aHist.FindBin(0.03)
+    #frac = aHist.Integral(lBin,hBin-1) / aHist.Integral(zbin, tbin) #Get integral in just one bin / total Integral
+    acount = aHist.GetBinContent(abin_num+1)
+    tcount = aHist.Integral()
+    frac = acount / tcount
+
     newEff = eff * frac
 
     print("\nAlpha bin: ")
