@@ -59,6 +59,7 @@ def makeThisLimit(xmass):
 
   for dd in os.listdir(data_dir):
     if(dd=="ALL"): continue
+    if(dd.startswith("cuts")): continue
     anum = int(dd)
     if(fast and anum!=fnum): continue
     for xx in os.listdir(os.path.join(data_dir,dd)):
@@ -145,6 +146,7 @@ def makeThisLimit(xmass):
     os.system("rm stuff*")
     os.system("rm output/corr*")
 
+    exit()
     print(goLim)
     if goLim:
       for of in os.listdir("output/combineCards"):
