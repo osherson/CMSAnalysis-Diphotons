@@ -891,7 +891,7 @@ if __name__ == '__main__':
     # PAS
     #h_fit_residual_vs_mass.GetXaxis().SetTitle('Dijet Mass [GeV]')
     # paper
-    h_fit_residual_vs_mass.GetXaxis().SetTitle('Average diphoton mass [TeV]')
+    h_fit_residual_vs_mass.GetXaxis().SetTitle('Di-Cluster mass [TeV]')
 
     
     #h_fit_residual_vs_mass.SetLineColor(rt.kGreen)
