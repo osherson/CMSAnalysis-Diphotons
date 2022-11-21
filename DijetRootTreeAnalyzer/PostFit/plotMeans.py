@@ -7,9 +7,9 @@ import sys,os
 gROOT.SetBatch()
 
 gen_alphas = [0.005, 0.01, 0.015, 0.02, 0.025, 0.03]
-xs = "1"
-useFit=False
-outfile = "fb_{}_biasOutput/BiasMeans.csv".format(xs)
+xs = "1_bigbins"
+
+outdir = "fb_{}_biasOutput".format(xs)
 
 #mlist = {"dijet":[], "atlas":[], "dipho":[], "moddijet":[], "myexp":[]}
 funcNames = {0:"Dijet", 1:"Atlas", 2:"ModDijet", 3:"Diphoton", 4:"Power"}
@@ -22,6 +22,10 @@ def checkPass(x, a, f, s):
   if(phimass.endswith("p0")): phimass = phimass[:-2]
   xmass = str(x)
   outfile = "fb_{}_biasOutput/X{}A{}/{}_alphaAll_X{}A{}_pdf{}.root".format(xs, xmass, phimass, s, xmass, phimass, f)
+  if(os.path.exists(outfile)==False): 
+    print("{} does not exist".format(outfile))
+    return -999,0,0,
+
   of = ROOT.TFile(outfile, "READ")
   kn = of.GetListOfKeys().At(0).GetName()
   canv = of.Get(kn)
@@ -36,28 +40,31 @@ for sig in ["null", "exp", "sig2"]:
 #for sig in ["null"]:
   #mlist = {0:[], 1:[], 2:[], 3:[], 4:[]}
   mlist = {0.005:[], 0.01:[], 0.015:[], 0.02:[], 0.025:[], 0.03:[]}
-  bfile = open(outfile, "r")
-  for lin in bfile.readlines():
-    if(lin.startswith("X")): continue
-
-    lin = lin.rstrip()
-    sl =lin.split(",")
-    thisX = int(sl[0])
-    thisAlpha = float(sl[1])
-    thisSig = sl[2]
-    thisFunc = int(sl[3])
-    thisFitMean = float(sl[4])
-    thisFitRms = float(sl[5])
-    
-    if(thisSig == sig):
-      npass,hMean,hRms = checkPass(thisX, thisAlpha, thisFunc, sig)
-      if(thisFitMean > 1 or hMean > 1): 
-        if(npass < 400):
-           print("X {}, Alpha {}, Fit {} signal only has {} successful fits. Skipping.".format(thisX, thisAlpha, thisFunc, npass))
-           continue
-      mlist[thisAlpha].append((thisX, thisFunc, thisFitMean, thisFitRms, hMean, hRms))
   
-  bfile.close()
+  for sigXA in os.listdir(outdir):
+    if(sigXA[0] != "X"):continue
+    thisX = int(sigXA[1 : sigXA.find("A")])
+    thisPhi = float(sigXA[sigXA.find("A")+1 : ].replace("p","."))
+    thisAlpha = thisPhi/thisX
+
+    for thisFunc in [0,1,2,3,4]:
+      outfile = "fb_{}_biasOutput/{}/{}_alphaAll_{}_pdf{}.root".format(xs, sigXA, sig, sigXA, thisFunc)
+      if(os.path.exists(outfile)==False): 
+        print("{} does not exist").format(outfile)
+        continue
+
+      of = ROOT.TFile(outfile, "READ")
+      kn = of.GetListOfKeys().At(0).GetName()
+      canv = of.Get(kn)
+      hist = canv.GetPrimitive("Bias Test, injected r={}".format(sig))
+      nEntry = int(hist.GetEntries())
+      hMean = float(hist.GetMean())
+      hRms = float(hist.GetRMS())
+      if(nEntry < 400):
+        print("X {}, Alpha {}, Fit {} signal only has {} successful fits. Skipping.".format(thisX, thisAlpha, thisFunc, nEntry))
+        continue
+      mlist[thisAlpha].append((thisX, thisFunc, hMean, hRms))
+  
   for alpha in mlist.keys():
   #for alpha in [0.005]:
     leg = ROOT.TLegend(0.62,0.62, 0.89, 0.89)
@@ -71,17 +78,14 @@ for sig in ["null", "exp", "sig2"]:
       marr = array.array("d")
       earr = array.array("d")
       zarr = array.array("d")
-      for (xx, ff, mm, rr, hm, hr) in mlist[alpha]:
+      for (xx, ff, hm, hr) in mlist[alpha]:
         if(ff != func): continue
         xarr.append(xx+func*6)
-        if(useFit==True):
-          marr.append(mm)
-          earr.append(rr)
-        else:
-          marr.append(hm)
-          earr.append(hr)
+        marr.append(hm)
+        earr.append(hr)
         zarr.append(0.)
     
+      if(len(marr)==0 or len(earr)==0):continue
       nmax = np.amax(marr) + np.amax(earr)
       if(nmax > amax): amax=nmax
       gr = TGraphErrors(len(xarr), xarr, marr, zarr, earr)
