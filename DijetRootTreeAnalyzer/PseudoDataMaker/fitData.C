@@ -1,0 +1,187 @@
+#include "TCanvas.h"
+#include "TFrame.h"
+#include "TBenchmark.h"
+#include "TString.h"
+#include "TF1.h"
+#include "TH1.h"
+#include "TFile.h"
+#include "TROOT.h"
+#include "TError.h"
+#include "TInterpreter.h"
+#include "TSystem.h"
+#include "TPaveText.h"
+#include "TMath.h"
+
+#include <iostream>
+
+using namespace std;
+
+
+TH1F* convertToMjjHist(TH1F* hist_th1x){
+  const int xbsize = 115;
+  double xbins[xbsize] = {297.0, 303.0, 310.0, 317.0, 324.0, 331.0, 338.0, 345.0, 352.0, 360.0, 368.0, 376.0, 384.0, 392.0, 400.0, 409.0, 418.0, 427.0, 436.0, 445.0, 454.0, 464.0, 474.0, 484.0, 494.0, 504.0, 515.0, 526.0, 537.0, 548.0, 560.0, 572.0, 584.0, 596.0, 609.0, 622.0, 635.0, 648.0, 662.0, 676.0, 690.0, 704.0, 719.0, 734.0, 749.0, 765.0, 781.0, 797.0, 814.0, 831.0, 848.0, 866.0, 884.0, 902.0, 921.0, 940.0, 959.0, 979.0, 999.0, 1020.0, 1041.0, 1063.0, 1085.0, 1107.0, 1130.0, 1153.0, 1177.0, 1201.0, 1226.0, 1251.0, 1277.0, 1303.0, 1330.0, 1357.0, 1385.0, 1413.0, 1442.0, 1472.0, 1502.0, 1533.0, 1564.0, 1596.0, 1629.0, 1662.0, 1696.0, 1731.0, 1766.0, 1802.0, 1839.0, 1877.0, 1915.0, 1954.0, 1994.0, 2035.0, 2077.0, 2119.0, 2162.0, 2206.0, 2251.0, 2297.0, 2344.0, 2392.0, 2441.0, 2491.0, 2542.0, 2594.0, 2647.0, 2701.0, 2756.0, 2812.0, 2869.0, 2927.0, 2987.0, 3048.0, 3110.0};
+
+// hist = rt.TH1D(hist_th1x.GetName()+'_mjj',hist_th1x.GetName()+'_mjj',len(x)-1,x)
+// for i in range(1,hist_th1x.GetNbinsX()+1):
+//     hist.SetBinContent(i,hist_th1x.GetBinContent(i)/(x[i]-x[i-1]))
+//    hist.SetBinError(i,hist_th1x.GetBinError(i)/(x[i]-x[i-1]))
+
+// return hist
+  
+  const char *n =  hist_th1x->GetName();
+  char nr[] = "_r";
+  char * newName = new char[std::strlen(n)+std::strlen(nr)+1];
+  std::strcpy(newName,n);
+  std::strcat(newName,nr);
+  delete [] newName;
+
+  auto hist = new TH1F(newName, newName, xbsize-1, xbins);
+  for(int ii=1; ii<hist_th1x->GetNbinsX()+1; ii++){
+    hist->SetBinContent(ii,hist_th1x->GetBinContent(ii) / (xbins[ii] - xbins[ii-1]));
+    hist->SetBinError(ii,hist_th1x->GetBinError(ii) / (xbins[ii] - xbins[ii-1]));
+  }
+
+  return hist;
+}
+
+TF1* getDijet(){
+  //Not Working
+  double_t fmin = 297.;
+  double_t fmax = 3110.;
+  TF1 *func = new TF1("func", "[0] * TMath::Power( (1-x), [1] ) / TMath::Power(x,[2]) ",fmin,fmax);
+  func->SetParNames("p0","p1","p2");
+  func->SetParameters(0.1,0.1,-0.01);
+  func->SetParLimits(1,0.0001,1);
+  func->SetParLimits(2,-1.,-0.0001);
+  return func;
+}
+
+TF1* getModDijet(){
+  //Not Working
+  double_t fmin = 297.;
+  double_t fmax = 3110.;
+  TF1 *func = new TF1("func", "[0] * TMath::Power( (1-TMath::Power(x,1./3.)), [1] ) / TMath::Power(x,[2]) ",fmin,fmax);
+  func->SetParNames("p0","p1","p2");
+  func->SetParameters(1.,0.1,-0.1);
+  //func->SetParLimits(0,0.,100.);
+  func->SetParLimits(1,0.0001,1.5);
+  func->SetParLimits(2,-1.5,-0.0001);
+  return func;
+}
+
+TF1* getATLAS(){
+  double_t fmin = 297.;
+  double_t fmax = 3110.;
+  TF1 *func = new TF1("func", "[0] * (1 / TMath::Power(x, [1] )) * TMath::Exp(-[2]*x )",fmin,fmax);
+  func->SetParNames("p0","p1","p2");
+  func->SetParameters(1.,0.1,0.001);
+  return func;
+}
+
+TF1* getDipho(){
+  double_t fmin = 297.;
+  double_t fmax = 3110.;
+  TF1 *func = new TF1("func", "[0] * TMath::Power(x, [1] + [2]*TMath::Log(x) )",fmin,fmax);
+  func->SetParNames("p0","p1","p2");
+  func->SetParameters(1.,-1.,-0.1);
+  return func;
+}
+
+TF1* getPower(){
+  double_t fmin = 297.;
+  double_t fmax = 3110.;
+  TF1 *func = new TF1("func", "[0] * TMath::Power([1], [2]*x + [3]/x )",fmin,fmax);
+  func->SetParNames("p0","p1","p2", "p3");
+  func->SetParameters(10.,1.,-1.,-1.);
+  return func;
+}
+
+void fitData(){
+
+  TFile *dfile = new TFile("../inputs/Shapes_DATA/alphaBinning/ALL/DATA.root");
+  TH1F *dhist = (TH1F*)dfile->Get("data_XM");
+  dhist->SetName("data_in");
+  dhist->GetXaxis()->SetTitle("");
+  dhist->SetMarkerStyle(20);
+  dhist->SetMarkerSize(1.0);
+  dhist->SetMarkerColor(1);
+  dhist->SetLineColor(1);
+  dhist->SetLineWidth(2.0);
+
+  auto drhist = convertToMjjHist(dhist);
+  drhist->Scale(1., "width");
+  drhist->GetXaxis()->SetTitle("");
+  drhist->SetMarkerStyle(20);
+  drhist->SetMarkerSize(1.0);
+  drhist->SetMarkerColor(1);
+  drhist->SetLineColor(1);
+  drhist->SetLineWidth(2.0);
+
+  double_t fmin = 297.;
+  double_t fmax = 3110.;
+  //TF1 *func = getDijet();
+  //TF1 *func = getModDijet();
+  //TF1 *func = getATLAS();
+  //TF1 *func = getDipho();
+
+  int whichFunc = 4;
+  TF1 *func = new TF1();
+
+  switch(whichFunc){
+    case 0:
+      func = getDijet();
+      break;
+    case 1:
+      func = getATLAS();
+      break;
+    case 2:
+      func = getModDijet();
+      break;
+    case 3:
+      func = getDipho();
+      break;
+    case 4:
+      func = getPower();
+      break;
+  }
+
+  dhist->Fit(func, "EM0");
+
+
+  func->SetLineColor(kRed);
+  gStyle->SetOptStat();
+
+  TCanvas *c1 = new TCanvas("c1","c1", 800,600);
+  c1->cd();
+  dhist->Draw("PE0");
+  func->Draw("same");
+  c1->SetLogx();
+  c1->SetLogy();
+  c1->Print("temp.png");
+
+  auto h1f = new TH1F("data_XM","Generated by Function",dhist->GetNbinsX(),dhist->GetBinLowEdge(0),dhist->GetBinLowEdge(dhist->GetNbinsX()));
+  h1f->FillRandom("func",dhist->GetEntries()*10);
+  h1f->Scale(1., "width");
+  h1f->GetXaxis()->SetTitle("");
+  h1f->SetMarkerStyle(20);
+  h1f->SetMarkerSize(1.0);
+  h1f->SetMarkerColor(4);
+  h1f->SetLineColor(4);
+  h1f->SetLineWidth(2.0);
+
+  TCanvas *c2 = new TCanvas("c2","c2", 800,600);
+  c2->cd();
+  h1f->Draw("PE0");
+  c2->SetLogx();
+  c2->SetLogy();
+  c2->Print("temp2.png");
+
+
+  TFile *outfile = new TFile("../inputs/Shapes_PseudoData/data_power.root","recreate");
+  outfile->cd();
+  h1f->Write();
+  outfile->Write();
+  outfile->Close();
+
+  return 0;
+}
