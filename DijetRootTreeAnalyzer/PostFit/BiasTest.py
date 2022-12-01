@@ -5,8 +5,6 @@ import math
 import sys
 import array
 import os
-import time
-import PlotDataSigTogether as PT
 
 gROOT.SetBatch()
 
@@ -15,7 +13,8 @@ def getAlphaSlices(card):
   anums = []
   for lin in cc.readlines():
     if('discrete' not in lin): continue
-    ls = lin.split(" ")
+    ls = lin.replace("\t"," ")
+    ls = ls.split(" ")
     anum = ls[0]
     anum = int(anum[anum.rfind("a")+1 : ])
     anums.append(anum)
@@ -27,7 +26,17 @@ print(infile)
 cps = infile[infile.rfind("/"):]
 cps = cps.split("_")
 an = "alphaAll"
-mm = cps[0][1:]
+
+
+for c in cps:
+  if(c.startswith("X")):
+    mm = c
+    break
+
+if(mm.endswith(".txt")):
+  mm = mm[0:mm.rfind(".")]
+
+#mm = cps[0][1:]
 print(an, mm)
 anum = an
 

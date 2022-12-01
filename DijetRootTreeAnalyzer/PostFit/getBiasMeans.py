@@ -1,7 +1,8 @@
 import os
 
 #out_dir = "combineOutputEnvelope"
-out_dir = "fb_1_loose_biasOutput"
+#out_dir = "fb_1_loose_biasOutput"
+out_dir = "fb_1_bigbins_biasOutput"
 
 def getXPhiAlpha(xa):
   x = int(xa[1:xa.find("A")])

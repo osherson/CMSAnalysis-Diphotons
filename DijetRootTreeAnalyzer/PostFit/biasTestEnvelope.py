@@ -7,10 +7,19 @@ xmass = sys.argv[1]
 
 cdict = {}
 
-for ff in os.listdir("./envelopeCards/loose2"):
+for ff in os.listdir("./envelopeCards/OneBigBin"):
   if(ff.endswith(".txt")):
     cps = ff.split("_")
-    mm = cps[0]
+
+    for c in cps:
+      if c.startswith("X"):
+        mm = c
+        break
+    #mm = cps[0]
+    #mm should be X400A2 (or similar)
+
+    if(mm.endswith(".txt")):
+      mm = mm[0:mm.rfind(".")]
 
     #if(an != "alpha3" or "X600" not in mm): continue
     if("X{}".format(xmass) not in mm) : continue
@@ -22,6 +31,7 @@ ocdict = OrderedDict(sorted(cdict.items()))
 print(ocdict)
 
 for alpha, ff in ocdict.items():
-    mycommand= "python BiasTest.py envelopeCards/loose2/{} ".format(ff)
+    #if(alpha != 0.005): continue
+    mycommand= "python BiasTest.py envelopeCards/OneBigBin/{} ".format(ff)
     print(mycommand)
     os.system(mycommand)
