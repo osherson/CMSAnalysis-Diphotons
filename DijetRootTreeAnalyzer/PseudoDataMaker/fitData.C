@@ -45,34 +45,27 @@ TH1F* convertToMjjHist(TH1F* hist_th1x){
 }
 
 TF1* getDijet(){
-  //Not Working
   double_t fmin = 297.;
   double_t fmax = 3110.;
-  TF1 *func = new TF1("func", "[0] * TMath::Power( (1-x), [1] ) / TMath::Power(x,[2]) ",fmin,fmax);
+  TF1 *func = new TF1("func", "[0] * TMath::Power( (1-(x/13000) ), [1] ) / TMath::Power( (x/13000) ,[2]) ",fmin,fmax);
   func->SetParNames("p0","p1","p2");
-  func->SetParameters(0.1,0.1,-0.01);
-  func->SetParLimits(1,0.0001,1);
-  func->SetParLimits(2,-1.,-0.0001);
+  func->SetParameters(10,-1.,-0.1);
   return func;
 }
 
 TF1* getModDijet(){
-  //Not Working
   double_t fmin = 297.;
   double_t fmax = 3110.;
-  TF1 *func = new TF1("func", "[0] * TMath::Power( (1-TMath::Power(x,1./3.)), [1] ) / TMath::Power(x,[2]) ",fmin,fmax);
+  TF1 *func = new TF1("func", "[0] * TMath::Power( (1-TMath::Power((x/13000),1./3.)), [1] ) / TMath::Power((x/13000),[2]) ",fmin,fmax);
   func->SetParNames("p0","p1","p2");
-  func->SetParameters(1.,0.1,-0.1);
-  //func->SetParLimits(0,0.,100.);
-  func->SetParLimits(1,0.0001,1.5);
-  func->SetParLimits(2,-1.5,-0.0001);
+  func->SetParameters(10,-1.,-0.1);
   return func;
 }
 
 TF1* getATLAS(){
   double_t fmin = 297.;
   double_t fmax = 3110.;
-  TF1 *func = new TF1("func", "[0] * (1 / TMath::Power(x, [1] )) * TMath::Exp(-[2]*x )",fmin,fmax);
+  TF1 *func = new TF1("func", "[0] * (1 / TMath::Power((x/13000), [1] )) * TMath::Exp(-[2]*(x/13000) )",fmin,fmax);
   func->SetParNames("p0","p1","p2");
   func->SetParameters(1.,0.1,0.001);
   return func;
@@ -81,7 +74,7 @@ TF1* getATLAS(){
 TF1* getDipho(){
   double_t fmin = 297.;
   double_t fmax = 3110.;
-  TF1 *func = new TF1("func", "[0] * TMath::Power(x, [1] + [2]*TMath::Log(x) )",fmin,fmax);
+  TF1 *func = new TF1("func", "[0] * TMath::Power((x/13000), [1] + [2]*TMath::Log((x/13000)) )",fmin,fmax);
   func->SetParNames("p0","p1","p2");
   func->SetParameters(1.,-1.,-0.1);
   return func;
@@ -90,9 +83,9 @@ TF1* getDipho(){
 TF1* getPower(){
   double_t fmin = 297.;
   double_t fmax = 3110.;
-  TF1 *func = new TF1("func", "[0] * TMath::Power([1], [2]*x + [3]/x )",fmin,fmax);
+  TF1 *func = new TF1("func", "[0] * TMath::Power([1], [2]*(x/13000) + [3]/(x/13000) )",fmin,fmax);
   func->SetParNames("p0","p1","p2", "p3");
-  func->SetParameters(10.,1.,-1.,-1.);
+  func->SetParameters(10.,1.,-0.1,-0.1);
   return func;
 }
 
@@ -119,12 +112,10 @@ void fitData(){
 
   double_t fmin = 297.;
   double_t fmax = 3110.;
-  //TF1 *func = getDijet();
-  //TF1 *func = getModDijet();
-  //TF1 *func = getATLAS();
-  //TF1 *func = getDipho();
 
   int whichFunc = 4;
+  // 0:dijet, 1:atlas, 2:moddijet, 3:dipho, 4:power
+  //const char fnames[5] = {"dijet", "atlas", "moddijet", "dipho", "power"};
   TF1 *func = new TF1();
 
   switch(whichFunc){
@@ -146,7 +137,7 @@ void fitData(){
   }
 
   dhist->Fit(func, "EM0");
-
+  //return 0;
 
   func->SetLineColor(kRed);
   gStyle->SetOptStat();
@@ -175,7 +166,6 @@ void fitData(){
   c2->SetLogx();
   c2->SetLogy();
   c2->Print("temp2.png");
-
 
   TFile *outfile = new TFile("../inputs/Shapes_PseudoData/data_power.root","recreate");
   outfile->cd();
