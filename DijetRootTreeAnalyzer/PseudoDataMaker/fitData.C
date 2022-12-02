@@ -113,9 +113,10 @@ void fitData(){
   double_t fmin = 297.;
   double_t fmax = 3110.;
 
-  int whichFunc = 4;
+  int whichFunc = 2;
   // 0:dijet, 1:atlas, 2:moddijet, 3:dipho, 4:power
-  //const char fnames[5] = {"dijet", "atlas", "moddijet", "dipho", "power"};
+  const char* fnames[5] = {"dijet", "atlas", "moddijet", "dipho", "power"};
+  const char* funcName = fnames[whichFunc];
   TF1 *func = new TF1();
 
   switch(whichFunc){
@@ -167,7 +168,15 @@ void fitData(){
   c2->SetLogy();
   c2->Print("temp2.png");
 
-  TFile *outfile = new TFile("../inputs/Shapes_PseudoData/data_power.root","recreate");
+  const char* ofbase = "../inputs/Shapes_PseudoData/data_";
+  const char* root = ".root";
+  char result[100];
+  strcpy(result,ofbase);
+  strcat(result,funcName);
+  strcat(result,root);
+  const char* ofname = result;
+  std::cout << "Saving output in: " << ofname << std::endl;
+  TFile *outfile = new TFile(ofname,"recreate");
   outfile->cd();
   h1f->Write();
   outfile->Write();
