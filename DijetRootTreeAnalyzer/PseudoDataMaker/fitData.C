@@ -44,143 +44,215 @@ TH1F* convertToMjjHist(TH1F* hist_th1x){
   return hist;
 }
 
-TF1* getDijet(){
-  double_t fmin = 297.;
-  double_t fmax = 3110.;
+double_t getLastBin(TH1F *hist){
+
+  double_t lb = 0.;
+  for (int bn=hist->GetNbinsX(); bn>0; bn -= 1){
+    if(hist->GetBinContent(bn)==0){continue;}
+    else{
+      lb = hist->GetBinLowEdge(bn);
+      break;
+    }
+  }
+
+  return lb;
+}
+
+TF1* getDijet(double_t fmin, double_t fmax){
   TF1 *func = new TF1("func", "[0] * TMath::Power( (1-(x/13000) ), [1] ) / TMath::Power( (x/13000) ,[2]) ",fmin,fmax);
   func->SetParNames("p0","p1","p2");
   func->SetParameters(10,-1.,-0.1);
+  func->SetParLimits(2,-1.,-0.0001);
   return func;
 }
 
-TF1* getModDijet(){
-  double_t fmin = 297.;
-  double_t fmax = 3110.;
+TF1* getModDijet(double_t fmin, double_t fmax){
   TF1 *func = new TF1("func", "[0] * TMath::Power( (1-TMath::Power((x/13000),1./3.)), [1] ) / TMath::Power((x/13000),[2]) ",fmin,fmax);
   func->SetParNames("p0","p1","p2");
   func->SetParameters(10,-1.,-0.1);
+  func->SetParLimits(2,-1.,-0.0001);
   return func;
 }
 
-TF1* getATLAS(){
-  double_t fmin = 297.;
-  double_t fmax = 3110.;
+TF1* getATLAS(double_t fmin, double_t fmax){
   TF1 *func = new TF1("func", "[0] * (1 / TMath::Power((x/13000), [1] )) * TMath::Exp(-[2]*(x/13000) )",fmin,fmax);
   func->SetParNames("p0","p1","p2");
   func->SetParameters(1.,0.1,0.001);
+  func->SetParLimits(2,0.00001, 0.1);
   return func;
 }
 
-TF1* getDipho(){
-  double_t fmin = 297.;
-  double_t fmax = 3110.;
+TF1* getDipho(double_t fmin, double_t fmax){
   TF1 *func = new TF1("func", "[0] * TMath::Power((x/13000), [1] + [2]*TMath::Log((x/13000)) )",fmin,fmax);
   func->SetParNames("p0","p1","p2");
-  func->SetParameters(1.,-1.,-0.1);
+  func->SetParameters(1.,-10.,-1.);
+  func->SetParLimits(1,-100.,-0.001);
+  func->SetParLimits(2,-10.,-0.0001);
   return func;
 }
 
-TF1* getPower(){
-  double_t fmin = 297.;
-  double_t fmax = 3110.;
-  TF1 *func = new TF1("func", "[0] * TMath::Power([1], [2]*(x/13000) + [3]/(x/13000) )",fmin,fmax);
+//EXT PARAMETER                APPROXIMATE        STEP         FIRST   
+//NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
+//1  p0           2.02239e+02   1.61286e+02  -2.23035e-05  -5.23629e-06
+//2  p1           1.00027e+00   2.20628e-04   7.35314e-11  -2.17007e+02
+//3  p2          -4.30891e+01   4.25469e+01   1.75457e-08   7.04656e-01
+//4  p3           2.01322e-01   1.41664e+00  -3.79630e-09  -1.60814e-07
+
+
+TF1* getPower(double_t fmin, double_t fmax){
+  //TF1 *func = new TF1("func", "[0] * TMath::Power([1], [2]*(x/13000) + [3]/(x/13000) )",fmin,fmax);
+  //func->SetParNames("p0","p1","p2", "p3");
+  //func->SetParameters(10.,1.,-23.667,0.1);
+  //func->SetParLimits(1,0.001,100);
+  //func->SetParLimits(2,-10000.,-1.);
+  //func->SetParLimits(3,0.0001,0.1);
+  TF1 *func = new TF1("func", "[0] * TMath::Power([1], [2]*(x) + [3]/(x) )",fmin,fmax);
   func->SetParNames("p0","p1","p2", "p3");
-  func->SetParameters(10.,1.,-0.1,-0.1);
+  func->SetParameters(10.,1.,-1.,0.1);
+  func->SetParLimits(0,10.,1000.);
+  func->SetParLimits(1,0.1,10.);
+  func->SetParLimits(2,-100.,-1.);
+  func->SetParLimits(3,0.001,0.1);
   return func;
 }
 
 void fitData(){
 
-  TFile *dfile = new TFile("../inputs/Shapes_DATA/alphaBinning/ALL/DATA.root");
-  TH1F *dhist = (TH1F*)dfile->Get("data_XM");
-  dhist->SetName("data_in");
-  dhist->GetXaxis()->SetTitle("");
-  dhist->SetMarkerStyle(20);
-  dhist->SetMarkerSize(1.0);
-  dhist->SetMarkerColor(1);
-  dhist->SetLineColor(1);
-  dhist->SetLineWidth(2.0);
+  for(int Abin=0; Abin<15; Abin++){
+  //for(int Abin=14; Abin<15; Abin++){
+  //for(int Abin=3; Abin<5; Abin++){
 
-  auto drhist = convertToMjjHist(dhist);
-  drhist->Scale(1., "width");
-  drhist->GetXaxis()->SetTitle("");
-  drhist->SetMarkerStyle(20);
-  drhist->SetMarkerSize(1.0);
-  drhist->SetMarkerColor(1);
-  drhist->SetLineColor(1);
-  drhist->SetLineWidth(2.0);
+    std::string s = std::to_string(Abin);
+    const char* alphabin = s.c_str();
 
-  double_t fmin = 297.;
-  double_t fmax = 3110.;
+    const char* datadir = "../inputs/Shapes_DATA/alphaBinning/cuts_masym025_deta1p5_dipho09_iso01/";
+    //const char* datadir = "../inputs/Shapes_DATA/alphaBinning/ALL/";
+    const char* dname = "/DATA.root";
+    char dresult[100];
+    strcpy(dresult,datadir);strcat(dresult,alphabin);strcat(dresult,dname);
+    //strcpy(dresult,datadir);strcat(dresult,dname);
+    const char* dataname = dresult;
 
-  int whichFunc = 2;
-  // 0:dijet, 1:atlas, 2:moddijet, 3:dipho, 4:power
-  const char* fnames[5] = {"dijet", "atlas", "moddijet", "dipho", "power"};
-  const char* funcName = fnames[whichFunc];
-  TF1 *func = new TF1();
+    std::cout << "Alpha Bin " << alphabin << std::endl;
 
-  switch(whichFunc){
-    case 0:
-      func = getDijet();
-      break;
-    case 1:
-      func = getATLAS();
-      break;
-    case 2:
-      func = getModDijet();
-      break;
-    case 3:
-      func = getDipho();
-      break;
-    case 4:
-      func = getPower();
-      break;
+    TFile *dfile = new TFile(dataname, "read");
+
+    //TFile *dfile = new TFile("../inputs/Shapes_DATA/alphaBinning/ALL/DATA.root");
+    TH1F *dhist = (TH1F*)dfile->Get("data_XM");
+    dhist->SetName("data_in");
+    dhist->GetXaxis()->SetTitle("");
+    dhist->SetMarkerStyle(20);
+    dhist->SetMarkerSize(1.0);
+    dhist->SetMarkerColor(1);
+    dhist->SetLineColor(1);
+    dhist->SetLineWidth(2.0);
+
+
+    auto drhist = convertToMjjHist(dhist);
+    drhist->Scale(1., "width");
+    drhist->GetXaxis()->SetTitle("");
+    drhist->SetMarkerStyle(20);
+    drhist->SetMarkerSize(1.0);
+    drhist->SetMarkerColor(1);
+    drhist->SetLineColor(1);
+    drhist->SetLineWidth(2.0);
+
+    double_t fitmin = 297.;
+    //double_t fitmax = 1.5 * getLastBin(dhist); //last bin with any data in it
+    double_t fitmax = 3110.;
+
+    int whichFunc = 4;
+    // 0:dijet, 1:atlas, 2:moddijet, 3:dipho, 4:power
+    const char* fnames[5] = {"dijet", "atlas", "moddijet", "dipho", "power"};
+    const char* funcName = fnames[whichFunc];
+    std::cout << "Function: " << funcName << std::endl;
+    TF1 *func = new TF1();
+
+    switch(whichFunc){
+      case 0:
+        func = getDijet(fitmin, fitmax);
+        break;
+      case 1:
+        func = getATLAS(fitmin, fitmax);
+        break;
+      case 2:
+        func = getModDijet(fitmin, fitmax);
+        break;
+      case 3:
+        func = getDipho(fitmin, fitmax);
+        break;
+      case 4:
+        func = getPower(fitmin, fitmax);
+        break;
+    }
+
+    dhist->Fit(func, "EM0");
+    //return 0;
+
+    func->SetLineColor(kRed);
+    gStyle->SetOptStat();
+
+    TCanvas *c1 = new TCanvas("c1","c1", 800,600);
+    c1->cd();
+
+    const char* ofbase = "../inputs/Shapes_PseudoData/";
+    char result[100];
+    strcpy(result,ofbase);
+    strcat(result,alphabin);
+
+    const char* ab = "Alpha bin ";
+    const char* dr = ", Function: ";
+    char rt[100];
+    strcpy(rt, ab);strcat(rt,alphabin);strcat(rt, dr);strcat(rt, funcName);
+    char s1[100];
+    strcpy(s1,result);
+    strcat(s1,"_");
+    strcat(s1,funcName);
+    strcat(s1,"_fit.png");
+    dhist->SetTitle(rt);
+    dhist->Draw("PE0");
+    func->Draw("same");
+    c1->SetLogx();
+    c1->SetLogy();
+    c1->Print(s1);
+
+    strcat(rt," Generated");
+    auto h1f = new TH1F("data_XM",rt,dhist->GetNbinsX(),dhist->GetBinLowEdge(0),dhist->GetBinLowEdge(dhist->GetNbinsX()));
+    char s2[100];
+    strcpy(s2,result);
+    strcat(s2,"_");
+    strcat(s2,funcName);
+    strcat(s2,"_gen.png");
+    h1f->FillRandom("func",dhist->GetEntries()*10);
+    h1f->Scale(1., "width");
+    h1f->GetXaxis()->SetTitle("");
+    h1f->SetMarkerStyle(20);
+    h1f->SetMarkerSize(1.0);
+    h1f->SetMarkerColor(4);
+    h1f->SetLineColor(4);
+    h1f->SetLineWidth(2.0);
+
+    TCanvas *c2 = new TCanvas("c2","c2", 800,600);
+    c2->cd();
+    h1f->Draw("PE0");
+    c2->SetLogx();
+    c2->SetLogy();
+    c2->Print(s2);
+
+    const char* dd = "/DATA_";
+    const char* root = ".root";
+    strcat(result,dd);
+    strcat(result,funcName);
+    strcat(result,root);
+    const char* ofname = result;
+    std::cout << "Saving output in: " << ofname << std::endl;
+    TFile *outfile = new TFile(ofname,"recreate");
+    outfile->cd();
+    h1f->Write();
+    outfile->Write();
+    outfile->Close();
+    
   }
-
-  dhist->Fit(func, "EM0");
-  //return 0;
-
-  func->SetLineColor(kRed);
-  gStyle->SetOptStat();
-
-  TCanvas *c1 = new TCanvas("c1","c1", 800,600);
-  c1->cd();
-  dhist->Draw("PE0");
-  func->Draw("same");
-  c1->SetLogx();
-  c1->SetLogy();
-  c1->Print("temp.png");
-
-  auto h1f = new TH1F("data_XM","Generated by Function",dhist->GetNbinsX(),dhist->GetBinLowEdge(0),dhist->GetBinLowEdge(dhist->GetNbinsX()));
-  h1f->FillRandom("func",dhist->GetEntries()*10);
-  h1f->Scale(1., "width");
-  h1f->GetXaxis()->SetTitle("");
-  h1f->SetMarkerStyle(20);
-  h1f->SetMarkerSize(1.0);
-  h1f->SetMarkerColor(4);
-  h1f->SetLineColor(4);
-  h1f->SetLineWidth(2.0);
-
-  TCanvas *c2 = new TCanvas("c2","c2", 800,600);
-  c2->cd();
-  h1f->Draw("PE0");
-  c2->SetLogx();
-  c2->SetLogy();
-  c2->Print("temp2.png");
-
-  const char* ofbase = "../inputs/Shapes_PseudoData/data_";
-  const char* root = ".root";
-  char result[100];
-  strcpy(result,ofbase);
-  strcat(result,funcName);
-  strcat(result,root);
-  const char* ofname = result;
-  std::cout << "Saving output in: " << ofname << std::endl;
-  TFile *outfile = new TFile(ofname,"recreate");
-  outfile->cd();
-  h1f->Write();
-  outfile->Write();
-  outfile->Close();
 
   return 0;
 }
