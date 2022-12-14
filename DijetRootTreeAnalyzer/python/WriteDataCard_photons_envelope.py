@@ -199,6 +199,8 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,fixed,shapes=[
         rootFileName = txtfileName.replace('.txt','.root')
         signals = len(model.split('p'))
         lumiErrs = [1.016] #Run 2 Lumi
+        triggerErrs = [1.05] #Trigger
+        taggerErrs = [1.18] #Diphoton Tagger (from eta meson measurement)
         if signals>1:
                 rates = [w.data("%s_%s"%(box,sig)).sumEntries() for sig in model.split('p')]
                 processes = ["%s_%s"%(box,sig) for sig in model.split('p')]
@@ -225,6 +227,8 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,fixed,shapes=[
           rates.extend([w.var('Ntot_%s'%(bkg)).getVal() for bkg in bkgs])
           processes.extend(["%s"%(bkg) for bkg in bkgs])
         lumiErrs.extend([1.00 for bkg in bkgs])
+        triggerErrs.extend([1.00 for bkg in bkgs])
+        taggerErrs.extend([1.00 for bkg in bkgs])
         divider = "------------------------------------------------------------\n"
         datacard = "imax 1 number of channels\n" + \
                    "jmax %i number of processes minus 1\n"%(nBkgd+signals-1) + \
@@ -239,16 +243,22 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,fixed,shapes=[
         processNumberString = "process"
         rateString = "rate"
         lumiString = "lumi\tlnN"
+        triggerString = "trigger\tlnN"
+        taggerString = "tagger\tlnN"
         for i in range(0,len(bkgs)+signals):
             binString +="\t%s"%box
             processString += "\t%s"%processes[i]
             processNumberString += "\t%i"%(i-signals+1)
             rateString += "\t%.3f" %rates[i]
             lumiString += "\t%.3f"%lumiErrs[i]
-        binString+="\n"; processString+="\n"; processNumberString+="\n"; rateString +="\n"; lumiString+="\n"
+            triggerString += "\t%.3f"%triggerErrs[i]
+            taggerString += "\t%.3f"%taggerErrs[i]
+        binString+="\n"; processString+="\n"; processNumberString+="\n"; rateString +="\n"; lumiString+="\n"; triggerString+="\n"; taggerString+="\n"
         datacard+=binString+processString+processNumberString+rateString+divider
         # now nuisances
         datacard+=lumiString
+        datacard+=triggerString
+        datacard+=taggerString
         for shape in shapes:
             shapeString = '%s\tshape\t'%shape
             for sig in range(0,signals):
@@ -298,75 +308,76 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,fixed,shapes=[
         txtfile.write(datacard)
         txtfile.close()
         
-def writeDataCardMC(box,model,txtfileName,bkgs,paramNames,w):
-        obsRate = w.data("data_obs").sumEntries()
-        nBkgd = len(bkgs)
-        rootFileName = txtfileName.replace('.txt','.root')
-        signals = len(model.split('p'))
-        if signals>1:
-                rates = [w.data("%s_%s"%(box,sig)).sumEntries() for sig in model.split('p')]
-                processes = ["%s_%s"%(box,sig) for sig in model.split('p')]
-                if '2015' in box:
-                        lumiErrs = [1.027 for sig in model.split('p')]
-                elif '2016' in box:
-                        lumiErrs = [1.062 for sig in model.split('p')] 
-                elif '2017' in box:
-                        lumiErrs = [1.062 for sig in model.split('p')]                 
-        else:
-                rates = [w.data("%s_%s"%(box,model)).sumEntries()]
-                processes = ["%s_%s"%(box,model)]
-                if '2015' in box:
-                        lumiErrs = [1.027]
-                elif '2016' in box:
-                        lumiErrs = [1.062]
-                elif '2017' in box:
-                        lumiErrs = [1.062]  
-        print 'Ntot_%s_%s'%(box,bkg)            
-        rates.extend([w.var('Ntot_%s_%s'%(box,bkg)).getVal() for bkg in bkgs])
-       # rates.extend([w.var('Ntot_%s'%(bkg)).getVal() for bkg in bkgs])
-        processes.extend(["%s_%s"%(box,bkg) for bkg in bkgs])
-       # processes.extend(["%s"%(bkg) for bkg in bkgs])
-        if '2015' in box:
-                lumiErrs.extend([1.027 for bkg in bkgs])
-        elif '2016' in box:
-                lumiErrs.extend([1.062 for bkg in bkgs])
-        elif '2017' in box:
-                lumiErrs.extend([1.062 for bkg in bkgs])
-        divider = "------------------------------------------------------------\n"
-        datacard = "imax 1 number of channels\n" + \
-                   "jmax %i number of processes minus 1\n"%(nBkgd+signals-1) + \
-                   "kmax * number of nuisance parameters\n" + \
-                   divider + \
-                   "observation	%.3f\n"%obsRate + \
-                   divider + \
-                   "shapes * * %s w%s:$PROCESS w%s:$PROCESS_$SYSTEMATIC\n"%(rootFileName,box,box) + \
-                   divider
-        binString = "bin"
-        processString = "process"
-        processNumberString = "process"
-        rateString = "rate"
-        lumiString = "lumi\tlnN"
-        for i in range(0,len(bkgs)+signals):
-            binString +="\t%s"%box
-            processString += "\t%s"%processes[i]
-            processNumberString += "\t%i"%(i-signals+1)
-            rateString += "\t%.3f" %rates[i]
-            lumiString += "\t%.3f"%lumiErrs[i]
-        binString+="\n"; processString+="\n"; processNumberString+="\n"; rateString +="\n"; lumiString+="\n"
-        datacard+=binString+processString+processNumberString+rateString+divider
-        # now nuisances
-        datacard+=lumiString
-        for shape in shapes:
-            shapeString = '%s\tshape\t'%shape
-            for sig in range(0,signals):
-                shapeString += '\t1.0'
-            for i in range(0,len(bkgs)):
-                shapeString += '\t-'
-            shapeString += '\n'
-            datacard+=shapeString
-        txtfile = open(txtfileName,"w")
-        txtfile.write(datacard)
-        txtfile.close()
+#def writeDataCardMC(box,model,txtfileName,bkgs,paramNames,w):
+#        obsRate = w.data("data_obs").sumEntries()
+#        nBkgd = len(bkgs)
+#        rootFileName = txtfileName.replace('.txt','.root')
+#        signals = len(model.split('p'))
+#        if signals>1:
+#                rates = [w.data("%s_%s"%(box,sig)).sumEntries() for sig in model.split('p')]
+#                processes = ["%s_%s"%(box,sig) for sig in model.split('p')]
+#                if '2015' in box:
+#                        lumiErrs = [1.027 for sig in model.split('p')]
+#                elif '2016' in box:
+#                        lumiErrs = [1.062 for sig in model.split('p')] 
+#                elif '2017' in box:
+#                        lumiErrs = [1.062 for sig in model.split('p')]                 
+#        else:
+#                rates = [w.data("%s_%s"%(box,model)).sumEntries()]
+#                processes = ["%s_%s"%(box,model)]
+#                if '2015' in box:
+#                        lumiErrs = [1.027]
+#                elif '2016' in box:
+#                        lumiErrs = [1.062]
+#                elif '2017' in box:
+#                        lumiErrs = [1.062]  
+#        print 'Ntot_%s_%s'%(box,bkg)            
+#        rates.extend([w.var('Ntot_%s_%s'%(box,bkg)).getVal() for bkg in bkgs])
+#       # rates.extend([w.var('Ntot_%s'%(bkg)).getVal() for bkg in bkgs])
+#        processes.extend(["%s_%s"%(box,bkg) for bkg in bkgs])
+#       # processes.extend(["%s"%(bkg) for bkg in bkgs])
+#        if '2015' in box:
+#                lumiErrs.extend([1.027 for bkg in bkgs])
+#        elif '2016' in box:
+#                lumiErrs.extend([1.062 for bkg in bkgs])
+#        elif '2017' in box:
+#                lumiErrs.extend([1.062 for bkg in bkgs])
+#        divider = "------------------------------------------------------------\n"
+#        datacard = "imax 1 number of channels\n" + \
+#                   "jmax %i number of processes minus 1\n"%(nBkgd+signals-1) + \
+#                   "kmax * number of nuisance parameters\n" + \
+#                   divider + \
+#                   "observation	%.3f\n"%obsRate + \
+#                   divider + \
+#                   "shapes * * %s w%s:$PROCESS w%s:$PROCESS_$SYSTEMATIC\n"%(rootFileName,box,box) + \
+#                   divider
+#        binString = "bin"
+#        processString = "process"
+#        processNumberString = "process"
+#        rateString = "rate"
+#        triggerString = "trigger\tlnN"
+#        taggerString = "tagger\tlnN"
+#        for i in range(0,len(bkgs)+signals):
+#            binString +="\t%s"%box
+#            processString += "\t%s"%processes[i]
+#            processNumberString += "\t%i"%(i-signals+1)
+#            rateString += "\t%.3f" %rates[i]
+#            lumiString += "\t%.3f"%lumiErrs[i]
+#        binString+="\n"; processString+="\n"; processNumberString+="\n"; rateString +="\n"; lumiString+="\n"
+#        datacard+=binString+processString+processNumberString+rateString+divider
+#        # now nuisances
+#        datacard+=lumiString
+#        for shape in shapes:
+#            shapeString = '%s\tshape\t'%shape
+#            for sig in range(0,signals):
+#                shapeString += '\t1.0'
+#            for i in range(0,len(bkgs)):
+#                shapeString += '\t-'
+#            shapeString += '\n'
+#            datacard+=shapeString
+#        txtfile = open(txtfileName,"w")
+#        txtfile.write(datacard)
+#        txtfile.close()
 
 def convertToTh1xHist(hist):
     
