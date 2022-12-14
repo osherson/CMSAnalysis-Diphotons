@@ -20,8 +20,6 @@ def getDownFromUpNom(hUp,hNom):
 
     return hDown
 
-    
-
 def fixPars(w, label, doFix=True, setVal=None):
     parSet = w.allVars()
     for par in rootTools.RootIterator.RootIterator(parSet):
@@ -36,17 +34,17 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,penalty=False,multi=True,x=None
     nBins = len(x)-1
     maxBins = nBins
     
+    print(w)
     variables = cfg.getVariablesRange(box, "variables",w)
     w.var('th1x').setBins(maxBins)
     parameters = cfg.getVariables(box, "combine_parameters")
-    print(parameters)
     paramNames = []
     for parameter in parameters:
         if penalty and '_norm' in parameter:
             continue
         w.factory(parameter)
 
-    #print 1
+    print 1
      
     #for bkg fit with 4-par function   
     #constPars = ['sqrts', 'sqrts5', 'p50_%s'%box, 'sqrtsm', 'p0_%s'%box, 'sqrtsa','sqrtse', 'pa0_%s'%box]
@@ -79,7 +77,8 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,penalty=False,multi=True,x=None
         constPars.extend(['pmd4_%s'%box])
 
     
-    #print 2    
+    print("Const Pars: {}".format(constPars))
+    print 2    
         
     for parameter in parameters:
         paramName = parameter.split('[')[0]
@@ -110,7 +109,7 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,penalty=False,multi=True,x=None
             emptyHist1D.SetBinContent(ix,1)
             emptyHist1D.SetBinError(ix,0)
         
-    #print 5               
+    print 5               
     commands = cfg.getVariables(box, "combine_pdfs")
     bkgs = []
     for command in commands:
@@ -167,7 +166,6 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,penalty=False,multi=True,x=None
                 arglist.append(w.cat(mylist[0]))
                 mypdfs = rt.RooArgList('pdf_list')
                 #[mypdfs.add(w.pdf(myvar)) for myvar in mylist[1:]]
-                print("STARTING LOOP")
                 for myvar in mylist[1:]:
                   print(myvar)
                   mypdfs.add(w.pdf(myvar))
@@ -186,9 +184,6 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,penalty=False,multi=True,x=None
             if box in bkg: bkg.remove(box)
             bkgs.append("_".join(bkg))
 
-
-
-
     w.Print('v')
     if multi==True:
         #paramNames.append('pdf_index')
@@ -203,23 +198,23 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,fixed,shapes=[
         print nBkgd
         rootFileName = txtfileName.replace('.txt','.root')
         signals = len(model.split('p'))
-        lumiErrs = []
+        lumiErrs = [1.016] #Run 2 Lumi
         if signals>1:
                 rates = [w.data("%s_%s"%(box,sig)).sumEntries() for sig in model.split('p')]
                 processes = ["%s_%s"%(box,sig) for sig in model.split('p')]
-                if '2015' in box: lumiErrs = [1.027 for sig in model.split('p')]
-                elif '2016' in box: lumiErrs = [1.062 for sig in model.split('p')] 
-                elif '2017' in box: lumiErrs = [1.062 for sig in model.split('p')]    
-                elif 'II' in box: lumiErrs = [1.016 for sig in model.split('p')]     
-                else: lumiErrs = [1.016 for sig in model.split('p')]             
+                #if '2015' in box: lumiErrs = [1.027 for sig in model.split('p')]
+                #elif '2016' in box: lumiErrs = [1.062 for sig in model.split('p')] 
+                #elif '2017' in box: lumiErrs = [1.062 for sig in model.split('p')]    
+                #elif 'II' in box: lumiErrs = [1.016 for sig in model.split('p')]     
+                #else: lumiErrs = [1.016 for sig in model.split('p')]             
         else:
                 rates = [w.data("%s_%s"%(box,model)).sumEntries()]
                 processes = ["%s_%s"%(box,model)]
-                if '2015' in box: lumiErrs = [1.027]
-                elif '2016' in box: lumiErrs = [1.062] 
-                elif '2017' in box: lumiErrs = [1.062]
-                elif 'II' in box: lumiErrs = [1.016]
-                else: lumiErrs = [1.016]
+                #if '2015' in box: lumiErrs = [1.027]
+                #elif '2016' in box: lumiErrs = [1.062] 
+                #elif '2017' in box: lumiErrs = [1.062]
+                #elif 'II' in box: lumiErrs = [1.016]
+                #else: lumiErrs = [1.016]
         print bkgs
         print box
 
