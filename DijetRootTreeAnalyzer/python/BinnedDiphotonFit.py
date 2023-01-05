@@ -328,6 +328,10 @@ if __name__ == '__main__':
     x = array('d', cfg.getBinning(box)[0]) # mjj binning
     
     th1x = w.var('th1x')
+    #pdfi = w.var('pdf_index_DIPHOM_alpha3')
+    print(th1x.getVal())
+    #print(pdfi.getVal())
+    #time.sleep(5)
     nBins = (len(x)-1)
     th1x.setBins(nBins)
 
@@ -766,7 +770,12 @@ if __name__ == '__main__':
     if(options.lA is not None and options.hA is not None):
       l.SetTextFont(62)
       l.SetTextSize(0.055)
-      l.DrawLatex(0.22,0.75,"{} #leq #alpha < {}".format(options.lA, options.hA))
+      l.DrawLatex(0.22,0.82,"{} #leq #alpha < {}".format(options.lA, options.hA))
+
+      if(options.lA in [0.00395,0.00597,0.00759,0.00759,0.01049]):
+        l.DrawLatex(0.22,0.75,"Dipho function")
+      else:
+        l.DrawLatex(0.22,0.75,"Dijet function")
         
     if options.signalFileName!=None:
         if 'Calo' in box:
