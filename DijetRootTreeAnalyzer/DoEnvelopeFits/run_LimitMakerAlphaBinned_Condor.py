@@ -24,7 +24,7 @@ def MakeFolder(N):
      os.makedirs(N)
 
 year = 2018
-LUMI = 13.7 * 1000
+LUMI = 13.7 * 1000 
 XS = 0.001
 #XS = 0.01
 #XS = 0.0001
@@ -105,6 +105,7 @@ def makeThisLimit(signal, alphaBin):
   os.system(lcommand)
 
   cname = "output/dijet_combine_gg_{}_alpha{}_lumi-13.700_2018_DIPHOM_alpha{}".format(signal,abin_num,abin_num)
+  #cname = "output/dijet_combine_gg_{}_alpha{}_lumi-137.000_2018_DIPHOM_alpha{}".format(signal,abin_num,abin_num)
   ocname = "output/combineCards/CARD_multi_{}_alpha{}".format(signal,abin_num)
   fpname = "{}/output/combineCards/CARD_multi_{}_alpha{}".format(os.getcwd(),signal,abin_num)
 

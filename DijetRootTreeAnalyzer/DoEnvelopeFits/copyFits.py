@@ -4,10 +4,12 @@ import sys
 print("Removing previous plots")
 os.system("rm fitPlots/*")
 
-#for abin in os.listdir("output"):
-for abin in os.listdir("saveOutput/loose2"):
+outdir = "output"
+#outdir = "saveOutput/fb_1/"
+
+for abin in os.listdir(outdir):
   if(abin.startswith("alpha")):
-    adir = os.path.join("saveOutput/loose2",abin)
+    adir = os.path.join(outdir,abin)
     anum = abin[len("alpha")+1 : ]
     for xa in os.listdir(adir):
       fitplot = "{}/{}/fit_mjj_Full_diphoton_{}_{}.png".format(adir, xa, xa, anum)

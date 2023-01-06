@@ -8,8 +8,8 @@ doInterpo = False
 fnum=999
 
 #xmasslist = ['600','400','500','300','750','1000','1500','2000']
-xmasslist = ['600','400','500','200','300','750','1000','1500','2000','3000']
-#xmasslist = ['600']
+#xmasslist = ['600','400','500','200','300','750','1000','1500','2000','3000']
+xmasslist = ['600']
 
 year = 2018
 LUMI = 13.7 * 1000  #provide lumi in PB
@@ -66,7 +66,7 @@ def makeThisLimit(xmass):
       if("X{}A".format(xmass) in xx and os.path.exists("{}{}/{}/PLOTS_{}.root".format(data_dir,dd,xx,anum))):
         fracFile = open("{}/{}/{}/alphaFraction_alpha{}_{}.txt".format(data_dir, anum,xx,anum,xx), "r")
         frac = float(fracFile.readline())
-        if(frac < 0.1) : continue
+        #if(frac < 0.1) : continue
         fracFile.close()
         sig=xx
         rangeFile = open("{}{}/{}/arange.txt".format(data_dir,dd,sig),"r")
@@ -74,7 +74,6 @@ def makeThisLimit(xmass):
         la = float(rr.split(",")[0])
         ha = float(rr.split(",")[-1])
         dirs.append(("{}{}/{}".format(data_dir,dd,sig), anum,la,ha))
-
 
   if(goLim): MakeFolder("combineOutput")
 
@@ -86,17 +85,18 @@ def makeThisLimit(xmass):
     sigAlpha = sigPhi / sigX
     abin_num = dd.split("/")[-2]
 
-    #if(sig != "X400A2"): continue
+    #if(sig != "X600A18"): continue
+    if(sig != "X600A3"): continue
     #if(sigAlpha != 0.005): continue
 
     print("Starting {} Signal, alpha bin {}" .format(sig, abin_num))
     MakeFolder("output/alpha_{}/{}".format(abin_num,sig))
     os.system("cp {}/{}/{}/arange.txt output/alpha_{}/{}/.".format(data_dir,abin_num,sig,abin_num,sig))
     
-    if(os.path.exists("output/combineCards/CARD_multi_{}_alpha{}.txt".format(sig,abin_num))):
-      print(abin_num, sig)
-      print("Already done, moving on. ")
-      continue
+    #if(os.path.exists("output/combineCards/CARD_multi_{}_alpha{}.txt".format(sig,abin_num))):
+    #  print(abin_num, sig)
+    #  print("Already done, moving on. ")
+    #  continue
 
 
     #GetSignal and efficiency
@@ -108,6 +108,7 @@ def makeThisLimit(xmass):
 
     mycommand = "python ../python/BinnedDiphotonFit.py -c ../config/envelope2/diphoton_multi_alpha{}.config -y {} -l {} -b DIPHOM_alpha{} {}/PLOTS_{}.root -d output --fit-spectrum --write-fit --words test --sig {} --abin {} --lowA {} --hiA {}".format(abin_num,year,LUMI,abin_num,dd,abin_num,sig,abin_num,la,ha)
     print(mycommand)
+    #continue
 
     os.system(mycommand)
     os.system("mv output/fit_mjj_Full_DIPHOM_alpha{}_2018_{}_alpha{}.png output/alpha_{}/{}/fit_mjj_Full_diphoton_{}_{}.png ".format(abin_num,sig,abin_num,abin_num,sig,sig,abin_num))
@@ -146,7 +147,6 @@ def makeThisLimit(xmass):
     os.system("rm stuff*")
     os.system("rm output/corr*")
 
-    exit()
     print(goLim)
     if goLim:
       for of in os.listdir("output/combineCards"):

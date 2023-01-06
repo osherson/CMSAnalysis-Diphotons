@@ -66,6 +66,7 @@ DijetRootTreeAnalyzer/InterpoPlotter/effPlots
 /DijetRootTreeAnalyzer/DoEnvelopeFits/combineOutput
 /DijetRootTreeAnalyzer/DoEnvelopeFits/LimitPlots
 /DijetRootTreeAnalyzer/DoEnvelopeFits/fitPlots
+/DijetRootTreeAnalyzer/DoEnvelopeFits/FDFiles
 /DijetRootTreeAnalyzer/DoEnvelopeFits/AllAlphaCards
 /DijetRootTreeAnalyzer/DoEnvelopeFits/allAlphaLimitMaker
 /DijetRootTreeAnalyzer/DoEnvelopeFits/Condor_LimitMaker

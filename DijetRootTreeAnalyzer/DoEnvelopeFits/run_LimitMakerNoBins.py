@@ -9,7 +9,7 @@ fnum=999
 
 #xmasslist = ['600','400','500','300','750','1000','1500','2000']
 #xmasslist = ['600','400','500','200','300','750','1000','1500','2000','3000']
-xmasslist = ['400']
+xmasslist = ['2000']
 
 year = 2018
 LUMI = 13.7 * 1000  #provide lumi in PB
@@ -60,7 +60,7 @@ def makeThisLimit(xmass):
   for xx in os.listdir(data_dir):
     if(os.path.exists("{}{}/PLOTS_0.root".format(data_dir,xx))):
       sig=xx
-      la,ha = 0.0, 0.03
+      la,ha = 0.003, 0.03
       dirs.append(("{}{}".format(data_dir,sig),0,la,ha))
 
   if(goLim): MakeFolder("combineOutput")
@@ -73,10 +73,10 @@ def makeThisLimit(xmass):
     sigAlpha = sigPhi / sigX
     abin_num = 0
 
-    #if(sig != "X1000A10"): continue
+    if(sig != "X2000A20"): continue
 
     print("Starting {} Signal, alpha bin {}" .format(sig, abin_num))
-    #MakeFolder("output/alpha_{}/{}".format(abin_num,sig))
+    MakeFolder("output/alpha_{}/{}".format(abin_num,sig))
     
     if(os.path.exists("output/combineCards/CARD_multi_{}_alpha{}.txt".format(sig,abin_num))):
       print(abin_num, sig)
@@ -90,7 +90,6 @@ def makeThisLimit(xmass):
           eff = float(f.readline().rstrip())
           print(eff)
 
-    """
     mycommand = "python ../python/BinnedDiphotonFit.py -c ../config/envelope2/diphoton_multi_alpha0.config -y {} -l {} -b DIPHOM_alpha0 {}/PLOTS_0.root -d output --fit-spectrum --write-fit --words test --sig {} --abin 0 --lowA {} --hiA {}".format(year,LUMI,dd,sig,la,ha)
     print(mycommand)
 
@@ -132,7 +131,6 @@ def makeThisLimit(xmass):
 
     os.system("rm stuff*")
     os.system("rm output/corr*")
-    """
 
   print(goLim)
   if goLim:

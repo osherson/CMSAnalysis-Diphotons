@@ -1,7 +1,7 @@
 import os
 import sys
 
-card_dir = "saveOutput/loose2/combineCards/"
+card_dir = "saveOutput/fb_1/combineCards/"
 
 masses = []
 for ff in os.listdir(card_dir):
