@@ -74,6 +74,9 @@ DijetRootTreeAnalyzer/InterpoPlotter/effPlots
 /DijetRootTreeAnalyzer/DoEnvelopeFits/allAlphaLimitMaker/CallFiles
 DijetRootTreeAnalyzer/EfficiencyInterpolator/EffPlots
 DijetRootTreeAnalyzer/EfficiencyInterpolator/EfficiencyFiles
+DijetRootTreeAnalyzer/EtaPeakReco/PicoTrees
+DijetRootTreeAnalyzer/EtaPeakReco/PlotFiles
+DijetRootTreeAnalyzer/EtaPeakReco/Plots
 DijetRootTreeAnalyzer/combineOutput/*
 DijetRootTreeAnalyzer/output/*.txt
 DijetRootTreeAnalyzer/output/*.C
@@ -92,6 +95,8 @@ DijetRootTreeAnalyzer/PostFit/combineCardsFull
 DijetRootTreeAnalyzer/PostFit/MeanPlots
 DijetRootTreeAnalyzer/PostFit/Joined
 DijetRootTreeAnalyzer/PostFit/fb*
+DijetRootTreeAnalyzer/PostFit/save*
+DijetRootTreeAnalyzer/PostFit/nllscan
 DijetRootTreeAnalyzer/PostFit/*.jdl
 DijetRootTreeAnalyzer/PostFit/Call*.sh
 DijetRootTreeAnalyzer/PostFit/biasOutput

@@ -82,6 +82,7 @@ def PlotTogether(infile, doenv=False):
     an = "alphaAll"
     anum = "All"
     mm = cps[0][1:]
+    anum=13
 
   fList = []
 
@@ -136,6 +137,9 @@ def PlotTogether(infile, doenv=False):
   else:
     data_hist = TH1F('data','data',len(GoodBins)-1, numpy.array(GoodBins))
     for (ii,ab) in enumerate(os.listdir("../inputs/Shapes_DATA/alphaBinning/")):
+      if(not ab.isdigit()): continue
+      if(int(ab )!= anum): continue
+      print("../inputs/Shapes_DATA/alphaBinning/{}/DATA.root".format(ab))
       hfile = TFile("../inputs/Shapes_DATA/alphaBinning/{}/DATA.root".format(ab), "read")
       dhist = hfile.Get("data_XM")
       data_hist.Add(dhist)
@@ -168,8 +172,8 @@ def PlotTogether(infile, doenv=False):
   c1=ROOT.TCanvas()
   c1.cd()
   FindAndSetMax([data_hist,sig_hist])
-  sig_hist.GetYaxis().SetRangeUser(0.0001, data_hist.GetMaximum()*1.25)
-  data_hist.GetYaxis().SetRangeUser(0.0001, data_hist.GetMaximum()*1.25)
+  sig_hist.GetYaxis().SetRangeUser(0.1, data_hist.GetMaximum()*1.25)
+  data_hist.GetYaxis().SetRangeUser(0.1, data_hist.GetMaximum()*1.25)
   sig_hist.Draw("hist")
   if(doAll==False): 
     l.DrawLatex(0.55,0.85,"{} #leq #alpha < {}".format(lA, hA))
@@ -187,6 +191,6 @@ def PlotTogether(infile, doenv=False):
 
   return
 
-#infile = sys.argv[1]
-#PlotTogether(infile)
+infile = sys.argv[1]
+PlotTogether(infile, True)
 

@@ -119,9 +119,9 @@ comName = "_{}_{}".format(an,mm)
 newDir = "combineOutput/{}/{}/{}".format(mm,an,fit)
 os.system("mkdir -p {}".format(newDir))
 
-PT.PlotTogether(infile, False)
-exit()
+#PT.PlotTogether(infile, False)
 
+"""
 os.system("combine "+sys.argv[1]+" -M Significance --name {}".format(comName))
 os.system("combine "+sys.argv[1]+" -M AsymptoticLimits --name {}".format(comName))
 F = ROOT.TFile("higgsCombine{}.AsymptoticLimits.mH120.root".format(comName))
@@ -205,6 +205,7 @@ gPad.SetTicks(1,1)
 gPad.RedrawAxis()
 C.Print("{}/PostFits_{}_{}_{}.png".format(newDir,an,mm,fit))
 C.Print("{}/PostFits_{}_{}_{}.root".format(newDir,an,mm,fit))
+"""
 
 os.system("combine "+sys.argv[1]+" -M GoodnessOfFit --algo=saturated --name {}".format(comName))
 KS_Fs = TFile("higgsCombine{}.GoodnessOfFit.mH120.root".format(comName))
@@ -257,6 +258,7 @@ gPad.RedrawAxis()
 C_KS.Print("{}/GoF_{}_{}_{}.png".format(newDir,an,mm,fit))
 C_KS.Print("{}/GoF_{}_{}_{}.root".format(newDir,an,mm,fit))
 
+exit()
 print("Before loop")
 
 for i,j in zip(Lc,Ln):

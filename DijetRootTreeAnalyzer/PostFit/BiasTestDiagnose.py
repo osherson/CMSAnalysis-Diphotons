@@ -28,7 +28,6 @@ cps = cps.split("_")
 an = "alphaAll"
 
 for c in cps:
-  if(c.startswith("/")): c=c[1:]
   if(c.startswith("X")):
     mm = c
     break
@@ -38,9 +37,6 @@ if(mm.endswith(".txt")):
 
 #mm = cps[0][1:]
 print(an, mm)
-xmass = int(mm[1 : mm.find("A")])
-amass = float(mm[mm.find("A") + 1 :].replace("p","."))
-print(xmass)
 anum = an
 
 comName = "_{}_{}".format(an,mm)
@@ -65,52 +61,27 @@ else: af=open(dfname, "a")
 #exp = T.limit
 #T.GetEntry(4)
 #p2 = T.limit - exp
-##Lc = [0., exp, exp+p2]
-##Ln = ["null", "exp", "sig2"]
-##Lc = [exp, exp+p2]
-##Ln = ["exp", "sig2"]
-##Lc = [exp]
-##Ln = ["exp"]
-#Lc = [exp+p2]
-#Ln = ["sig2"]
+#Lc = [0., exp, exp+p2]
+#Ln = ["null", "exp", "sig2"]
 #os.system("combine "+sys.argv[1]+" -M FitDiagnostics --saveShapes --saveWithUncertainties --name {}".format(comName))
 
-#Lc = [0.]
-#Ln = ["null"]
-Lc = [15.969732284545898]
-Ln = ["sig2"]
+Lc = [0.]
+Ln = ["null"]
+#Lc = [1.]
+#Ln = ["one"]
 print Lc
-print Ln
 
-ntoys=500
+ntoys=1
 aslices = getAlphaSlices(sys.argv[1])
 print(aslices)
 
-"""
-For sig2: 
-If alpha = 0.025, rmin=0, rmax=10
-If X300A1p5 (alpha=0.005, Mx = 300 only) rmin=0, rmax=20
+seednum=123461
 
-"""
-
-#rmin = -3.
-#rmin = -10.
-#rmax = 10.
-#if(amass / xmass >= 0.025 or xmass >= 1000):
-#  rmin=0.
-#  rmax=3.
-#if(xmass == 300 and amass/xmass<= 0.005):
-#  rmin=0.
-#  rmax=3.
-rmin = 0.
-rmax = 2*Lc[-1]
-
-print("rmin = {}".format(rmin))
 for i,j in zip(Lc,Ln):
   print(i,j)
   #for pdfi in [0,1,2,3,4]:
-  #for pdfi in [0]:
-  for pdfi in [1,2,3,4]:
+  for pdfi in [0]:
+  #for pdfi in [2,3,4]:
     if(len(aslices)==1):
       fpstring = "--freezeParameters pdf_index_DIPHOM_alpha%i --setParameters pdf_index_DIPHOM_alpha%i=%s"%(aslices[0],aslices[0],pdfi)
     else:
@@ -119,44 +90,24 @@ for i,j in zip(Lc,Ln):
       for asl in aslices:
         fstring += "pdf_index_DIPHOM_alpha%i,"%(asl)
         setstring += "pdf_index_DIPHOM_alpha%i=%s,"%(asl,pdfi)
-        #fstring += "pdf_index,"
-        #setstring += "pdf_index=%s,"%(pdfi)
       fstring = fstring[:-1]
       setstring = setstring[:-1]
       fpstring = fstring + setstring
     #fpstring = "--freezeParameters pdf_index_DIPHOM_alpha12,pdf_index_DIPHOM_alpha13 --setParameters pdf_index_DIPHOM_alpha12=%s,pdf_index_DIPHOM_alpha13=%s "%(pdfi,pdf    i)
     print(fpstring)
-    os.system("combine "+sys.argv[1]+" -M GenerateOnly -t %i --saveToys --toysFrequentist --bypassFrequentistFit  --expectSignal %s -n _%s%s %s"% (ntoys, i, j, comName, fpstring))
-#    if(j!="sig2"):
-#      os.system("combine "+sys.argv[1]+" -M FitDiagnostics --cminDefaultMinimizerStrategy=0 -t %i --toysFile higgsCombine_%s%s.GenerateOnly.mH120.123456.root --rMin %f --rMax %f --saveWorkspace -n _%s%s "%(ntoys, j,comName, rmin, rmax, j,comName))
-#    else:
-    os.system("combine "+sys.argv[1]+" -M FitDiagnostics --bypassFrequentistFit --skipBOnlyFit --cminDefaultMinimizerStrategy=0 -t %i --toysFile higgsCombine_%s%s.GenerateOnly.mH120.123456.root --rMin %f --rMax %f --saveWorkspace -n _%s%s "%(ntoys, j,comName, rmin, rmax, j,comName))
-
-#####
-
-  #Works on individual card
-  #os.system("combine "+sys.argv[1]+" -M GenerateOnly -t 100 --saveToys --toysFrequentist  --expectSignal "+str(i)+" -n _{}{} --bypassFrequentistFit ".format(j,comName))
-  #os.system("combine "+sys.argv[2]+" -M FitDiagnostics --bypassFrequentistFit --skipBOnlyFit -t 100 --toysFile higgsCombine_{}{}.GenerateOnly.mH120.123456.root --rMin -10 --rMax 10 --saveWorkspace -n_{}{} --cminDefaultMinimizerStrategy=0 ".format(j,comName,j,comName))
-
-####
+    os.system("combine "+sys.argv[1]+" -M GenerateOnly -t %i --saveToys --toysFrequentist  --expectSignal %s -n _%s%s --bypassFrequentistFit %s -s %s"% (ntoys, i, j, comName, fpstring,seednum))
+    #os.system("combine "+sys.argv[1]+" -M GenerateOnly -t %i --saveToys --toysFrequentist  --expectSignal %s -n _%s%s  %s -s %s"% (ntoys, i, j, comName, fpstring,seednum))
+    os.system("combine "+sys.argv[1]+" -M FitDiagnostics --cminDefaultMinimizerStrategy=0 --skipBOnlyFit -t %i --toysFile higgsCombine_%s%s.GenerateOnly.mH120.%s.root --rMin 0 --rMax 10 --saveWorkspace -n _%s%s --bypassFrequentistFit --saveShapes "%(ntoys, j,comName,seednum,j,comName))
 
     F = ROOT.TFile("fitDiagnostics_{}{}.root".format(j,comName))
     T = F.Get("tree_fit_sb")
     H = ROOT.TH1F("Bias Test, injected r="+j, ";(#mu_{measured} - #mu_{injected})/#sigma_{#mu};toys", 50, -5., 5.)
     #T.Draw("(r-%f)"%i+"/(0.5*(rHiErr+rLoErr))>>Bias Test, injected r=" + j)
     #T.Draw("(r-%f)"%i+"/(0.5*(rHiErr+rLoErr))>>Bias Test, injected r=" + j)
-    T.Draw("(r-%f)"%i+"/(0.5*(rHiErr+rLoErr))>>Bias Test, injected r=" + j, "fit_status>=0")
+    #T.Draw("(r-%f)"%i+"/(0.5*(rHiErr+rLoErr))>>Bias Test, injected r=" + j, "fit_status>0")
     #T.Draw("(r-%f)/((rHiErr*(r-%f<0)+rLoErr*(r-%f>0)))"%(i,i,i)+">>Bias Test, injected r=" + j, "fit_status>0")
-    #T.Draw("(r-%f)/((rHiErr*(r-%f<0)+rLoErr*(r-%f>0)))"%(i,i,i)+">>Bias Test, injected r=" + j, "fit_status>=0")
-
-    ccc = ROOT.TCanvas()
-    ccc.cd()
-    H.Draw("e0")
-    sname = newDir+"/"+j+"_{}_{}_pdf{}_nofit".format(an,mm,pdfi)
-    ccc.Print("{}.png".format(sname))
-    ccc.Print("{}.root".format(sname))
-    print("Saving as: {}".format(sname))
-
+    T.Draw("(r-%f)/((rHiErr*(r-%f<0)+rLoErr*(r-%f>0)))"%(i,i,i)+">>Bias Test, injected r=" + j, "fit_status>=0")
+    #T.Draw("(r)/((rHiErr*(r<0)+rLoErr*(r>0)))>>Bias Test, injected r=" + j, "fit_status>0")
     G = ROOT.TF1("f", "gaus(0)", -5.,5.)
     H.Fit(G)
     ROOT.gStyle.SetOptFit(1111)
@@ -173,7 +124,7 @@ for i,j in zip(Lc,Ln):
     gmean = G.GetParameter("Mean")
     gsig = G.GetParameter("Sigma")
     
-    af.write("{},{},{},{},{}\n".format(j,pdfi,gmean,gsig,H.GetMean()))
+    af.write("{},{},{},{}\n".format(j,pdfi,gmean,gsig))
 
 af.close()
 

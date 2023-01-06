@@ -7,7 +7,7 @@ xmass = sys.argv[1]
 
 cdict = {}
 
-for ff in os.listdir("./envelopeCards/OneBigBin"):
+for ff in os.listdir("./envelopeCards/fb_1"):
   if(ff.endswith(".txt")):
     cps = ff.split("_")
 
@@ -31,7 +31,9 @@ ocdict = OrderedDict(sorted(cdict.items()))
 print(ocdict)
 
 for alpha, ff in ocdict.items():
-    #if(alpha != 0.005): continue
-    mycommand= "python BiasTest.py envelopeCards/OneBigBin/{} ".format(ff)
+    #if(alpha == 0.03): continue
+    #if(alpha != 0.025): continue
+    if(alpha != 0.005): continue
+    mycommand= "python BiasTest.py envelopeCards/fb_1/{} ".format(ff)
     print(mycommand)
     os.system(mycommand)

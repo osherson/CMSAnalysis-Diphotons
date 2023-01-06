@@ -126,7 +126,6 @@ mm = cps[0][1:]
 print(an, mm)
 anum = an
 
-
 comName = "_{}_{}".format(an,mm)
 
 newDir = "combineOutputEnvelope/{}".format(mm)
@@ -228,55 +227,56 @@ print Lc
 
 ################################################################################
 #This works, comment to save time
-#os.system("combine "+sys.argv[1]+" -M GoodnessOfFit --algo=saturated --name {}".format(comName))
-#KS_Fs = TFile("higgsCombine{}.GoodnessOfFit.mH120.root".format(comName))
-#KS_Ts = KS_Fs.Get("limit")
-#KS_Vs = []
-#for i in range(0,KS_Ts.GetEntries()):
-#	KS_Ts.GetEntry(i)
-#	KS_Vs.append(KS_Ts.limit)
-#os.system("combine "+sys.argv[1]+" -M GoodnessOfFit --algo=saturated -t 500 --name {}".format(comName))
-#KS_F = TFile("higgsCombine{}.GoodnessOfFit.mH120.123456.root".format(comName))	
-#KS_T = KS_F.Get("limit")
-#KS_V = []
-#for i in range(0,KS_T.GetEntries()):
-#	KS_T.GetEntry(i)
-#	KS_V.append(KS_T.limit)
-#minKS = min(min(KS_V),min(KS_Vs))
-#maxKS = max(max(KS_V),max(KS_Vs))
-#rangeKS = maxKS - minKS
-#KS_plot = TH1F("KS_plot", ";Goodness Of Fit Statistic (Saturated);toys", 50, minKS-(rangeKS/7.), maxKS+(rangeKS/7.))
-#KS_plot.SetStats(0)
-#for i in KS_V: KS_plot.Fill(i)
-#
-#KS_plot.SetMarkerStyle(20)
-#KS_plot.SetLineColor(kBlack)
-#
-#KS_mk = TLine(KS_Vs[0], 0., KS_Vs[0], KS_plot.GetMaximum()*0.4)
-#KS_mk.SetLineColor(ROOT.kBlue)
-#KS_mk.SetLineWidth(3)
-#
-#FitFunc = TF1("FitFunc", "gaus", minKS-(rangeKS/7.), maxKS+(rangeKS/7.))
-#KS_plot.Fit(FitFunc, "EMR0")
-#FitFunc.SetLineStyle(2)
-#
-#sigma = (KS_Vs[0] - FitFunc.GetParameter(1))/FitFunc.GetParameter(2)
-#L2 = TLegend(0.667,0.75,0.89,0.89)
-#L2.SetLineColor(0)
-#L2.SetFillColor(0)
-#L2.AddEntry(KS_mk, "GOF: %.2f #sigma"%sigma, "L")
-#
-#C_KS = TCanvas()
-#C_KS.cd()
-#KS_plot.Draw("e")
-#FitFunc.Draw("same")
-#KS_mk.Draw("same")
-#L2.Draw("same")
-#gPad.SetTicks(1,1)
-#gPad.RedrawAxis()
-#C_KS.Print("{}/GoF_{}_{}.png".format(newDir,an,mm))
-#C_KS.Print("{}/GoF_{}_{}.root".format(newDir,an,mm))
+os.system("combine "+sys.argv[1]+" -M GoodnessOfFit --algo=saturated --name {}".format(comName))
+KS_Fs = TFile("higgsCombine{}.GoodnessOfFit.mH120.root".format(comName))
+KS_Ts = KS_Fs.Get("limit")
+KS_Vs = []
+for i in range(0,KS_Ts.GetEntries()):
+	KS_Ts.GetEntry(i)
+	KS_Vs.append(KS_Ts.limit)
+os.system("combine "+sys.argv[1]+" -M GoodnessOfFit --algo=saturated -t 500 --name {}".format(comName))
+KS_F = TFile("higgsCombine{}.GoodnessOfFit.mH120.123456.root".format(comName))	
+KS_T = KS_F.Get("limit")
+KS_V = []
+for i in range(0,KS_T.GetEntries()):
+	KS_T.GetEntry(i)
+	KS_V.append(KS_T.limit)
+minKS = min(min(KS_V),min(KS_Vs))
+maxKS = max(max(KS_V),max(KS_Vs))
+rangeKS = maxKS - minKS
+KS_plot = TH1F("KS_plot", ";Goodness Of Fit Statistic (Saturated);toys", 50, minKS-(rangeKS/7.), maxKS+(rangeKS/7.))
+KS_plot.SetStats(0)
+for i in KS_V: KS_plot.Fill(i)
 
+KS_plot.SetMarkerStyle(20)
+KS_plot.SetLineColor(kBlack)
+
+KS_mk = TLine(KS_Vs[0], 0., KS_Vs[0], KS_plot.GetMaximum()*0.4)
+KS_mk.SetLineColor(ROOT.kBlue)
+KS_mk.SetLineWidth(3)
+
+FitFunc = TF1("FitFunc", "gaus", minKS-(rangeKS/7.), maxKS+(rangeKS/7.))
+KS_plot.Fit(FitFunc, "EMR0")
+FitFunc.SetLineStyle(2)
+
+sigma = (KS_Vs[0] - FitFunc.GetParameter(1))/FitFunc.GetParameter(2)
+L2 = TLegend(0.667,0.75,0.89,0.89)
+L2.SetLineColor(0)
+L2.SetFillColor(0)
+L2.AddEntry(KS_mk, "GOF: %.2f #sigma"%sigma, "L")
+
+C_KS = TCanvas()
+C_KS.cd()
+KS_plot.Draw("e")
+FitFunc.Draw("same")
+KS_mk.Draw("same")
+L2.Draw("same")
+gPad.SetTicks(1,1)
+gPad.RedrawAxis()
+C_KS.Print("{}/GoF_{}_{}.png".format(newDir,an,mm))
+C_KS.Print("{}/GoF_{}_{}.root".format(newDir,an,mm))
+
+exit()
 print("Before loop")
 
 for i,j in zip(Lc,Ln):

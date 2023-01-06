@@ -6,10 +6,11 @@ import sys,os
 
 gROOT.SetBatch()
 
-gen_alphas = [0.005, 0.01, 0.015, 0.02, 0.025, 0.03]
-xs = "1_bigbins"
+gen_alphas = [0.005, 0.01, 0.015, 0.02, 0.025]
+xs = "1"
 
 outdir = "fb_{}_biasOutput".format(xs)
+#outdir = "combineOutputEnvelope".format(xs)
 
 #mlist = {"dijet":[], "atlas":[], "dipho":[], "moddijet":[], "myexp":[]}
 funcNames = {0:"Dijet", 1:"Atlas", 2:"ModDijet", 3:"Diphoton", 4:"Power"}
@@ -37,18 +38,20 @@ def checkPass(x, a, f, s):
   return nEntry,Mean,Rms
 
 for sig in ["null", "exp", "sig2"]:
-#for sig in ["null"]:
+#for sig in ["sig2"]:
   #mlist = {0:[], 1:[], 2:[], 3:[], 4:[]}
-  mlist = {0.005:[], 0.01:[], 0.015:[], 0.02:[], 0.025:[], 0.03:[]}
+  mlist = {0.005:[], 0.01:[], 0.015:[], 0.02:[], 0.025:[] }
   
   for sigXA in os.listdir(outdir):
     if(sigXA[0] != "X"):continue
     thisX = int(sigXA[1 : sigXA.find("A")])
     thisPhi = float(sigXA[sigXA.find("A")+1 : ].replace("p","."))
     thisAlpha = thisPhi/thisX
+    if(thisAlpha == 0.03): continue
 
     for thisFunc in [0,1,2,3,4]:
       outfile = "fb_{}_biasOutput/{}/{}_alphaAll_{}_pdf{}.root".format(xs, sigXA, sig, sigXA, thisFunc)
+      #outfile = "combineOutputEnvelope/{}/{}_alphaAll_{}_pdf{}.root".format(sigXA, sig, sigXA, thisFunc)
       if(os.path.exists(outfile)==False): 
         print("{} does not exist").format(outfile)
         continue
@@ -60,14 +63,14 @@ for sig in ["null", "exp", "sig2"]:
       nEntry = int(hist.GetEntries())
       hMean = float(hist.GetMean())
       hRms = float(hist.GetRMS())
-      if(nEntry < 400):
+      if(nEntry < 200):
         print("X {}, Alpha {}, Fit {} signal only has {} successful fits. Skipping.".format(thisX, thisAlpha, thisFunc, nEntry))
         continue
       mlist[thisAlpha].append((thisX, thisFunc, hMean, hRms))
   
   for alpha in mlist.keys():
   #for alpha in [0.005]:
-    leg = ROOT.TLegend(0.62,0.62, 0.89, 0.89)
+    leg = ROOT.TLegend(0.68,0.62, 0.89, 0.89)
     leg.SetBorderSize(0)
     leg.SetHeader("Toy Gen. Function")
     MG = ROOT.TMultiGraph()
@@ -86,8 +89,11 @@ for sig in ["null", "exp", "sig2"]:
         zarr.append(0.)
     
       if(len(marr)==0 or len(earr)==0):continue
-      nmax = np.amax(marr) + np.amax(earr)
+      mxarray = [abs(xx) for xx in marr]
+      exarray = [abs(xx) for xx in earr]
+      nmax = np.amax(mxarray) + np.amax(exarray)
       if(nmax > amax): amax=nmax
+      print(amax)
       gr = TGraphErrors(len(xarr), xarr, marr, zarr, earr)
       gr.SetMarkerStyle( mStyles[func] )
       gr.SetMarkerColor( mColors[func] )
@@ -109,6 +115,7 @@ for sig in ["null", "exp", "sig2"]:
     MG.GetYaxis().SetTitle( 'Mean Bias' )
     MG.GetXaxis().SetRangeUser(0.,3100.)
     MG.GetYaxis().SetRangeUser(-amax*1.02, amax*1.02)
+    #MG.GetYaxis().SetRangeUser(-4., 4.)
     ax = MG.GetXaxis()
     ax.SetLimits(0.,3100.)
     MG.Draw("AP")
