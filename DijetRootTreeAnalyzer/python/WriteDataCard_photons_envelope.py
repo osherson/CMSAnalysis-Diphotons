@@ -5,6 +5,7 @@ from framework import Config
 from array import *
 import os
 import sys
+import time
 
 def getDownFromUpNom(hUp,hNom):
 
@@ -166,9 +167,11 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,penalty=False,multi=True,x=None
                 arglist.append(w.cat(mylist[0]))
                 mypdfs = rt.RooArgList('pdf_list')
                 #[mypdfs.add(w.pdf(myvar)) for myvar in mylist[1:]]
+                print("MYPDFS: ", mypdfs)
                 for myvar in mylist[1:]:
                   print(myvar)
                   mypdfs.add(w.pdf(myvar))
+                print("MYPDFS: ", mypdfs)
                 rootTools.Utils.importToWS(w,mypdfs)
                 arglist.append(mypdfs)                   
             #print 6
@@ -188,6 +191,7 @@ def initializeWorkspace(w,cfg,box,scaleFactor=1.,penalty=False,multi=True,x=None
     if multi==True:
         #paramNames.append('pdf_index')
         paramNames.append('pdf_index_%s' % box)
+        #print("PDF INDEX NAME", 'pdf_index_%s' % box)
         bkgs = ['multi']
     return paramNames, bkgs
 
@@ -293,7 +297,7 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,fixed,shapes=[
                     continue
                 
                 #elif paramName=='pdf_index':                            
-                    #datacard += "%s\tdiscrete\n"%(paramName)
+                #    datacard += "%s\tdiscrete\n"%(paramName)
                 elif paramName=='pdf_index_%s' % box:                            
                     datacard += "%s\tdiscrete\n"%(paramName)
                 elif paramName in ["meff","seff"]:

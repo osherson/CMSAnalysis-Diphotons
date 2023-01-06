@@ -12,7 +12,10 @@ def RunDataCardMaker(o):
     sig = str(o.SIG)
 
     if(env):
-      config = " -c {}/../config/envelope2/diphoton_multi_alpha{}.config".format(dir_path,abin)
+      if(abin=="ALL"):
+        config = " -c {}/../config/envelope2/diphoton_multi_alpha0.config".format(dir_path,abin)
+      else:
+        config = " -c {}/../config/envelope2/diphoton_multi_alpha{}.config".format(dir_path,abin)
       box=" -b "
     else:
       config = " -c {}/../config/diphoton_{}".format(dir_path,str(o.FIT)) + ".config"
@@ -30,35 +33,52 @@ def RunDataCardMaker(o):
     multi = " --multi {}".format(env)
     alphabin = " --abin {}".format(abin)
 
-    if(os.path.exists(dir_path + "/../inputs/Shapes_fromGen/alphaBinning/" + abin + "/" + str(o.SIG) + "/DATA.root")):
+    if(abin=="ALL"):
+      if(not os.path.exists(dir_path + "/../inputs/Shapes_fromGen/OneBigBin/"  + str(o.SIG) + "/DATA.root")):
+        print("No data, in all loop")
+        print("Check sig {}".format(o.SIG))
+        exit()
       if(env):
-        inputs = " -i output/alpha_{}/{}/DijetFitResults_DIPHOM_2018_{}_alpha{}.root".format(abin,sig,sig,abin)
+        inputs = " -i output/alpha_0/{}/DijetFitResults_DIPHOM_2018_{}_alpha0.root".format(sig,sig)
       else:
-        inputs = " -i output/alpha_{}/{}/DijetFitResults_diphoton_{}_{}_alpha{}.root".format(abin,sig,sig,str(o.FIT),abin)
-      inputs += " {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path)  + abin+"/"+sig+ "/DATA.root"
-      inputs += " {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_nominal.root"
-      jesup = " --jesUp {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_SU.root"
-      jesdown = " --jesDown {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_SD.root"
-      jerup = " --jerUp {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_PU.root"
-      jerdown = " --jerDown {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_PD.root"
+        inputs = " -i output/alpha_0/{}/DijetFitResults_diphoton_{}_{}_alpha0.root".format(sig,sig,str(o.FIT))
+      inputs += " {}/../inputs/Shapes_fromGen/OneBigBin/".format(dir_path)  + sig+ "/DATA.root"
+      inputs += " {}/../inputs/Shapes_fromGen/OneBigBin/".format(dir_path) + sig+"/Sig_nominal.root"
+      jesup = " --jesUp {}/../inputs/Shapes_fromGen/OneBigBin/".format(dir_path) + sig+"/Sig_SU.root"
+      jesdown = " --jesDown {}/../inputs/Shapes_fromGen/OneBigBin/".format(dir_path) +sig+"/Sig_SD.root"
+      jerup = " --jerUp {}/../inputs/Shapes_fromGen/OneBigBin/".format(dir_path) + sig+"/Sig_PU.root"
+      jerdown = " --jerDown {}/../inputs/Shapes_fromGen/OneBigBin/".format(dir_path) +sig+"/Sig_PD.root"
 
-    elif(os.path.exists(dir_path + "/../inputs/Shapes_fromInterpo/alphaBinning/" + abin + "/" + str(o.SIG) + "/DATA.root")):
-      if(env):
-        inputs = " -i output/alpha_{}/{}/DijetFitResults_DIPHOM_2018_{}_alpha{}.root".format(abin,sig,sig,abin)
+    if(abin !="ALL"):
+      if(os.path.exists(dir_path + "/../inputs/Shapes_fromGen/alphaBinning/" + abin + "/" + str(o.SIG) + "/DATA.root")):
+        if(env):
+          inputs = " -i output/alpha_{}/{}/DijetFitResults_DIPHOM_2018_{}_alpha{}.root".format(abin,sig,sig,abin)
+        else:
+          inputs = " -i output/alpha_{}/{}/DijetFitResults_diphoton_{}_{}_alpha{}.root".format(abin,sig,sig,str(o.FIT),abin)
+        inputs += " {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path)  + abin+"/"+sig+ "/DATA.root"
+        inputs += " {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_nominal.root"
+        jesup = " --jesUp {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_SU.root"
+        jesdown = " --jesDown {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_SD.root"
+        jerup = " --jerUp {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_PU.root"
+        jerdown = " --jerDown {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_PD.root"
+
+      elif(os.path.exists(dir_path + "/../inputs/Shapes_fromInterpo/alphaBinning/" + abin + "/" + str(o.SIG) + "/DATA.root")):
+        if(env):
+          inputs = " -i output/alpha_{}/{}/DijetFitResults_DIPHOM_2018_{}_alpha{}.root".format(abin,sig,sig,abin)
+        else:
+          inputs = " -i output/alpha_{}/{}/DijetFitResults_diphoton_{}_{}_alpha{}.root".format(abin,sig,sig,str(o.FIT),abin)
+        inputs += " {}/../inputs/Shapes_fromInterpo/alphaBinning/".format(dir_path)  + abin+"/"+sig+ "/DATA.root"
+        inputs += " {}/../inputs/Shapes_fromInterpo/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_nominal.root"
+        jesup = " --jesUp {}/../inputs/Shapes_fromInterpo/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_SU.root"
+        jesdown = " --jesDown {}/../inputs/Shapes_fromInterpo/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_SD.root"
+        jerup = " --jerUp {}/../inputs/Shapes_fromInterpo/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_PU.root"
+        jerdown = " --jerDown {}/../inputs/Shapes_fromInterpo/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_PD.root"
+
       else:
-        inputs = " -i output/alpha_{}/{}/DijetFitResults_diphoton_{}_{}_alpha{}.root".format(abin,sig,sig,str(o.FIT),abin)
-      inputs += " {}/../inputs/Shapes_fromInterpo/alphaBinning/".format(dir_path)  + abin+"/"+sig+ "/DATA.root"
-      inputs += " {}/../inputs/Shapes_fromInterpo/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_nominal.root"
-      jesup = " --jesUp {}/../inputs/Shapes_fromInterpo/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_SU.root"
-      jesdown = " --jesDown {}/../inputs/Shapes_fromInterpo/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_SD.root"
-      jerup = " --jerUp {}/../inputs/Shapes_fromInterpo/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_PU.root"
-      jerdown = " --jerDown {}/../inputs/Shapes_fromInterpo/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_PD.root"
-
-    else:
-      print("IN ELSE LOOP")
-      print(abin)
-      print(os.path.exists(dir_path + "/../inputs/Shapes_fromGen/alphaBinning/" + abin + "/" + str(o.SIG) + "/DATA.root"))
-      exit()
+        print("IN ELSE LOOP")
+        print(abin)
+        print(os.path.exists(dir_path + "/../inputs/Shapes_fromGen/alphaBinning/" + abin + "/" + str(o.SIG) + "/DATA.root"))
+        exit()
 
     dcstring = "python {}/../python/WriteDataCard_photons_envelope.py".format(dir_path) + config + mass + savemass + year + box + output + inputs + jesup + jesdown + jerup + jerdown + xs + lumi + multi + alphabin
     print(dcstring)

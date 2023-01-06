@@ -30,6 +30,7 @@ def doOneInput(N, sig, h, H, S, norm = False):
     dir_path = os.path.dirname(os.path.realpath(__file__))
 
     toF = TFile("{}/../inputs/Shapes_fromGen/alphaBinning/{}/{}/{}.root".format(dir_path,N,sig,S), "recreate")
+    #toF = TFile("{}/../inputs/Shapes_fromGen/{}/{}/{}.root".format(dir_path,N,sig,S), "recreate")
     if norm:
         try:
           h.Scale(1./h.Integral())
@@ -63,6 +64,7 @@ def lookup(N):
 def SaveHists(N, sig, sXr, sX1r, sXvAr, sX, sX1, dX, dX1, dXvA, sX1pu, sX1pd, sX1su, sX1sd):
     dir_path = os.path.dirname(os.path.realpath(__file__))
     header = "{}/../inputs/Shapes_fromGen/alphaBinning/{}/{}/".format(dir_path,N,sig)
+    #header = "{}/../inputs/Shapes_fromGen/{}/{}/".format(dir_path,N,sig)
     PL.MakeFolder(header)
     with open(sig+".txt", 'w') as eff:
         E = sX1.GetEntries()
@@ -162,7 +164,8 @@ for ff in os.listdir(xaastorage):
 #CUTS = [0.25, 1.5, 0.9, 0.8] #Analysis Cuts
 
 #CUTS = [0.25, 1.5, 0.9, 0.1] #Loose Analysis Cuts
-CUTS = [0.5, 2.5, 0.9, 0.1] #Loose 2
+#CUTS = [0.5, 2.5, 0.9, 0.1] #Loose 2
+CUTS = [0.5, 3.5, 0.5, 0.1] #Loose 3 ALSO CHANGED PT CUT IN PLOTTING PAYLOAD
 
 #################################################
 
@@ -190,7 +193,7 @@ AlphaBins = [
                #0.01302, 
                #0.01368, 
                #0.01436,
-               0.01505, 
+               #0.01505, 
                #0.01575, 
                #0.01647, 
                #0.0172, 
@@ -210,6 +213,8 @@ AlphaBins = [
                #0.02901, 
                0.03]
 
+#AlphaBins = [ 0.003, 0.00347, 0.00395,   0.00444, 0.00494, 0.00545, 0.00597, 0.03]
+#AlphaBins = [ 0.003, 0.03]
 print("Doing Generated Signals")
 
 #Get signals for one x mass
@@ -249,9 +254,11 @@ for abin_num in range(0,len(AlphaBins)-1):
   print("{}: {} - {}".format(abin_num, lA, hA))
   saveTree = False
   newd = "{}/../inputs/Shapes_fromGen/alphaBinning/{}/".format(d_path,abin_num)
+  #newd = "{}/../inputs/Shapes_fromGen/{}/".format(d_path,abin_num)
   PL.MakeFolder(newd)
 
   dataFile = ROOT.TFile("{}/../inputs/Shapes_DATA/alphaBinning/{}/DATA.root".format(d_path,abin_num))
+  #dataFile = ROOT.TFile("{}/../inputs/Shapes_DATA/alphaBinning/ALL/DATA.root".format(d_path))
   dX = dataFile.Get("data_XM")
   dX1 = dataFile.Get("data_XM1")
   dXvA = dataFile.Get("data_XvA")
@@ -264,7 +271,7 @@ for abin_num in range(0,len(AlphaBins)-1):
     thisX = int(whichSig[whichSig.find("X")+1 : whichSig.find("A")])
     thisPhi = float(whichSig[whichSig.find("A")+1 : ].replace("p","."))
     thisAlpha = thisPhi/thisX
-    #if(whichSig != "X200A1"):continue
+    if(whichSig != "X400A12"):continue
 
     print("\nSignal: {}".format(whichSig))
 
@@ -276,11 +283,11 @@ for abin_num in range(0,len(AlphaBins)-1):
     alpha_num = sX1r.GetEntries()
     alpha_eff = alpha_num / alpha_denom
 
-    #if(alpha_eff < 0.1): 
-    #  print("Not enough signal in Alpha Window. Skipping")
-    #  continue
-    #else:
-    #  print("Efficiency in this alpha window: {:.2f}%".format(alpha_eff * 100))
+    if(alpha_eff < 0.1): 
+      print("Not enough signal in Alpha Window. Skipping")
+      continue
+    else:
+      print("Efficiency in this alpha window: {:.2f}%".format(alpha_eff * 100))
     
     if(alpha_eff > 0.1 or (abin_num < 4 and thisAlpha==0.005)):
       print("Efficiency in this alpha window: {:.2f}%".format(alpha_eff * 100))

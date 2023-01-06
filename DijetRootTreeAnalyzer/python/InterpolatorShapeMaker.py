@@ -78,6 +78,7 @@ X1B = Make1BinsFromMinToMax(297., 3110.) #Steven for making signals over 2000, t
 #fineFile.close()
 AfineB = list(numpy.linspace(0.0,0.03, 10000))
 AlphaBins = [ 0.003, 0.00347, 0.00395, 0.00444, 0.00494, 0.00545, 0.00597, 0.0065, 0.00704, 0.00759, 0.00815, 0.00872, 0.0093, 0.01049, 0.01505, 0.03] 
+
 for aa in AlphaBins:
   if(aa not in AfineB): AfineB.append(aa)
 AfineB = sorted(AfineB)
@@ -561,6 +562,4 @@ InterpolateHists(inputSignal,shape,treeName,outDir,force=forceInt)
 #InterpolateHists(inputSignal,"Sig_SU",outDir)
 #InterpolateHists(inputSignal,"Sig_SD",outDir)
 #InterpolateHists(inputSignal,"Sig_nominal",outDir)
-
-
 

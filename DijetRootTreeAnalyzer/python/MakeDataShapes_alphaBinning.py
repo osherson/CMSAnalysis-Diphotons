@@ -28,10 +28,9 @@ for ff in os.listdir(xaastorage):
 #CUTS = [1.0, 3.5, 0.9, 0.8] #Loose
 #CUTS = [0.25, 1.5, 0.9, 0.8] #Analysis Cuts
 
-#CUTS = [0.25, 1.5, 0.9, 0.1] #Loose 1
-CUTS = [0.5, 2.5, 0.9, 0.1] #Loose 2
-#CUTS = [0.9, 2.5, 0.9, 0.1] #Loose 3
-#CUTS = [0.9, 2.5, 0.5, 0.1] #Loose 4
+CUTS = [0.25, 1.5, 0.9, 0.1] #Loose 1
+#CUTS = [0.5, 2.5, 0.9, 0.1] #Loose 2
+#CUTS = [0.5, 3.5, 0.5, 0.1] #Loose 3 ALSO CHANGED PT CUT IN PLOTTING PAYLOAD
 
 #################################################
 
@@ -57,7 +56,7 @@ AlphaBins = [
                #0.01302, 
                #0.01368, 
                #0.01436,
-               0.01505, 
+               #0.01505, 
                #0.01575, 
                #0.01647, 
                #0.0172, 
@@ -76,7 +75,8 @@ AlphaBins = [
                #0.02806, 
                #0.02901, 
                0.03]
-#AlphaBins = [0, 0.03]
+
+#AlphaBins = [0.003, 0.03]
 
 for abin_num in range(0,len(AlphaBins)-1):
 #for abin_num in range(len(AlphaBins)-2, 13, -1):
