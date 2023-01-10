@@ -1,19 +1,25 @@
 import os
 import sys
 
-card_dir = "saveOutput/fb_1/combineCards/"
+wd = "fb_1"
+card_dir = "saveOutput/{}/combineCards/".format(wd)
+
+if(not os.path.exists("AllAlphaCards/{}".format(wd))):
+  os.system("mkdir AllAlphaCards/{}".format(wd))
 
 masses = []
 for ff in os.listdir(card_dir):
-  if(ff.startswith("CARD") and ff.endswith(".txt")):
-    mass = ff.split("_")[2]
-    masses.append(mass)
+  if(ff.startswith("dipho_combine") and ff.endswith(".txt")):
+    for vv in ff.split("_"):
+      if(vv.startswith("X")):
+        masses.append(vv)
 
 masses = list(set(masses))
 ct = 0
 for mass in masses:
   if(ct % 100 == 0): print("{} / {} completed".format(ct, len(masses)))
-  os.system("combineCards.py {}/*{}*.txt > AllAlphaCards/{}_alphaAll.txt".format(card_dir, mass, mass))
+  print("combineCards.py {}/*{}*.txt > AllAlphaCards/{}/dipho_combine_multipdf_lumi-13.700_RunII_{}_Allalpha.txt".format(card_dir, mass, wd, mass))
+  os.system("combineCards.py {}/*{}*.txt > AllAlphaCards/{}/dipho_combine_multipdf_lumi-13.700_RunII_{}_Allalpha.txt".format(card_dir, mass, wd, mass))
   ct += 1
 #os.system("sed -i \"s/output\/combineCards\/\/cms/\/cms/g\" AllAlphaCards/*.txt")
 
