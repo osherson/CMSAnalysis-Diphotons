@@ -106,8 +106,10 @@ def makeThisLimit(signal, alphaBin):
 
   cname = "output/dijet_combine_gg_{}_alpha{}_lumi-13.700_2018_DIPHOM_alpha{}".format(signal,abin_num,abin_num)
   #cname = "output/dijet_combine_gg_{}_alpha{}_lumi-137.000_2018_DIPHOM_alpha{}".format(signal,abin_num,abin_num)
-  ocname = "output/combineCards/CARD_multi_{}_alpha{}".format(signal,abin_num)
-  fpname = "{}/output/combineCards/CARD_multi_{}_alpha{}".format(os.getcwd(),signal,abin_num)
+  #ocname = "output/combineCards/CARD_multi_{}_alpha{}".format(signal,abin_num)
+  #fpname = "{}/output/combineCards/CARD_multi_{}_alpha{}".format(os.getcwd(),signal,abin_num)
+  ocname = "output/combineCards/dipho_combine_multipdf_lumi-13.700_RunII_{}_alphabin{}".format(sig,abin_num)
+  fpname = "{}/output/combineCards/dipho_combine_multipdf_lumi-13.700_RunII_{}_alphabin{}".format(os.getcwd(),sig,abin_num)
 
   try:
     with open('{}.txt'.format(cname), 'r') as input_file, open('{}.txt'.format(ocname), 'w') as output_file:

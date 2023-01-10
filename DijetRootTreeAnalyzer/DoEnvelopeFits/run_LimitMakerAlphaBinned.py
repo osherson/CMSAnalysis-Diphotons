@@ -85,8 +85,8 @@ def makeThisLimit(xmass):
     sigAlpha = sigPhi / sigX
     abin_num = dd.split("/")[-2]
 
-    #if(sig != "X600A18"): continue
-    if(sig != "X600A3"): continue
+    if(sig != "X600A18"): continue
+    #if(sig != "X600A3"): continue
     #if(sigAlpha != 0.005): continue
 
     print("Starting {} Signal, alpha bin {}" .format(sig, abin_num))
@@ -125,8 +125,10 @@ def makeThisLimit(xmass):
     os.system(lcommand)
 
     cname = "output/dijet_combine_gg_{}_alpha{}_lumi-13.700_2018_DIPHOM_alpha{}".format(sig,abin_num,abin_num)
-    ocname = "output/combineCards/CARD_multi_{}_alpha{}".format(sig,abin_num)
-    fpname = "{}/output/combineCards/CARD_multi_{}_alpha{}".format(os.getcwd(),sig,abin_num)
+    #ocname = "output/combineCards/CARD_multi_{}_alpha{}".format(sig,abin_num)
+    #fpname = "{}/output/combineCards/CARD_multi_{}_alpha{}".format(os.getcwd(),sig,abin_num)
+    ocname = "output/combineCards/dipho_combine_multipdf_lumi-13.700_RunII_{}_alphabin{}".format(sig,abin_num)
+    fpname = "{}/output/combineCards/dipho_combine_multipdf_lumi-13.700_RunII_{}_alphabin{}".format(os.getcwd(),sig,abin_num)
 
     try:
       with open('{}.txt'.format(cname), 'r') as input_file, open('{}.txt'.format(ocname), 'w') as output_file:
