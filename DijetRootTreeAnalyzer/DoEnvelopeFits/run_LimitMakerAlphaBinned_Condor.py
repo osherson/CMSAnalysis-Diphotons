@@ -35,16 +35,22 @@ def getEff(s, d):
     eff = float(f.readline().rstrip())
   return eff
 
+GEN_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromInterpo/alphaBinning/"
+INT_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromGen/alphaBinning/"
 def makeThisLimit(signal, alphaBin):
   global year, LUMI
 
   if(doInterpo):
-    data_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromInterpo/alphaBinning/"
+    data_dir = GEN_dir
+    GorI = "int"
   else:
-    data_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromGen/alphaBinning/"
+    data_dir = INT_dir
+    GorI = "gen"
   dirs = []
 
   mydir = data_dir + alphaBin + "/" + signal
+  gen_mydir = mydir.replace("Interpo","Gen")
+  int_mydir = mydir.replace("Gen","Interpo")
   if(os.path.exists("{}/PLOTS_{}.root".format(mydir,alphaBin))):
         fracFile = open("{}/alphaFraction_alpha{}_{}.txt".format(mydir,alphaBin,signal), "r")
         frac = float(fracFile.readline())
@@ -74,6 +80,7 @@ def makeThisLimit(signal, alphaBin):
   MakeFolder("output/alpha_{}/{}".format(abin_num,signal))
   os.system("cp {}/{}/{}/arange.txt output/alpha_{}/{}/.".format(data_dir,abin_num,signal,abin_num,signal))
   
+  """
   if(goLim==True and os.path.exists("combineOutput/alpha{}/higgsCombine_envelope_alpha{}_{}.root".format(alphaBin, alphaBin, signal))):
     print(abin_num, signal)
     print("Limit already done, moving on. ")
@@ -83,11 +90,15 @@ def makeThisLimit(signal, alphaBin):
     print(abin_num, signal)
     print("Card already done, moving on. ")
     return
+  """
 
   #GetSignal and efficiency
   with open("{}/{}.txt".format(mydir,signal)) as f:
+  #with open("{}/{}.txt".format(gen_mydir,signal)) as f:
+  #with open("{}/{}.txt".format(int_mydir,signal)) as f:
     eff = float(f.readline().rstrip())
     print(eff)
+  #eff = 1.
 
   mycommand = "python ../python/BinnedDiphotonFit.py -c ../config/envelope2/diphoton_multi_alpha{}.config -y {} -l {} -b DIPHOM_alpha{} {}/PLOTS_{}.root -d output --fit-spectrum --write-fit --words test --sig {} --abin {} --lowA {} --hiA {}".format(abin_num,year,LUMI,abin_num,mydir,abin_num,signal,abin_num,la,ha)
   print(mycommand)
@@ -99,7 +110,7 @@ def makeThisLimit(signal, alphaBin):
   os.system("mv output/DijetFitResults_DIPHOM_alpha{}_2018_{}_alpha{}.root output/alpha_{}/{}/DijetFitResults_DIPHOM_2018_{}_alpha{}.root ".format(abin_num,signal,abin_num,abin_num,signal,signal,abin_num))
   os.system("mv output/Plots_DIPHOM_alpha{}_{}_alpha{}.root output/alpha_{}/{}/Plots_DIPHOM_alpha{}_{}.root ".format(abin_num,signal,abin_num,abin_num,signal,abin_num,signal))
 
-  lcommand = "python ../python/DiphotonCardMakerAlphaBinSingle_envelope.py -f DIPHOM_alpha{} -l {} -y {} -a {} -s {} -x {}".format(abin_num, LUMI, year, abin_num, signal, XS*eff)
+  lcommand = "python ../python/DiphotonCardMakerAlphaBinSingle_envelope.py -f DIPHOM_alpha{} -l {} -y {} -a {} -s {} -x {} -g {}".format(abin_num, LUMI, year, abin_num, signal, XS*eff, GorI)
   print(lcommand)
   MakeFolder("output/combineCards")
   os.system(lcommand)
@@ -108,8 +119,8 @@ def makeThisLimit(signal, alphaBin):
   #cname = "output/dijet_combine_gg_{}_alpha{}_lumi-137.000_2018_DIPHOM_alpha{}".format(signal,abin_num,abin_num)
   #ocname = "output/combineCards/CARD_multi_{}_alpha{}".format(signal,abin_num)
   #fpname = "{}/output/combineCards/CARD_multi_{}_alpha{}".format(os.getcwd(),signal,abin_num)
-  ocname = "output/combineCards/dipho_combine_multipdf_lumi-13.700_RunII_{}_alphabin{}".format(sig,abin_num)
-  fpname = "{}/output/combineCards/dipho_combine_multipdf_lumi-13.700_RunII_{}_alphabin{}".format(os.getcwd(),sig,abin_num)
+  ocname = "output/combineCards/dipho_combine_multipdf_lumi-13.700_RunII_{}_alphabin{}".format(signal,abin_num)
+  fpname = "{}/output/combineCards/dipho_combine_multipdf_lumi-13.700_RunII_{}_alphabin{}".format(os.getcwd(),signal,abin_num)
 
   try:
     with open('{}.txt'.format(cname), 'r') as input_file, open('{}.txt'.format(ocname), 'w') as output_file:

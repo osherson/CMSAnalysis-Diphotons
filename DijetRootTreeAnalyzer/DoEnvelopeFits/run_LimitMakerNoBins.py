@@ -7,9 +7,9 @@ fast=False
 doInterpo = False
 fnum=999
 
-#xmasslist = ['600','400','500','300','750','1000','1500','2000']
+xmasslist = ['600','400','500','300','750','1000','1500','2000']
 #xmasslist = ['600','400','500','200','300','750','1000','1500','2000','3000']
-xmasslist = ['2000']
+#xmasslist = ['600']
 
 year = 2018
 LUMI = 13.7 * 1000  #provide lumi in PB
@@ -48,17 +48,18 @@ def getEff(s, d):
   return eff
 
 
-def makeThisLimit(xmass):
+def makeThisLimit(xmass, GorI):
   global year, LUMI
 
-  if(doInterpo):
-    data_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromInterpo/OneBigBin"
+  if(GorI=="int"):
+    data_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromInterpo/unBinned/"
   else:
-    data_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromGen/OneBigBin/"
+    data_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromGen/unBinned/"
   dirs = []
+  print(data_dir)
 
   for xx in os.listdir(data_dir):
-    if(os.path.exists("{}{}/PLOTS_0.root".format(data_dir,xx))):
+    if(os.path.exists("{}{}/PLOTS.root".format(data_dir,xx))):
       sig=xx
       la,ha = 0.003, 0.03
       dirs.append(("{}{}".format(data_dir,sig),0,la,ha))
@@ -73,7 +74,7 @@ def makeThisLimit(xmass):
     sigAlpha = sigPhi / sigX
     abin_num = 0
 
-    if(sig != "X2000A20"): continue
+    #if(sig != "X600A3"): continue
 
     print("Starting {} Signal, alpha bin {}" .format(sig, abin_num))
     MakeFolder("output/alpha_{}/{}".format(abin_num,sig))
@@ -90,7 +91,7 @@ def makeThisLimit(xmass):
           eff = float(f.readline().rstrip())
           print(eff)
 
-    mycommand = "python ../python/BinnedDiphotonFit.py -c ../config/envelope2/diphoton_multi_alpha0.config -y {} -l {} -b DIPHOM_alpha0 {}/PLOTS_0.root -d output --fit-spectrum --write-fit --words test --sig {} --abin 0 --lowA {} --hiA {}".format(year,LUMI,dd,sig,la,ha)
+    mycommand = "python ../python/BinnedDiphotonFit.py -c ../config/envelope2/diphoton_multi_alpha0.config -y {} -l {} -b DIPHOM_alpha0 {}/PLOTS.root -d output --fit-spectrum --write-fit --words test --sig {} --abin 0 --lowA {} --hiA {}".format(year,LUMI,dd,sig,la,ha)
     print(mycommand)
 
     os.system(mycommand)
@@ -102,7 +103,7 @@ def makeThisLimit(xmass):
     if clean:
       os.system("mv output/*.* output/alpha_{}/{}/.".format(abin_num,sig))
 
-    lcommand = "python ../python/DiphotonCardMakerAlphaBinSingle_envelope.py -f DIPHOM_alpha{} -l {} -y {} -a ALL -s {} -x {}".format(abin_num, LUMI, year, sig, XS*eff)
+    lcommand = "python ../python/DiphotonCardMakerUnbinnedSingle_envelope.py -f DIPHOM_alpha{} -l {} -y {} -a ALL -s {} -x {} -g {}".format(abin_num, LUMI, year, sig, XS*eff, GorI)
     print(lcommand)
     MakeFolder("output/combineCards")
     os.system(lcommand)
@@ -144,18 +145,21 @@ def makeThisLimit(xmass):
 
 if(doInterpo):
   print("Using interpolated shapes")
-  i_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromInterpo/alphaBinning"
+  i_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromInterpo/unBinned"
   xmlist = []
   for xa in os.listdir(i_dir):
     xm = int(xa[1 : xa.find("A")])
     xmlist.append(xm)
   
   for xm in xmlist:
-    makeThisLimit(xm)
+    makeThisLimit(xm,"int")
+    break
 
 else:
   #xmasslist=[xmasslist[0]]
   #xmasslist=["400"]
+  #makeThisLimit(xm)
   for xm in xmasslist:
     print("\nStarting X Mass {}\n".format(xm))
-    makeThisLimit(xm)
+    makeThisLimit(xm,"gen")
+    break

@@ -97,14 +97,15 @@ for thisSigIndex, oneSig in SignalsGenerated.items():
   new_dir = "{}/../inputs/Shapes_fromGen/unBinned/{}/".format(dir_path,whichSig)
   PL.MakeFolder(new_dir)
 
-  (sXr, sX1r, sA1r, sXvAr) = PL.GetDiphoShapeAnalysisPlusAlpha(SignalsGenerated[thisSigIndex], thisAlpha, "pico_nom", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeight*weight*10.*5.99")
+  (sXr, sX1r, sA1r, sPhir, sXvAr) = PL.GetDiphoShapeAnalysisPlusAlpha(SignalsGenerated[thisSigIndex], thisAlpha, "pico_nom", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeight*weight*10.*5.99")
   doOneInput(whichSig, sX1r, "h_AveDijetMass_1GeV", "Sig_nominal", True)
   doOneInput(whichSig, sA1r, "h_alpha_fine", "Sig_nominal", True)
+  doOneInput(whichSig, sPhir, "h_phi_fine", "Sig_nominal", True)
 
-  (sXpu, sX1pu, sA1pu, sXvApu) = PL.GetDiphoShapeAnalysisPlusAlpha(SignalsGenerated[thisSigIndex], thisAlpha, "pico_nom", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeightUp*weight*10.*5.99")
-  (sXpd, sX1pd, sA1pd, sXvApd) = PL.GetDiphoShapeAnalysisPlusAlpha(SignalsGenerated[thisSigIndex], thisAlpha, "pico_nom", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton","puWeightDown*weight*10.*5.99")
-  (sXsu, sX1su, sA1su, sXvAsu) = PL.GetDiphoShapeAnalysisPlusAlpha(SignalsGenerated[thisSigIndex], thisAlpha, "pico_scale_up", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton","weight*10.*5.99")
-  (sXsd, sX1sd, sA1sd, sXvAsd) = PL.GetDiphoShapeAnalysisPlusAlpha(SignalsGenerated[thisSigIndex], thisAlpha, "pico_scale_down", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton","weight*10.*5.99")
+  (sXpu, sX1pu, sA1pu, sPhipu, sXvApu) = PL.GetDiphoShapeAnalysisPlusAlpha(SignalsGenerated[thisSigIndex], thisAlpha, "pico_nom", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeightUp*weight*10.*5.99")
+  (sXpd, sX1pd, sA1pd, sPhipd, sXvApd) = PL.GetDiphoShapeAnalysisPlusAlpha(SignalsGenerated[thisSigIndex], thisAlpha, "pico_nom", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton","puWeightDown*weight*10.*5.99")
+  (sXsu, sX1su, sA1su, sPhisu, sXvAsu) = PL.GetDiphoShapeAnalysisPlusAlpha(SignalsGenerated[thisSigIndex], thisAlpha, "pico_scale_up", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton","weight*10.*5.99")
+  (sXsd, sX1sd, sA1sd, sPhisd, sXvAsd) = PL.GetDiphoShapeAnalysisPlusAlpha(SignalsGenerated[thisSigIndex], thisAlpha, "pico_scale_down", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton","weight*10.*5.99")
 
   with open(new_dir + whichSig+".txt", 'w') as eff:
       E = sX1r.GetEntries()
@@ -120,5 +121,21 @@ for thisSigIndex, oneSig in SignalsGenerated.items():
   doOneInput(whichSig, sA1su, "h_alpha_fine", "Sig_SU", True)
   doOneInput(whichSig, sX1sd, "h_AveDijetMass_1GeV", "Sig_SD", True)
   doOneInput(whichSig, sA1sd, "h_alpha_fine", "Sig_SD", True)
+
+  dataFile = ROOT.TFile("/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_DATA/alphaBinning/ALL/DATA.root","read")
+  os.system("cp /cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_DATA/alphaBinning/ALL/DATA.root {}/DATA.root".format(new_dir))
+  dX = dataFile.Get("data_XM")
+  dX1 = dataFile.Get("data_XM1")
+  dXvA = dataFile.Get("data_XvA")
+
+  oF = TFile("{}/PLOTS.root".format(new_dir), "recreate")
+  sXr.Scale(1/sXr.Integral())
+  sXr.Write()
+  sX1r.Write()
+  dX.Write()
+  dX1.Write()
+
+  dataFile.Close()
+  oF.Close()
 
 

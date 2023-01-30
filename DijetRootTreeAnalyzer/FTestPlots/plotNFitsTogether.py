@@ -19,7 +19,7 @@ use_XA = {0: "X600A3",
           14: "X600A12",
           }
 
-npd = {3:"ThreeParams/", 4:"FourParams/", 5:"FiveParams", 6:"SixParams"}
+npd = {3:"ThreeParams/", 4:"FourParams/", 5:"FiveParams/", 6:"SixParams/"}
 
 #alphaBins = range(0,9+1)
 alphaBins = use_XA.keys()
@@ -37,6 +37,7 @@ MakeFolder(outFolder)
 dirs = []
 
 for anum in alphaBins:
+  if(anum != 12): continue
   thisD = "{}/ThreeParams/alpha_{}".format(outdir,anum)
   found = False
   for xa in os.listdir(os.path.join(thisD)):
@@ -62,6 +63,8 @@ for anum in alphaBins:
       found=True
     if found==True: break
 
+for d in dirs:
+  print(d)
 
 lumi = 13.7 ##Check this
 sqrts=np.sqrt(13000)
@@ -231,6 +234,7 @@ def makePlotTogether(flist, anum, function, lA, hA):
   myRebinnedTH1.GetXaxis().SetLabelOffset(1000)
 
   leg.AddEntry(myRebinnedTH1, "Data")
+  print("here")
 
   myRebinnedTH1.Draw("e0")
 
@@ -269,6 +273,7 @@ def makePlotTogether(flist, anum, function, lA, hA):
     th = TH1D("{}".format(np),"{}".format(np),len(x)-1, x)
     ph = TH1D("{}_pull".format(np),"{}_pull".format(np),len(x)-1, x)
     #a=getHistFromWorkspace(hdir,np,th, myRealTH1, ph)
+    print(fil)
     a=getHistFromWorkspace(fil, function, th, myRebinnedTH1, ph)
     th.SetName(str(np))
     if(a==0): 
@@ -278,9 +283,13 @@ def makePlotTogether(flist, anum, function, lA, hA):
     pulllist.append(ph)
 
   for (ii,hh) in enumerate(histlist):
+    print(ii,hh.GetName())
 
     hh.SetStats(0)
-    hh.SetLineColor(colors[ii])
+    if(function=="moddijet"):
+      hh.SetLineColor(colors[ii+1])
+    else:
+      hh.SetLineColor(colors[ii+1])
     hh.SetLineWidth(2)
     hh.GetYaxis().SetRangeUser(5e-4,20)
   

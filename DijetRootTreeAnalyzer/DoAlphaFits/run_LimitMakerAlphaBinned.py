@@ -54,6 +54,7 @@ def makeThisLimit(xmass):
     data_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromInterpo/alphaBinning/"
   else:
     data_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromGen/alphaBinning/"
+    #data_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromGen/OneBigBin/"
   dirs = []
 
   for dd in os.listdir(data_dir):
@@ -74,12 +75,15 @@ def makeThisLimit(xmass):
     #os.system("cp {}{}/{}/arange.txt output/alpha_{}/{}/.".format(data_dir,dd,sig,anum,sig))
 
   #fitfuncs = ["dijet","moddijet","atlas","dipho","myexp"] #FourParams
-  fitfuncs = ["dijet","moddijet","atlas","dipho"] #Five and Three
+  #fitfuncs = ["dijet","moddijet","atlas","dipho"] #Five and Three
   #fitfuncs = ["dijet","atlas","dipho"] #Six
+  fitfuncs = ["dipho"]
 
   for (dd,anum,la,ha) in dirs:
     sig = dd.split("/")[-1]
+    #if(sig != "X2000A50"): continue
     #if(sig != "X400A2"):continue
+    if(anum != 12):continue
     #abin_num = int(dd.split("/")[-2])
     abin_num = anum
     MakeFolder("output/alpha_{}/{}".format(anum,sig))
@@ -100,7 +104,6 @@ def makeThisLimit(xmass):
 
       mycommand = "python ../python/BinnedDiphotonFit.py -c ../config/diphoton_{}.config -y {} -l {} -b diphoton_{} {}/PLOTS_{}.root -d output --fit-spectrum --write-fit --words test --sig {} --abin {} --lowA {} --hiA {}".format(ff,year,LUMI,ff,dd,abin_num,sig,abin_num,la,ha)
       print(mycommand)
-      exit() 
       os.system(mycommand)
       os.system("mv output/fit_mjj_Full_diphoton_{}_2018_{}_alpha{}.png output/alpha_{}/{}/fit_mjj_Full_diphoton_{}_{}_{}.png ".format(ff,sig,abin_num,abin_num,sig,sig,ff,abin_num))
       os.system("rm output/fit_mjj_Full_diphoton_{}_2018_{}_alpha{}.C".format(ff,sig,abin_num))
@@ -110,6 +113,7 @@ def makeThisLimit(xmass):
       if clean:
         os.system("mv output/*.* output/alpha_{}/{}/.".format(abin_num,sig))
 
+      continue
       lcommand = "python ../python/DiphotonCardMakerAlphaBinSingle_envelope.py -f {} -l {} -y {} -a {} -s {} -x {}".format(ff,LUMI, year, abin_num, sig, XS*eff)
       print(lcommand)
       MakeFolder("output/combineCards")

@@ -10,6 +10,8 @@ def RunDataCardMaker(o):
 
     abin = str(o.ABIN)
     sig = str(o.SIG)
+    gi = o.GI
+    print("GEN OR INT",gi)
 
     if(env):
       if(abin=="ALL"):
@@ -50,7 +52,8 @@ def RunDataCardMaker(o):
       jerdown = " --jerDown {}/../inputs/Shapes_fromGen/OneBigBin/".format(dir_path) +sig+"/Sig_PD.root"
 
     if(abin !="ALL"):
-      if(os.path.exists(dir_path + "/../inputs/Shapes_fromGen/alphaBinning/" + abin + "/" + str(o.SIG) + "/DATA.root")):
+      #if(os.path.exists(dir_path + "/../inputs/Shapes_fromGen/alphaBinning/" + abin + "/" + str(o.SIG) + "/DATA.root")):
+      if(gi=="gen"):
         if(env):
           inputs = " -i output/alpha_{}/{}/DijetFitResults_DIPHOM_2018_{}_alpha{}.root".format(abin,sig,sig,abin)
         else:
@@ -62,7 +65,8 @@ def RunDataCardMaker(o):
         jerup = " --jerUp {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_PU.root"
         jerdown = " --jerDown {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_PD.root"
 
-      elif(os.path.exists(dir_path + "/../inputs/Shapes_fromInterpo/alphaBinning/" + abin + "/" + str(o.SIG) + "/DATA.root")):
+      #elif(os.path.exists(dir_path + "/../inputs/Shapes_fromInterpo/alphaBinning/" + abin + "/" + str(o.SIG) + "/DATA.root")):
+      elif(gi=="int"):
         if(env):
           inputs = " -i output/alpha_{}/{}/DijetFitResults_DIPHOM_2018_{}_alpha{}.root".format(abin,sig,sig,abin)
         else:
@@ -94,5 +98,6 @@ if __name__ == "__main__":
     parser.add_option("-a", "--alphabin", dest="ABIN", type=str, help="AlphaBin Number", metavar="THEALPHA")
     parser.add_option("-s", "--sig", dest="SIG", type=str, help="signal samples", metavar="THESIGNAL")
     parser.add_option("-x", "--xsec", dest="XS", type=str, help="signal xs", metavar="THESIGNALxs")
+    parser.add_option("-g", "--GenOrInt", dest="GI", type=str, help="Generated or Interpolated", metavar="GENORINT")
     (o, args) = parser.parse_args()
     RunDataCardMaker(o)

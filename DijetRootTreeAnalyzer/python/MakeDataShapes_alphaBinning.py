@@ -32,6 +32,9 @@ CUTS = [0.25, 1.5, 0.9, 0.1] #Loose 1
 #CUTS = [0.5, 2.5, 0.9, 0.1] #Loose 2
 #CUTS = [0.5, 3.5, 0.5, 0.1] #Loose 3 ALSO CHANGED PT CUT IN PLOTTING PAYLOAD
 
+print("VERIFY CUTS: ")
+print("masym < {}, deta < {}, dipho > {}, isolation > {}".format(CUTS[0], CUTS[1], CUTS[2], CUTS[3]))
+
 #################################################
 
 AlphaBins = [

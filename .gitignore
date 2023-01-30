@@ -120,4 +120,9 @@ DijetRootTreeAnalyzer/DoEnvelopeFits/Condor_LimitMaker/condor_submitfiles/
 DijetRootTreeAnalyzer/SignalPlots/Plots
 DijetRootTreeAnalyzer/ConstructAlphaBins/Plots
 DijetRootTreeAnalyzer/ConstructAlphaBins/DataPlot
+DijetRootTreeAnalyzer/OldInterpo/RunInterpolator/*
+DijetRootTreeAnalyzer/OldInterpo/InterpoPlotter/*
+DijetRootTreeAnalyzer/OldInterpo/EfficiencyInterpolator/*
+DijetRootTreeAnalyzer/DoEnvelopeFits/unbinnedLimitMaker/*
+DijetRootTreeAnalyzer/DataPlots/*
 

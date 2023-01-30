@@ -163,9 +163,12 @@ for ff in os.listdir(xaastorage):
 #CUTS = [1.0, 3.5, 0.9, 0.8] #Loose
 #CUTS = [0.25, 1.5, 0.9, 0.8] #Analysis Cuts
 
-#CUTS = [0.25, 1.5, 0.9, 0.1] #Loose Analysis Cuts
+CUTS = [0.25, 1.5, 0.9, 0.1] #Loose Analysis Cuts
 #CUTS = [0.5, 2.5, 0.9, 0.1] #Loose 2
-CUTS = [0.5, 3.5, 0.5, 0.1] #Loose 3 ALSO CHANGED PT CUT IN PLOTTING PAYLOAD
+#CUTS = [0.5, 3.5, 0.5, 0.1] #Loose 3 ALSO CHANGED PT CUT IN PLOTTING PAYLOAD
+
+print("VERIFY CUTS: ")
+print("masym < {}, deta < {}, dipho > {}, isolation > {}".format(CUTS[0], CUTS[1], CUTS[2], CUTS[3]))
 
 #################################################
 
@@ -244,7 +247,7 @@ for aa,fi in SignalsGenerated.items():
 g_alphas = SignalsGenerated.keys()
 
 for abin_num in range(0,len(AlphaBins)-1):
-  #if(abin_num > 3): continue
+  #if(abin_num != 4): continue
   d_path = os.path.dirname(os.path.realpath(__file__))
 
   lA = AlphaBins[abin_num]
@@ -271,11 +274,14 @@ for abin_num in range(0,len(AlphaBins)-1):
     thisX = int(whichSig[whichSig.find("X")+1 : whichSig.find("A")])
     thisPhi = float(whichSig[whichSig.find("A")+1 : ].replace("p","."))
     thisAlpha = thisPhi/thisX
-    if(whichSig != "X400A12"):continue
+    #if(whichSig != "X400A2"):continue
 
     print("\nSignal: {}".format(whichSig))
 
     (sXr_ub, sX1r_ub, sXvAr_ub) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_nom", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [0,0.03], "HLT_DoublePhoton", "puWeight*weight*10.*5.99")
+    print("sXr ",sXr_ub.GetEntries())
+    print("sX1r ",sX1r_ub.GetEntries())
+    print("lookup ", float(lookup(whichSig)))
     (sXr, sX1r, sXvAr) = PL.GetDiphoShapeAnalysis(SignalsGenerated[thisSigIndex], "pico_nom", whichSig, CUTS[0], CUTS[1], CUTS[2], CUTS[3], [lA,hA], "HLT_DoublePhoton", "puWeight*weight*10.*5.99")
     print("Signal sX1r Entries, Integral: {}, {}".format(sX1r.GetEntries(), sX1r.Integral()))
 
@@ -318,6 +324,8 @@ for abin_num in range(0,len(AlphaBins)-1):
       n_gen = float(lookup(whichSig))
       eff = n_postcut / n_gen * 100
       print("Total Efficiency: {:.3f} %".format(eff))
+
+      #exit()
 
       SaveHists(str(abin_num), whichSig, sXr, sX1r, sXvAr, sX, sX1, dX, dX1, dXvA, sX1pu, sX1pd, sX1su, sX1sd)
 

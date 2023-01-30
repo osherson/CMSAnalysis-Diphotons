@@ -436,7 +436,9 @@ XB = [297.0, 303.0, 310.0, 317.0, 324.0, 331.0, 338.0, 345.0, 352.0, 360.0, 368.
 #X1B = MakeNBinsFromMinToMax(2920, 190., 3110.)
 #X1B = MakeNBinsFromMinToMax(2810, 300., 3110.)
 #X1B = MakeNBinsFromMinToMax(1399, 300., 1696.)
-X1B = Make1BinsFromMinToMax(297., 3110.)
+#X1B = Make1BinsFromMinToMax(297., 3110.)
+
+X1B = Make1BinsFromMinToMax(200., 3110.)
 AB = [0.0, 0.001, 0.002, 0.003, 0.004, 0.005, 0.006, 0.007, 0.008, 0.009, 0.01, 0.011, 0.012, 0.013, 0.014, 0.015, 0.016, 0.017, 0.018, 0.019, 0.02, 0.021, 0.022, 0.023, 0.024, 0.025, 0.027, 0.029, 0.031, 0.033, 0.035]
 #AfineB = numpy.linspace(0.00,0.03, 300001)
 
@@ -448,11 +450,17 @@ AB = [0.0, 0.001, 0.002, 0.003, 0.004, 0.005, 0.006, 0.007, 0.008, 0.009, 0.01, 
 #  AfineB.append(val)
 #fineFile.close()
 
-AfineB = list(numpy.linspace(0.0,0.03, 10000))
-AlphaBins = [ 0.003, 0.00347, 0.00395, 0.00444, 0.00494, 0.00545, 0.00597, 0.0065, 0.00704, 0.00759, 0.00815, 0.00872, 0.0093, 0.01049, 0.01505, 0.03]
-for aa in AlphaBins:
-  if(aa not in AfineB): AfineB.append(aa)
-AfineB = sorted(AfineB)
+AfineB = list(numpy.linspace(0.0,0.03, 10001))
+
+#Use below to line up with alpha bins
+AfineB = list(numpy.linspace(0.0,0.035, 1001))
+
+#AlphaBins = [ 0.003, 0.00347, 0.00395, 0.00444, 0.00494, 0.00545, 0.00597, 0.0065, 0.00704, 0.00759, 0.00815, 0.00872, 0.0093, 0.01049, 0.01505, 0.03]
+#for aa in AlphaBins:
+#  if(aa not in AfineB): AfineB.append(aa)
+#AfineB = sorted(AfineB)
+
+PhiFineB=list(numpy.linspace(0,100,10001))
 
 def GetDiphoShapeAnalysis(F, T, N, masym, deta, dipho, iso, alpha, trigger, scale, saveTree=False, saveSignal=""):
     # Load files:
@@ -478,6 +486,7 @@ def GetDiphoShapeAnalysis(F, T, N, masym, deta, dipho, iso, alpha, trigger, scal
     c_XMvA = b_XMvA.GetValue()
     # Clone plots:
     XM = c_XM.Clone(N+"_"+c_XM.GetName())
+    #XM = XM.Scale(1/XM.Integral())
     X1M = c_X1M.Clone(N+"_"+c_X1M.GetName())
     for h in [XM, X1M]:
         h.SetFillColor(2)
@@ -513,23 +522,26 @@ def GetDiphoShapeAnalysisPlusAlpha(F, trueAlpha, T, N, masym, deta, dipho, iso, 
     b_X1M          =   Rdf.Histo1D(("XM1", ";di-cluster mass (GeV); events / bin", len(X1B)-1, numpy.array(X1B)), "XM", "fW")
     b_Ar          =   Rdf.Histo1D(("A1", ";alpha; events / bin", len(AfineB)-1, numpy.array(AfineB)), "alpha", "fW")
     b_XMvA        =   Rdf.Histo2D(("XMvA", ";di-cluster mass (GeV);#alpha; events / bin", len(XB)-1, numpy.array(XB), len(AB)-1, numpy.array(AB)), "XM", "alpha", "fW")
+    b_Phir          =   Rdf.Histo1D(("phi1", ";avg cluster mass; events / bin", len(PhiFineB)-1, numpy.array(PhiFineB)), "aM", "fW")
     # Fill plots:
     c_XM = b_XM.GetValue()
     c_X1M = b_X1M.GetValue()
     c_Ar = b_Ar.GetValue()
     c_XMvA = b_XMvA.GetValue()
+    c_Phir = b_Phir.GetValue()
     # Clone plots:
     XM = c_XM.Clone(N+"_"+c_XM.GetName())
     X1M = c_X1M.Clone(N+"_"+c_X1M.GetName())
     Ar = c_Ar.Clone(N+"_"+c_Ar.GetName())
-    for h in [XM, X1M, Ar]:
+    Phir = c_Phir.Clone(N+"_"+c_Phir.GetName())
+    for h in [XM, X1M, Ar, Phir]:
         h.SetFillColor(2)
         h.SetLineColor(2)
         h.SetFillStyle(3001)
     XMvA = c_XMvA.Clone(N+"_"+c_XMvA.GetName())
 
     # Return plots:
-    return (XM, X1M, Ar, XMvA)
+    return (XM, X1M, Ar, Phir, XMvA)
 
 def RebinReso(hh):
 

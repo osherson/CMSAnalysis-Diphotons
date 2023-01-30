@@ -53,41 +53,47 @@ def makeThisLimit(xmass):
 
   if(doInterpo):
     data_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromInterpo/alphaBinning/"
+    GorI="int"
   else:
     data_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromGen/alphaBinning/"
+    GorI="gen"
   dirs = []
 
   for dd in os.listdir(data_dir):
     if(dd=="ALL"): continue
     if(dd.startswith("cuts")): continue
-    anum = int(dd)
+    try:
+      anum = int(dd)
+    except ValueError:
+      continue
     if(fast and anum!=fnum): continue
     for xx in os.listdir(os.path.join(data_dir,dd)):
-      if("X{}A".format(xmass) in xx and os.path.exists("{}{}/{}/PLOTS_{}.root".format(data_dir,dd,xx,anum))):
-        fracFile = open("{}/{}/{}/alphaFraction_alpha{}_{}.txt".format(data_dir, anum,xx,anum,xx), "r")
-        frac = float(fracFile.readline())
-        #if(frac < 0.1) : continue
-        fracFile.close()
-        sig=xx
-        rangeFile = open("{}{}/{}/arange.txt".format(data_dir,dd,sig),"r")
-        rr = rangeFile.readline().rstrip()
-        la = float(rr.split(",")[0])
-        ha = float(rr.split(",")[-1])
-        dirs.append(("{}{}/{}".format(data_dir,dd,sig), anum,la,ha))
+      if("X{}A".format(xmass) in xx):
+        if(os.path.exists("{}{}/{}/PLOTS_{}.root".format(data_dir,dd,xx,anum))):
+          fracFile = open("{}/{}/{}/alphaFraction_alpha{}_{}.txt".format(data_dir, anum,xx,anum,xx), "r")
+          frac = float(fracFile.readline())
+          #if(frac < 0.1) : continue
+          fracFile.close()
+          sig=xx
+          rangeFile = open("{}{}/{}/arange.txt".format(data_dir,dd,sig),"r")
+          rr = rangeFile.readline().rstrip()
+          la = float(rr.split(",")[0])
+          ha = float(rr.split(",")[-1])
+          dirs.append(("{}{}/{}".format(data_dir,dd,sig), anum,la,ha))
 
   if(goLim): MakeFolder("combineOutput")
 
   for (dd,anum,la,ha) in dirs:
-    #if(anum != 3 and anum != 4): continue
     sig = dd.split("/")[-1]
     sigX = float(sig[1 : sig.find("A")])
     sigPhi = float(sig[sig.find("A")+1:].replace("p","."))
     sigAlpha = sigPhi / sigX
     abin_num = dd.split("/")[-2]
 
-    if(sig != "X600A18"): continue
-    #if(sig != "X600A3"): continue
+    #if(sig != "X600A18"): continue
+    if(sig != "X600A3"): continue
     #if(sigAlpha != 0.005): continue
+    if(anum != 4): continue
 
     print("Starting {} Signal, alpha bin {}" .format(sig, abin_num))
     MakeFolder("output/alpha_{}/{}".format(abin_num,sig))
@@ -119,7 +125,7 @@ def makeThisLimit(xmass):
     if clean:
       os.system("mv output/*.* output/alpha_{}/{}/.".format(abin_num,sig))
 
-    lcommand = "python ../python/DiphotonCardMakerAlphaBinSingle_envelope.py -f DIPHOM_alpha{} -l {} -y {} -a {} -s {} -x {}".format(abin_num, LUMI, year, abin_num, sig, XS*eff)
+    lcommand = "python ../python/DiphotonCardMakerAlphaBinSingle_envelope.py -f DIPHOM_alpha{} -l {} -y {} -a {} -s {} -x {} -g {}".format(abin_num, LUMI, year, abin_num, sig, XS*eff, GorI)
     print(lcommand)
     MakeFolder("output/combineCards")
     os.system(lcommand)
@@ -158,20 +164,25 @@ def makeThisLimit(xmass):
           os.system(comb_command)
           os.system("mv higgsCombine_alpha{}_{}.AsymptoticLimits.mH120.root combineOutput/higgsCombine_envelope_alpha{}_{}.root".format(abin_num,sig,abin_num,sig))
 
-if(doInterpo):
-  print("Using interpolated shapes")
-  i_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromInterpo/alphaBinning"
-  xmlist = []
-  for xa in os.listdir(i_dir):
-    xm = int(xa[1 : xa.find("A")])
-    xmlist.append(xm)
-  
-  for xm in xmlist:
-    makeThisLimit(xm)
+#if(doInterpo):
+#  print("Using interpolated shapes")
+#  i_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromInterpo/alphaBinning"
+#  xmlist = []
+#  for xa in os.listdir(i_dir):
+#    print(xa)
+#    xm = int(xa[1 : xa.find("A")])
+#    xmlist.append(xm)
+#  
+#  for xm in xmlist:
+#    makeThisLimit(xm)
+#
+#else:
+#  #xmasslist=[xmasslist[0]]
+#  #xmasslist=["400"]
+#  for xm in xmasslist:
+#    print("\nStarting X Mass {}\n".format(xm))
+#    makeThisLimit(xm)
 
-else:
-  #xmasslist=[xmasslist[0]]
-  #xmasslist=["400"]
-  for xm in xmasslist:
-    print("\nStarting X Mass {}\n".format(xm))
-    makeThisLimit(xm)
+for xm in xmasslist:
+  print("\nStarting X Mass {}\n".format(xm))
+  makeThisLimit(xm)
