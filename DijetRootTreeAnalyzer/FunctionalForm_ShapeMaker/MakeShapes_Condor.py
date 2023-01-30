@@ -9,9 +9,11 @@ import scipy
 from array import array
 import csv
 
+dir_path = os.path.dirname(os.path.realpath(__file__))
+
 #ROOT.gROOT.SetBatch(ROOT.kTRUE)
 
-DATA_DIR = "../inputs/Shapes_DATA/alphaBinning/ALL/"
+DATA_DIR = "{}/../inputs/Shapes_DATA/alphaBinning/ALL/".format(dir_path)
 
 def MakeFolder(N):
   if not os.path.exists(N):
@@ -140,9 +142,9 @@ def MakePredictor(F, cV, cX, cA, ca):
 def MakeFunc(tn, shape, inx, inalpha):
   print "Reading in params"
   if(tn=="nominal"):
-    fname = "fitparams_{}.csv".format(shape)
+    fname = "{}/fitparams_{}.csv".format(dir_path,shape)
   else:
-    fname = "SystematicFitParams/{}/fitparams.csv".format(tn)
+    fname = "{}/SystematicFitParams/{}/fitparams.csv".format(dir_path,tn)
 
   with open(fname, 'r') as csvf: 
     X = []
@@ -194,7 +196,7 @@ def MakeFunc(tn, shape, inx, inalpha):
 
 def WriteEff(wx, wa, frac, odir):
 
-   fullEffFile=open("./EffStuff/FULL.csv","r")
+   fullEffFile=open("{}/EffStuff/FULL.csv".format(dir_path),"r")
    for lin in fullEffFile.readlines():
      sl = lin.split(",")
      fx = int(sl[0])
@@ -247,7 +249,7 @@ def MakeShape(x, alpha):
       a = int(x)*alpha
       x=str(x)
       a=str(round(a,4)).replace(".","p")
-      newFolder = "../inputs/Shapes_fromInterpo/unBinned/X{}A{}".format(x,a)
+      newFolder = "{}/../inputs/Shapes_fromInterpo/unBinned/X{}A{}".format(dir_path,x,a)
       if(newFolder.endswith("p0")): newFolder = newFolder[:-2]
       MakeFolder(newFolder)
 

@@ -131,3 +131,4 @@ DijetRootTreeAnalyzer/FunctionalForm_ShapeMaker/ConsistencyCheck/*
 DijetRootTreeAnalyzer/FunctionalForm_ShapeMaker/EffFiles/*
 DijetRootTreeAnalyzer/FunctionalForm_ShapeMaker/FitPlots
 DijetRootTreeAnalyzer/FunctionalForm_ShapeMaker/SystematicFitParams
+DijetRootTreeAnalyzer/FunctionalForm_ShapeMaker/RunCondor/*
