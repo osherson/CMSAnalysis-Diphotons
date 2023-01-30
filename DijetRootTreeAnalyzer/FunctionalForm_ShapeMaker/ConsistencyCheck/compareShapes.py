@@ -11,12 +11,12 @@ def getXPhiAlpha(signal):
   alpha = phi/x
   return x,phi,alpha
 
-gen_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromGen/unBinned/"
-int_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/Disco/TLinearFitterMethod/inputs/Shapes_fromInterpo/unBinned"
+gen_dir = "../../inputs/Shapes_fromGen/unBinned/"
+int_dir = "../../inputs/Shapes_fromInterpo/unBinned"
 
-#useshapes = ["X","alpha"]
+useshapes = ["X","alpha"]
 #useshapes=["X"]
-useshapes = ["alpha"]
+#useshapes = ["alpha"]
 
 for s in useshapes:
    os.system("rm Plots/{}/*".format(s))
@@ -39,7 +39,7 @@ for xaa in os.listdir(gen_dir):
         intfil = ROOT.TFile("{}/{}.root".format(intpath,infname),"read")
         if(shape=="X"):
           genhist = genfil.Get("h_AveDijetMass_1GeV")
-          inthist = intfil.Get("h_AveDijetMass_1GeV")
+          rinthist = intfil.Get("h_AveDijetMass_1GeV")
           #genhist = genfil.Get("{}_XM".format(xaa))
           #inthist = intfil.Get("{}_XM".format(xaa))
         elif(shape=="alpha"):
@@ -77,8 +77,8 @@ for xaa in os.listdir(gen_dir):
       #genhist.Scale(1/genhist.Integral())
       #inthist.Scale(1/inthist.Integral())
       #inthist.Scale(genhist.Integral()/inthist.Integral())
-      print(genhist.Integral())
-      print(inthist.Integral())
+      #print(genhist.Integral())
+      #print(inthist.Integral())
 
       leg = ROOT.TLegend(0.15,0.7,0.35,0.86)
       leg.AddEntry(genhist, "Generated")

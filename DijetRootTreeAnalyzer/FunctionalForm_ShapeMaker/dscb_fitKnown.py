@@ -42,7 +42,7 @@ def DSCB(x, par):
 def do_fit(signal, shape):
   ROOT.gStyle.SetOptStat(1111);
   func = ROOT.TF1('func', DSCB, -10., 10., 7)
-  sig_file_name = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromGen/unBinned/{}/Sig_nominal.root".format(signal)
+  sig_file_name = "../inputs/Shapes_fromGen/unBinned/{}/Sig_nominal.root".format(signal)
   sig_file = ROOT.TFile(sig_file_name, "read")
 
   xmass,phimass,alpha = getXPhiAlpha(signal)
@@ -136,7 +136,7 @@ def do_fit(signal, shape):
 
   return 
 
-sig_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromGen/unBinned/"
+sig_dir = "../inputs/Shapes_fromGen/unBinned/"
 
 #if(os.path.exists("fitparams_X.txt")):
 #  os.system("rm fitparams_X.txt")
@@ -158,6 +158,6 @@ for xx in os.listdir(sig_dir):
 
   print("Doing Signal {}".format(xx))
 
-  #do_fit(xx, "X")
+  do_fit(xx, "X")
   do_fit(xx, "alpha")
   #do_fit(xx,"phi")

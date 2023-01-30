@@ -237,108 +237,106 @@ nalphas = 25+1
 fine_alphas = numpy.linspace(alphamin, alphamax, nalphas)
 
 
-for shape in ["X","alpha"]:
-#for shape in ["X"]:
-#for shape in ["alpha"]:
-  for tname in TREES:
-    if(shape=="alpha" and tname !="nominal"): continue
-    #if(tname !="nominal"):continue
-    for x in known_xs:
-    #for x in fine_xs:
-      #if(x != 600): continue
-      for alpha in known_alphas:
-      #for alpha in fine_alphas:
-        #if(alpha != 0.005): continue
-        a = int(x)*alpha
-        x=str(x)
-        a=str(round(a,4)).replace(".","p")
-        newFolder = "../inputs/Shapes_fromInterpo/unBinned/X{}A{}".format(x,a)
-        if(newFolder.endswith("p0")): newFolder = newFolder[:-2]
-        MakeFolder(newFolder)
+def MakeShape(x, alpha):
+  for shape in ["X","alpha"]:
+  #for shape in ["X"]:
+  #for shape in ["alpha"]:
+    for tname in TREES:
+      if(shape=="alpha" and tname !="nominal"): continue
+      #if(tname !="nominal"):continue
+      a = int(x)*alpha
+      x=str(x)
+      a=str(round(a,4)).replace(".","p")
+      newFolder = "../inputs/Shapes_fromInterpo/unBinned/X{}A{}".format(x,a)
+      if(newFolder.endswith("p0")): newFolder = newFolder[:-2]
+      MakeFolder(newFolder)
 
-        if(shape=="X"):
-          oF = TFile("{}/Sig_{}.root".format(newFolder,tname), "recreate")
-          S1 = TH1F("h_AveDijetMass_1GeV_raw", ";Dicluster Mass (GeV)", len(X1B)-1, numpy.array(X1B))
-          s1int = 0.0
-          lc = 0
-          while(s1int <= 0.0):
-            lc += 1
-            print("Starting Loop {} ".format(lc))
-            F = MakeFunc(tname, shape, x, alpha)
-            P = F(float(x), float(a.replace("p",".")), "test"+x+a)
-            S1.FillRandom("test"+x+a, 10000)
-            s1int = S1.Integral()
-            if(lc >=4):
-              print("Too many loops. Giving Up")
-              break
-          print "--- - ", tname
-          print x,a
+      if(shape=="X"):
+        oF = TFile("{}/Sig_{}.root".format(newFolder,tname), "recreate")
+        S1 = TH1F("h_AveDijetMass_1GeV_raw", ";Dicluster Mass (GeV)", len(X1B)-1, numpy.array(X1B))
+        s1int = 0.0
+        lc = 0
+        while(s1int <= 0.0):
+          lc += 1
+          print("Starting Loop {} ".format(lc))
+          F = MakeFunc(tname, shape, x, alpha)
+          P = F(float(x), float(a.replace("p",".")), "test"+x+a)
+          S1.FillRandom("test"+x+a, 10000)
+          s1int = S1.Integral()
+          if(lc >=4):
 
-          oF.cd()
-          s1 = S1.Clone("h_AveDijetMass_1GeV")
-          sR = convertToMjjHist(S1, XB)
-          srname = "X{}A{}_XM".format(x,a)
-          srname=srname.replace("p0_","_")
-          sR.SetName(srname)
-          #s.Scale(N/S.Integral())
-          s1.Scale(1/s1.Integral())
-          sR.Scale(1/sR.Integral())
+            print("Too many loops. Giving Up")
+            break
+        print "--- - ", tname
+        print x,a
+
+        oF.cd()
+        s1 = S1.Clone("h_AveDijetMass_1GeV")
+        sR = convertToMjjHist(S1, XB)
+        srname = "X{}A{}_XM".format(x,a)
+        srname=srname.replace("p0_","_")
+        sR.SetName(srname)
+        #s.Scale(N/S.Integral())
+        s1.Scale(1/s1.Integral())
+        sR.Scale(1/sR.Integral())
+        s1.Write()
+        #f.Write()
+        oF.Write()
+
+        #cc=TCanvas()
+        #cc.cd()
+        #s1.GetXaxis().SetRangeUser(0.75*float(x),1.25*float(x))
+        #s1.Draw("hist")
+        #cc.Print("tmp.png")
+        
+        if(tname=="nominal"):
+          dataFile = ROOT.TFile("{}/DATA.root".format(DATA_DIR), "read")
+          os.system("cp {}/DATA.root {}/DATA.root".format(DATA_DIR, newFolder))
+          dX = dataFile.Get("data_XM")
+          dX1 = dataFile.Get("data_XM1")
+          dXvA = dataFile.Get("data_XvA")
+
+          plotsF = ROOT.TFile(newFolder+"/PLOTS.root", "recreate")
+          sR.Write()
           s1.Write()
-          #f.Write()
-          oF.Write()
-
-          #cc=TCanvas()
-          #cc.cd()
-          #s1.GetXaxis().SetRangeUser(0.75*float(x),1.25*float(x))
-          #s1.Draw("hist")
-          #cc.Print("tmp.png")
+          dX.Write()
+          dX1.Write()
           
-          if(tname=="nominal"):
-            dataFile = ROOT.TFile("{}/DATA.root".format(DATA_DIR), "read")
-            os.system("cp {}/DATA.root {}/DATA.root".format(DATA_DIR, newFolder))
-            dX = dataFile.Get("data_XM")
-            dX1 = dataFile.Get("data_XM1")
-            dXvA = dataFile.Get("data_XvA")
+          plotsF.Close()
+          dataFile.Close()
 
-            plotsF = ROOT.TFile(newFolder+"/PLOTS.root", "recreate")
-            sR.Write()
-            s1.Write()
-            dX.Write()
-            dX1.Write()
-            
-            plotsF.Close()
-            dataFile.Close()
+          WriteEff(x, a, 1, newFolder)
 
-            WriteEff(x, a, 1, newFolder)
-
-        elif(shape=="alpha"):
-          oF = TFile("{}/Sig_{}.root".format(newFolder,tname), "update")
-          S1 = TH1F("h_alpha_fine", ";#alpha", len(AfineB)-1, numpy.array(AfineB))
-          s1int = 0.0
-          lc = 0
-          while(s1int <= 0.0):
-            print("Starting Loop {}".format(lc))
-            lc += 1
-            F = MakeFunc(tname, shape, x, alpha)
-            P = F(float(x), float(a.replace("p",".")), "test"+x+a)
-            S1.FillRandom("test"+x+a, 10000)
-            s1int = S1.Integral()
-            if(lc >=4):
-              print("Too many loops. Giving Up")
-              break
-          print "--- - ", tname
-          print x,a
-          s1 = S1.Clone("h_alpha_fine")
-          if(s1.Integral()==0):continue
-          s1.Scale(1/s1.Integral())
-          oF.cd()
-          s1.Write()
+      elif(shape=="alpha"):
+        oF = TFile("{}/Sig_{}.root".format(newFolder,tname), "update")
+        S1 = TH1F("h_alpha_fine", ";#alpha", len(AfineB)-1, numpy.array(AfineB))
+        s1int = 0.0
+        lc = 0
+        while(s1int <= 0.0):
+          print("Starting Loop {}".format(lc))
+          lc += 1
+          F = MakeFunc(tname, shape, x, alpha)
+          P = F(float(x), float(a.replace("p",".")), "test"+x+a)
+          S1.FillRandom("test"+x+a, 10000)
+          s1int = S1.Integral()
+          if(lc >=4):
+            print("Too many loops. Giving Up")
+            break
+        print "--- - ", tname
+        print x,a
+        s1 = S1.Clone("h_alpha_fine")
+        if(s1.Integral()==0):continue
+        s1.Scale(1/s1.Integral())
+        oF.cd()
+        s1.Write()
 
 
-    oF.Save()
-    oF.Close()
-    print "++++++=========+++++++"
-    print tname
-    print "++++++=========+++++++"
+      oF.Save()
+      oF.Close()
+      print "++++++=========+++++++"
+      print tname
+      print "++++++=========+++++++"
 		
-		
+inX, inAlpha = int(sys.argv[1]), float(sys.argv[2])
+MakeShape(inX, inAlpha)
+

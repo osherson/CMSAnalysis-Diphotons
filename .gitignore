@@ -126,7 +126,8 @@ DijetRootTreeAnalyzer/OldInterpo/EfficiencyInterpolator/*
 DijetRootTreeAnalyzer/DoEnvelopeFits/unbinnedLimitMaker/*
 DijetRootTreeAnalyzer/DataPlots/*
 
-DijetRootTreeAnalyzer/AlphaFracs/*
-DijetRootTreeAnalyzer/ConsistencyCheck/*
-DijetRootTreeAnalyzer/EffFiles/*
-DijetRootTreeAnalyzer/FitPlots
+DijetRootTreeAnalyzer/FunctionalForm_ShapeMaker/AlphaFracs/*
+DijetRootTreeAnalyzer/FunctionalForm_ShapeMaker/ConsistencyCheck/*
+DijetRootTreeAnalyzer/FunctionalForm_ShapeMaker/EffFiles/*
+DijetRootTreeAnalyzer/FunctionalForm_ShapeMaker/FitPlots
+DijetRootTreeAnalyzer/FunctionalForm_ShapeMaker/SystematicFitParams

@@ -16,7 +16,7 @@ def WriteAlphaEff(signal, anum, eff, sdir):
   return
 
 def WriteTotalEff(signal, anum, aeff, sdir):
-  ceff_file = open("./inputs/Shapes_fromInterpo/unBinned/{}/{}.txt".format(sig,sig),"r")
+  ceff_file = open("../inputs/Shapes_fromInterpo/unBinned/{}/{}.txt".format(sig,sig),"r")
   ceff = float(ceff_file.readlines()[0])
   teff = ceff * aeff
 
@@ -77,16 +77,18 @@ AlphaBins = [
                #0.02901, 
                0.03]
 
-gen_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromGen/unBinned/"
-int_dir = "inputs/Shapes_fromInterpo/unBinned/"
+gen_dir = "../inputs/Shapes_fromGen/unBinned/"
+int_dir = "../inputs/Shapes_fromInterpo/unBinned/"
 thresh = 0.1
 
-save_dir = "./inputs/Shapes_fromInterpo/alphaBinning/"
+
+save_dir = "../inputs/Shapes_fromInterpo/alphaBinning/"
 
 oF = open("AlphaFracs/fracs.csv","w")
 for sig in os.listdir(int_dir):
   x,phi,alpha = getXPhiAlpha(sig)
   #if(x != 600): continue
+  #if(alpha != 0.006): continue
   print("-----")
   print(sig)
 
@@ -96,9 +98,12 @@ for sig in os.listdir(int_dir):
 
   tI = ahist.Integral()
 
-  genhistfile = TFile(os.path.join(gen_dir,sig,"Sig_nominal.root"),"read")
-  genhist = genhistfile.Get("h_alpha_fine")
-  gtI = genhist.Integral()
+  isGen = False
+  if(os.path.exists(os.path.join(gen_dir,sig,"Sig_nominal.root"))):
+    genhistfile = TFile(os.path.join(gen_dir,sig,"Sig_nominal.root"),"read")
+    genhist = genhistfile.Get("h_alpha_fine")
+    gtI = genhist.Integral()
+    isGen=True
 
   for abin in range(len(AlphaBins)-1):
     lA, hA = AlphaBins[abin], AlphaBins[abin+1]
@@ -115,10 +120,11 @@ for sig in os.listdir(int_dir):
     MakeFolder(thisdir)
 
     ##
-    glAb = genhist.FindBin(lA)
-    ghAb = genhist.FindBin(hA)
-    gaI = genhist.Integral(glAb,ghAb)
-    gfrac = gaI / gtI
+    if(isGen):
+      glAb = genhist.FindBin(lA)
+      ghAb = genhist.FindBin(hA)
+      gaI = genhist.Integral(glAb,ghAb)
+      gfrac = gaI / gtI
     ##
 
     WriteAlphaEff(sig,abin,frac,thisdir)
@@ -149,14 +155,15 @@ for sig in os.listdir(int_dir):
     os.system("cp /cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_DATA/alphaBinning/{}/DATA.root {}/.".format(abin,thisdir))
 
 
-    gfile="/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromGen/alphaBinning/{}/{}/alphaFraction_alpha{}_{}.txt".format(abin,sig,abin,sig)
-    try:
-      ogf = open(gfile,"r")
-      gcut=ogf.readlines()[0]
-      ogf.close()
-    except IOError: continue
+    if(isGen):
+      gfile="/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromGen/alphaBinning/{}/{}/alphaFraction_alpha{}_{}.txt".format(abin,sig,abin,sig)
+      try:
+        ogf = open(gfile,"r")
+        gcut=ogf.readlines()[0]
+        ogf.close()
+      except IOError: continue
 
-    oF.write("{},{},{},{},{},{},{},{}\n".format(x,alpha,abin,lA,hA,frac,gfrac,gcut))
+      oF.write("{},{},{},{},{},{},{},{}\n".format(x,alpha,abin,lA,hA,frac,gfrac,gcut))
 
 
 oF.close()
