@@ -11,7 +11,7 @@ import csv
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
-#ROOT.gROOT.SetBatch(ROOT.kTRUE)
+ROOT.gROOT.SetBatch(ROOT.kTRUE)
 
 DATA_DIR = "{}/../inputs/Shapes_DATA/alphaBinning/ALL/".format(dir_path)
 
@@ -255,7 +255,6 @@ def MakeShape(x, alpha):
 
       if(shape=="X"):
         oF = TFile("{}/Sig_{}.root".format(newFolder,tname), "recreate")
-        S1 = TH1F("h_AveDijetMass_1GeV_raw", ";Dicluster Mass (GeV)", len(X1B)-1, numpy.array(X1B))
         s1int = 0.0
         lc = 0
         while(s1int <= 0.0):
@@ -263,6 +262,7 @@ def MakeShape(x, alpha):
           print("Starting Loop {} ".format(lc))
           F = MakeFunc(tname, shape, x, alpha)
           P = F(float(x), float(a.replace("p",".")), "test"+x+a)
+          S1 = TH1F("h_AveDijetMass_1GeV_raw", ";Dicluster Mass (GeV)", len(X1B)-1, numpy.array(X1B))
           S1.FillRandom("test"+x+a, 10000)
           s1int = S1.Integral()
           if(lc >=4):
@@ -311,7 +311,6 @@ def MakeShape(x, alpha):
 
       elif(shape=="alpha"):
         oF = TFile("{}/Sig_{}.root".format(newFolder,tname), "update")
-        S1 = TH1F("h_alpha_fine", ";#alpha", len(AfineB)-1, numpy.array(AfineB))
         s1int = 0.0
         lc = 0
         while(s1int <= 0.0):
@@ -319,8 +318,11 @@ def MakeShape(x, alpha):
           lc += 1
           F = MakeFunc(tname, shape, x, alpha)
           P = F(float(x), float(a.replace("p",".")), "test"+x+a)
+          S1 = TH1F("h_alpha_fine", ";#alpha", len(AfineB)-1, numpy.array(AfineB))
           S1.FillRandom("test"+x+a, 10000)
           s1int = S1.Integral()
+          print("Before Alpha Integral: {}".format(S1.Integral(0,S1.FindBin(alpha))))
+          print("After Alpha Integral: {}".format(S1.Integral(S1.FindBin(alpha),S1.GetNbinsX())))
           if(lc >=4):
             print("Too many loops. Giving Up")
             break
@@ -331,6 +333,11 @@ def MakeShape(x, alpha):
         s1.Scale(1/s1.Integral())
         oF.cd()
         s1.Write()
+
+        cc=TCanvas()
+        cc.cd()
+        s1.Draw("hist")
+        cc.Print("tmp.png")
 
 
       oF.Save()
