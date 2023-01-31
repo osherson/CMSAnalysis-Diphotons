@@ -2,7 +2,7 @@ import os
 import sys
 
 #wd = "fb_1_INT"
-wd = "Interpo/Jan26"
+wd = "Interpo/Jan31_Full"
 card_dir = "saveOutput/{}/combineCards/".format(wd)
 
 if(not os.path.exists("AllAlphaCards/{}".format(wd))):

@@ -13,6 +13,7 @@
 getEtas/
 getClassifierTrees/
 Diphoton-Treemaker/ParticleGun/
+Diphoton-Treemaker/makeTreesWithImages/*
 DijetRootTreeAnalyzer/python/rootTools/__pycache__
 DijetRootTreeAnalyzer/BiasTestExample/
 DijetRootTreeAnalyzer/rootTools/__pycache__/

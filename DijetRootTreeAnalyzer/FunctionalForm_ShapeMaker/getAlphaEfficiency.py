@@ -96,7 +96,11 @@ for sig in os.listdir(int_dir):
   nF = TFile(nomfile,"read")
   ahist = nF.Get("h_alpha_fine")
 
-  tI = ahist.Integral()
+  try:
+    tI = ahist.Integral()
+  except AttributeError:
+    print("Bad Point: {}".format(int_dir))
+    continue
 
   isGen = False
   if(os.path.exists(os.path.join(gen_dir,sig,"Sig_nominal.root"))):
