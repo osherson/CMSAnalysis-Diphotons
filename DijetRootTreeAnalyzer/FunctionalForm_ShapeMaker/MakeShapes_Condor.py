@@ -11,7 +11,7 @@ import csv
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
-ROOT.gROOT.SetBatch(ROOT.kTRUE)
+#ROOT.gROOT.SetBatch(ROOT.kTRUE)
 
 DATA_DIR = "{}/../inputs/Shapes_DATA/alphaBinning/ALL/".format(dir_path)
 
@@ -334,10 +334,10 @@ def MakeShape(x, alpha):
         oF.cd()
         s1.Write()
 
-        cc=TCanvas()
-        cc.cd()
-        s1.Draw("hist")
-        cc.Print("tmp.png")
+        #cc=TCanvas()
+        #cc.cd()
+        #s1.Draw("hist")
+        #cc.Print("tmp.png")
 
 
       oF.Save()
