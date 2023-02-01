@@ -11,9 +11,15 @@ import csv
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
-#ROOT.gROOT.SetBatch(ROOT.kTRUE)
 
 DATA_DIR = "{}/../inputs/Shapes_DATA/alphaBinning/ALL/".format(dir_path)
+
+doOne=False
+if("one" in sys.argv or "quick" in sys.argv):
+  doOne=True
+
+if(not doOne):
+  ROOT.gROOT.SetBatch(ROOT.kTRUE) #Use this line to not show plots
 
 def MakeFolder(N):
   if not os.path.exists(N):
@@ -239,10 +245,12 @@ nalphas = 25+1
 fine_alphas = numpy.linspace(alphamin, alphamax, nalphas)
 
 
+if(doOne): useShapes = ["alpha"]
+else: useShapes = ["X","alpha"]
+#else: useShapes = ["alpha"]
+
 def MakeShape(x, alpha):
-  for shape in ["X","alpha"]:
-  #for shape in ["X"]:
-  #for shape in ["alpha"]:
+  for shape in useShapes:
     for tname in TREES:
       if(shape=="alpha" and tname !="nominal"): continue
       #if(tname !="nominal"):continue
@@ -313,7 +321,8 @@ def MakeShape(x, alpha):
         oF = TFile("{}/Sig_{}.root".format(newFolder,tname), "update")
         s1int = 0.0
         lc = 0
-        while(s1int <= 0.0):
+        minfrac = 0.5
+        while(s1int <= 0.0 or minfrac < 0.3):
           print("Starting Loop {}".format(lc))
           lc += 1
           F = MakeFunc(tname, shape, x, alpha)
@@ -321,12 +330,19 @@ def MakeShape(x, alpha):
           S1 = TH1F("h_alpha_fine", ";#alpha", len(AfineB)-1, numpy.array(AfineB))
           S1.FillRandom("test"+x+a, 10000)
           s1int = S1.Integral()
-          print("Before Alpha Integral: {}".format(S1.Integral(0,S1.FindBin(alpha))))
-          print("After Alpha Integral: {}".format(S1.Integral(S1.FindBin(alpha),S1.GetNbinsX())))
-          if(lc >=4):
+          if(s1int > 0):
+            flow = S1.Integral(0,S1.FindBin(alpha))/S1.Integral()
+            fhigh = S1.Integral(S1.FindBin(alpha),S1.GetNbinsX())/S1.Integral()
+            minfrac = min([flow,fhigh])
+            print("Min Frac: {}".format(minfrac))
+            print("Sum Frac: {}".format(flow+fhigh))
+          if(doOne):
+            print("Before Alpha Integral: {}".format(S1.Integral(0,S1.FindBin(alpha))))
+            print("After Alpha Integral: {}".format(S1.Integral(S1.FindBin(alpha),S1.GetNbinsX())))
+          if(lc >=10):
             print("Too many loops. Giving Up")
             break
-        print "--- - ", tname
+        print "--- - ", shape, tname
         print x,a
         s1 = S1.Clone("h_alpha_fine")
         if(s1.Integral()==0):continue
@@ -334,10 +350,11 @@ def MakeShape(x, alpha):
         oF.cd()
         s1.Write()
 
-        #cc=TCanvas()
-        #cc.cd()
-        #s1.Draw("hist")
-        #cc.Print("tmp.png")
+        if(doOne):
+          cc=TCanvas()
+          cc.cd()
+          s1.Draw("hist")
+          cc.Print("tmp.png")
 
 
       oF.Save()
