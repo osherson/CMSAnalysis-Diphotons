@@ -220,7 +220,11 @@ def WriteEff(wx, wa, frac, odir):
    effFile.close()
    return
 
-
+def getNearestZero(hist, startbin):
+  for bb in range(startbin, hist.GetNbinsX()):
+    if(hist.GetBinContent(bb)==0):
+      return (bb-startbin)
+  return -999
 
 TREES = [
 	"nominal" ,
@@ -321,9 +325,12 @@ def MakeShape(x, alpha):
         oF = TFile("{}/Sig_{}.root".format(newFolder,tname), "update")
         s1int = 0.0
         lc = 0
-        minfrac = 0.5
-        while(s1int <= 0.0 or minfrac < 0.3):
+        isBadDown = False
+        isBadUp = False
+        while(s1int <= 0.0 or isBadDown==True or isBadUp==True):
           print("Starting Loop {}".format(lc))
+          isBadDown = False
+          isBadUp = False
           lc += 1
           F = MakeFunc(tname, shape, x, alpha)
           P = F(float(x), float(a.replace("p",".")), "test"+x+a)
@@ -331,15 +338,24 @@ def MakeShape(x, alpha):
           S1.FillRandom("test"+x+a, 10000)
           s1int = S1.Integral()
           if(s1int > 0):
-            flow = S1.Integral(0,S1.FindBin(alpha))/S1.Integral()
-            fhigh = S1.Integral(S1.FindBin(alpha),S1.GetNbinsX())/S1.Integral()
-            minfrac = min([flow,fhigh])
-            print("Min Frac: {}".format(minfrac))
-            print("Sum Frac: {}".format(flow+fhigh))
+            ti = S1.Integral()
+            cbin = S1.FindBin(alpha)
+            li = S1.Integral(0,cbin)
+            hi = S1.Integral(cbin, S1.GetNbinsX())
+            min_center = min(li,hi)
+            if(min_center <=0.0): 
+              isBadDown=True
+              continue
+            else: 
+              nzero = getNearestZero(S1, S1.GetMaximumBin())
+              if(nzero < 50):
+                isBadUp=True
+                continue
+
           if(doOne):
             print("Before Alpha Integral: {}".format(S1.Integral(0,S1.FindBin(alpha))))
             print("After Alpha Integral: {}".format(S1.Integral(S1.FindBin(alpha),S1.GetNbinsX())))
-          if(lc >=10):
+          if(lc >100):
             print("Too many loops. Giving Up")
             break
         print "--- - ", shape, tname
