@@ -1,5 +1,6 @@
 import os
 import sys
+import PlotDataSigTogether as PT
 
 goLim = False
 fast=False
@@ -8,6 +9,7 @@ fnum=999
 
 SIGNAL = sys.argv[1]
 ALPHA_BIN = sys.argv[2]
+
 
 #To run test on one alpha bin, add fast# to command line arg
 for arg in sys.argv:
@@ -78,6 +80,7 @@ def makeThisLimit(signal, alphaBin):
 
   print("Starting {} Signal, alpha bin {}" .format(signal, abin_num))
   MakeFolder("output/alpha_{}/{}".format(abin_num,signal))
+  PT.PlotTogether(signal, abin_num, "output/alpha_{}/{}".format(alphaBin,signal))
   os.system("cp {}/{}/{}/arange.txt output/alpha_{}/{}/.".format(data_dir,abin_num,signal,abin_num,signal))
   
   """

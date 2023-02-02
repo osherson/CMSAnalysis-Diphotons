@@ -5,15 +5,11 @@ xmin, xmax = 300, 3000
 xstep = 10
 #xmin, xmax = 400,550
 #xstep = 50
-
-alphamin, alphamax = 0.005, 0.03
-nalphas = 25+1
-#nalphas = 5+1
-alphalist = np.linspace(alphamin, alphamax, nalphas)
-#alphalist = np.array([0.026])
-#alphalist = np.array([0.01,0.02,0.026])
-
 xlist = [xx for xx in range(xmin, xmax+xstep, xstep)]
+
+alphamin, alphamax = 0.005, 0.025
+alphastep = 0.001
+alphalist = [round(aa,4) for aa in np.arange(alphamin, alphamax+alphastep, alphastep)]
 
 xapairs = []
 
