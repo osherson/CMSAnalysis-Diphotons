@@ -126,6 +126,7 @@ DijetRootTreeAnalyzer/OldInterpo/InterpoPlotter/*
 DijetRootTreeAnalyzer/OldInterpo/EfficiencyInterpolator/*
 DijetRootTreeAnalyzer/DoEnvelopeFits/unbinnedLimitMaker/*
 DijetRootTreeAnalyzer/DoEnvelopeFits/Condor_Cardmaker/
+DijetRootTreeAnalyzer/DoEnvelopeFits/DiagnoseLimits/
 DijetRootTreeAnalyzer/DataPlots/*
 
 DijetRootTreeAnalyzer/FunctionalForm_ShapeMaker/AlphaFracs/*

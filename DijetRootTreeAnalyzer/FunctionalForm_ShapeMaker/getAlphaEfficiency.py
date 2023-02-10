@@ -84,13 +84,20 @@ thresh = 0.1
 
 save_dir = "../inputs/Shapes_fromInterpo/alphaBinning/"
 
+nfiles = len([name for name in os.listdir(int_dir)])
+
 oF = open("AlphaFracs/fracs.csv","w")
+
+count=0
 for sig in os.listdir(int_dir):
+  pdone = int(float(count)/float(nfiles)*100) 
+  if(pdone % 10 == 0): print("{}/{} Files Completed".format(count, nfiles, pdone))
   x,phi,alpha = getXPhiAlpha(sig)
   #if(x != 600): continue
-  #if(alpha != 0.006): continue
-  print("-----")
-  print(sig)
+  #if(alpha != 0.008): continue
+
+  #print("-----")
+  #print(sig)
 
   nomfile = os.path.join(int_dir,sig,"Sig_nominal.root")
   nF = TFile(nomfile,"read")
@@ -118,7 +125,7 @@ for sig in os.listdir(int_dir):
     #print(abin, lA, hA)
     #print(frac)
     if(frac < thresh): continue
-    print("Efficiency in Alpha Bin {}, [{}, {}] = {:.3f}".format(abin,lA,hA,frac))
+    #print("Efficiency in Alpha Bin {}, [{}, {}] = {:.3f}".format(abin,lA,hA,frac))
     MakeFolder("{}{}".format(save_dir,abin))
     thisdir = "{}{}/{}".format(save_dir,abin,sig)
     MakeFolder(thisdir)

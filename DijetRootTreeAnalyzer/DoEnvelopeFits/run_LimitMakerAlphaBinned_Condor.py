@@ -27,9 +27,11 @@ def MakeFolder(N):
 
 year = 2018
 LUMI = 13.7 * 1000 
-XS = 0.001
-#XS = 0.01
+#XS = 0.001
+#XS = 0.1
+#XS = 0.00015
 #XS = 0.0001
+XS = 0.00001
 
 def getEff(s, d):
   effFile = "{}/{}.txt".format(d,s)

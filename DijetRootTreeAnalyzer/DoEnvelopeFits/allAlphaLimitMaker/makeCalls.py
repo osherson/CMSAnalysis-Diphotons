@@ -10,7 +10,7 @@ if("clean" in sys.argv):
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 #wd = "Interpo/fb_1_INT/"
-wd = "Interpo/Feb1/"
+wd = "Interpo/int_1_fb"
 card_dir = "../AllAlphaCards/{}".format(wd)
 
 ct = 0
@@ -31,7 +31,7 @@ for card in os.listdir(card_dir):
   newCard.close()
   template.close()
 
-  os.chmod(newCardName, stat.S_IEXEC)
+  os.chmod(newCardName, 0o755)
   ct += 1
 
 

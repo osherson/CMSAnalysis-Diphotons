@@ -177,7 +177,15 @@ def GetAlphaRange(abin):
   return low,hi
 
 def MakeLimitPlot():
-  combine_dir = "combineOutput/int_Feb1/"
+  #combine_dir = "combineOutput/int_0p1_fb/"
+  combine_dir = "combineOutput/int_50_fb/"
+  #combine_dir = "combineOutput/int_100_fb/"
+  xs_norm = 1.
+  if("fb" in combine_dir):
+    sxs = combine_dir.split("_")[-2]
+    xs = float(sxs.replace("p","."))
+  else: xs = 1.
+  scale = xs/xs_norm
 
   gen_xs = [300,400,500,600,750,1000,1500,2000,3000]
   gen_alphas = [0.005,0.01,0.015,0.02,0.025]
@@ -244,17 +252,17 @@ def MakeLimitPlot():
       if n == 6:
         x.append(float(xx))
         T.GetEntry(5)
-        obs.append(T.limit)
+        obs.append(T.limit*scale)
         T.GetEntry(0)
-        m2.append(T.limit)
+        m2.append(T.limit*scale)
         T.GetEntry(1)
-        m1.append(T.limit)
+        m1.append(T.limit*scale)
         T.GetEntry(2)
-        exp.append(T.limit)
+        exp.append(T.limit*scale)
         T.GetEntry(3)
-        p1.append(T.limit)
+        p1.append(T.limit*scale)
         T.GetEntry(4)
-        p2.append(T.limit)
+        p2.append(T.limit*scale)
 
     bot,top = 0.005, 5000.
     LimitPlot = TH2F("LP", ";Four-Photon Resonance Mass (GeV);(pp #rightarrow X #rightarrow #phi#phi #rightarrow (#gamma#gamma)(#gamma#gamma)) #sigma #times B (fb)", 100, 300, 3000, 100, bot, top)
