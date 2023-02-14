@@ -2,7 +2,6 @@ universe = vanilla
 Requirements = (Arch == "X86_64")
 +RUQueue = "cms"
 +AccountingGroup = "group_rutgers.sclark"
-use_x509userproxy = true
 
 Executable = CallFiles/Call_$(process).sh
 
@@ -14,4 +13,4 @@ max_materialize = 500
 error = ./condor_logfiles/prod_IM_EB_$(cluster)_$(process).stderr
 log = ./condor_logfiles/prod_IM_EB_$(cluster)_$(process).log
 Arguments = $(cluster) $(process)
- Queue 7046
+ Queue 5691
