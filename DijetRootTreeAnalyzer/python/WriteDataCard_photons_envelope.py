@@ -204,7 +204,7 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,fixed,shapes=[
         signals = len(model.split('p'))
         lumiErrs = [1.016] #Run 2 Lumi
         triggerErrs = [1.05] #Trigger
-        taggerErrs = [1.18] #Diphoton Tagger (from eta meson measurement)
+        taggerErrs = [1.17] #Diphoton Tagger (from eta meson measurement)
         if signals>1:
                 rates = [w.data("%s_%s"%(box,sig)).sumEntries() for sig in model.split('p')]
                 processes = ["%s_%s"%(box,sig) for sig in model.split('p')]
