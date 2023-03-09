@@ -27,11 +27,12 @@ def MakeFolder(N):
 
 year = 2018
 LUMI = 13.7 * 1000 
-#XS = 0.001
+XS = 0.001
+#XS = 0.01
 #XS = 0.1
 #XS = 0.00015
 #XS = 0.0001
-XS = 0.00001
+#XS = 0.00001
 
 def getEff(s, d):
   effFile = "{}/{}.txt".format(d,s)
@@ -43,6 +44,7 @@ GEN_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphot
 INT_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromGen/alphaBinning/"
 def makeThisLimit(signal, alphaBin):
   global year, LUMI
+  FRAC_THRESH=5./100. #5%
 
   if(doInterpo):
     data_dir = GEN_dir
@@ -58,7 +60,8 @@ def makeThisLimit(signal, alphaBin):
   if(os.path.exists("{}/PLOTS_{}.root".format(mydir,alphaBin))):
         fracFile = open("{}/alphaFraction_alpha{}_{}.txt".format(mydir,alphaBin,signal), "r")
         frac = float(fracFile.readline())
-        if(frac < 0.1) : 
+        #if(frac < FRAC_THRESH or frac > 0.1) : 
+        if(frac < FRAC_THRESH) : 
           fracFile.close()
           print("Not enough signal in this bin. Moving on")
           return
@@ -99,11 +102,12 @@ def makeThisLimit(signal, alphaBin):
 
   #GetSignal and efficiency
   with open("{}/{}.txt".format(mydir,signal)) as f:
-  #with open("{}/{}.txt".format(gen_mydir,signal)) as f:
-  #with open("{}/{}.txt".format(int_mydir,signal)) as f:
     eff = float(f.readline().rstrip())
     print(eff)
   #eff = 1.
+  with open("{}/{}_su.txt".format(mydir,signal)) as f:
+    eff_su = float(f.readline().rstrip())
+    print(eff_su)
 
   mycommand = "python ../python/BinnedDiphotonFit.py -c ../config/envelope2/diphoton_multi_alpha{}.config -y {} -l {} -b DIPHOM_alpha{} {}/PLOTS_{}.root -d output --fit-spectrum --write-fit --words test --sig {} --abin {} --lowA {} --hiA {}".format(abin_num,year,LUMI,abin_num,mydir,abin_num,signal,abin_num,la,ha)
   print(mycommand)
@@ -115,7 +119,7 @@ def makeThisLimit(signal, alphaBin):
   os.system("mv output/DijetFitResults_DIPHOM_alpha{}_2018_{}_alpha{}.root output/alpha_{}/{}/DijetFitResults_DIPHOM_2018_{}_alpha{}.root ".format(abin_num,signal,abin_num,abin_num,signal,signal,abin_num))
   os.system("mv output/Plots_DIPHOM_alpha{}_{}_alpha{}.root output/alpha_{}/{}/Plots_DIPHOM_alpha{}_{}.root ".format(abin_num,signal,abin_num,abin_num,signal,abin_num,signal))
 
-  lcommand = "python ../python/DiphotonCardMakerAlphaBinSingle_envelope.py -f DIPHOM_alpha{} -l {} -y {} -a {} -s {} -x {} -g {}".format(abin_num, LUMI, year, abin_num, signal, XS*eff, GorI)
+  lcommand = "python ../python/DiphotonCardMakerAlphaBinSingle_envelope.py -f DIPHOM_alpha{} -l {} -y {} -a {} -s {} -x {} --xsecsu {} -g {}".format(abin_num, LUMI, year, abin_num, signal, XS*eff, XS*eff_su, GorI)
   print(lcommand)
   MakeFolder("output/combineCards")
   os.system(lcommand)

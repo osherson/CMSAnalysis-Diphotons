@@ -29,6 +29,7 @@ def RunDataCardMaker(o):
     savemass = " --savemass " + str(o.SIG)
     output = " -d output"
     xs = " --xsec " + o.XS
+    xssu = " --xsecsu " + o.XSsu
 
     yr = str(o.YEAR)
     year = " --year " + yr
@@ -84,7 +85,7 @@ def RunDataCardMaker(o):
         print(os.path.exists(dir_path + "/../inputs/Shapes_fromGen/alphaBinning/" + abin + "/" + str(o.SIG) + "/DATA.root"))
         exit()
 
-    dcstring = "python {}/../python/WriteDataCard_photons_envelope.py".format(dir_path) + config + mass + savemass + year + box + output + inputs + jesup + jesdown + jerup + jerdown + xs + lumi + multi + alphabin
+    dcstring = "python {}/../python/WriteDataCard_photons_envelope.py".format(dir_path) + config + mass + savemass + year + box + output + inputs + jesup + jesdown + jerup + jerdown + xs + xssu + lumi + multi + alphabin
     print(dcstring)
     os.system(dcstring)
 
@@ -98,6 +99,7 @@ if __name__ == "__main__":
     parser.add_option("-a", "--alphabin", dest="ABIN", type=str, help="AlphaBin Number", metavar="THEALPHA")
     parser.add_option("-s", "--sig", dest="SIG", type=str, help="signal samples", metavar="THESIGNAL")
     parser.add_option("-x", "--xsec", dest="XS", type=str, help="signal xs", metavar="THESIGNALxs")
+    parser.add_option("-q", "--xsecsu", dest="XSsu", type=str, help="signal xs, scale up", metavar="THESIGNALxssu")
     parser.add_option("-g", "--GenOrInt", dest="GI", type=str, help="Generated or Interpolated", metavar="GENORINT")
     (o, args) = parser.parse_args()
     RunDataCardMaker(o)

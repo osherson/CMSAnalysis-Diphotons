@@ -205,6 +205,10 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,fixed,shapes=[
         lumiErrs = [1.016] #Run 2 Lumi
         triggerErrs = [1.05] #Trigger
         taggerErrs = [1.17] #Diphoton Tagger (from eta meson measurement)
+        rate = options.xsec*options.lumi
+        rate_su = options.xsecsu*options.lumi
+        pdiff = (rate_su - rate)/rate
+        massresoErrs = [pdiff] #Diphoton Tagger (from eta meson measurement)
         if signals>1:
                 rates = [w.data("%s_%s"%(box,sig)).sumEntries() for sig in model.split('p')]
                 processes = ["%s_%s"%(box,sig) for sig in model.split('p')]
@@ -233,6 +237,7 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,fixed,shapes=[
         lumiErrs.extend([1.00 for bkg in bkgs])
         triggerErrs.extend([1.00 for bkg in bkgs])
         taggerErrs.extend([1.00 for bkg in bkgs])
+        massresoErrs.extend([0.00 for bkg in bkgs])
         divider = "------------------------------------------------------------\n"
         datacard = "imax 1 number of channels\n" + \
                    "jmax %i number of processes minus 1\n"%(nBkgd+signals-1) + \
@@ -249,6 +254,7 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,fixed,shapes=[
         lumiString = "lumi\tlnN"
         triggerString = "trigger\tlnN"
         taggerString = "tagger\tlnN"
+        massresoString = "massReso\tlnN"
         for i in range(0,len(bkgs)+signals):
             binString +="\t%s"%box
             processString += "\t%s"%processes[i]
@@ -257,12 +263,14 @@ def writeDataCard(box,model,txtfileName,bkgs,paramNames,w,penalty,fixed,shapes=[
             lumiString += "\t%.3f"%lumiErrs[i]
             triggerString += "\t%.3f"%triggerErrs[i]
             taggerString += "\t%.3f"%taggerErrs[i]
-        binString+="\n"; processString+="\n"; processNumberString+="\n"; rateString +="\n"; lumiString+="\n"; triggerString+="\n"; taggerString+="\n"
+            massresoString += "\t%.3f/%.3f"%(1+massresoErrs[i], 1-massresoErrs[i])
+        binString+="\n"; processString+="\n"; processNumberString+="\n"; rateString +="\n"; lumiString+="\n"; triggerString+="\n"; taggerString+="\n"; massresoString+="\n"
         datacard+=binString+processString+processNumberString+rateString+divider
         # now nuisances
         datacard+=lumiString
         datacard+=triggerString
         datacard+=taggerString
+        datacard+=massresoString
         for shape in shapes:
             shapeString = '%s\tshape\t'%shape
             for sig in range(0,signals):
@@ -468,6 +476,8 @@ if __name__ == '__main__':
                   help="RunII Analysis year")
     parser.add_option('--xsec',dest="xsec", default=1,type="float",
                   help="xsec of resonance")
+    parser.add_option('--xsecsu',dest="xsecsu", default=1,type="float",
+                  help="xsec of resonance, scaled up")
     parser.add_option('--no-signal-sys',dest="noSignalSys",default=False,action='store_true',
                   help="no signal shape systematic uncertainties")
     parser.add_option('--trigger',dest="trigger",default=False,action='store_true',
@@ -499,6 +509,7 @@ if __name__ == '__main__':
     print("LOOOK LUMI: {}".format(lumi))
 
     signalXsec = options.xsec
+    signalXsec_su = options.xsecsu
 
     signalFileName = ''
     model = options.model
