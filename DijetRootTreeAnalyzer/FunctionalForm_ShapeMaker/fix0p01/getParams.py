@@ -15,14 +15,14 @@ alphalist = [round(aa,4) for aa in np.arange(alphamin, alphamax+alphastep, alpha
 pnames = ["a1","a2","n1","n2","mean","sigma", "N"]
 hFile = ROOT.TFile("Plots/ZeroHists/hists.root","read")
 
-badsigs = []
-inF = open('BadSignals/allbad.txt')
-for lin in inF.readlines():
-   xx,aa = int(lin.split(",")[0]), float(lin.split(",")[1][:-1])
-   badsigs.append((xx,aa))
 
 for pname in pnames:
   #if(pname != "a1"): continue
+  badsigs = []
+  inF = open('BadSignals/badsignals_{}.txt'.format(pname))
+  for lin in inF.readlines():
+    xx,aa = int(lin.split(",")[0]), float(lin.split(",")[1][:-1])
+    badsigs.append((xx,aa))
 
   hist = hFile.Get("zeroed_{}".format(pname))
 
@@ -40,10 +40,10 @@ for pname in pnames:
   ParamFile = open("InterpoParamFiles/{}.txt".format(pname),"w")
   thist = tg.GetHistogram()
 
-  c2 = ROOT.TCanvas()
-  c2.cd()
-  thist.Draw("colz")
-  c2.Print("Plots/SmoothedHists/Hists/{}.png".format(pname))
+  #c2 = ROOT.TCanvas()
+  #c2.cd()
+  #thist.Draw("colz")
+  #c2.Print("Plots/SmoothedHists/Hists/{}.png".format(pname))
 
   nbx = tg.GetXaxis().GetNbins()
   nby = tg.GetYaxis().GetNbins()
@@ -54,8 +54,8 @@ for pname in pnames:
 
   for (xx,aa) in badsigs:
     nbin=thist.FindBin(xx,aa)
-    by = thist.GetYaxis().FindBin(aa)
-    bx = thist.GetXaxis().FindBin(xx)
+    by = thist.GetYaxis().FindBin(aa)+1
+    bx = thist.GetXaxis().FindBin(xx)+1
 
     by = max(by,1)
     by = min(by,nby-1)

@@ -60,6 +60,8 @@ for (pnum,pname) in enumerate(pnames):
 
   print("Corrected files: {}".format(ccount))
   hist.SetTitle(pname)
+  hist.GetZaxis().SetRangeUser(0,hist.GetMaximum())
+  hist.SetStats(0)
   hist.GetXaxis().SetTitle("X Mass (GeV)")
   hist.GetYaxis().SetTitle("#alpha")
   c1 = ROOT.TCanvas()

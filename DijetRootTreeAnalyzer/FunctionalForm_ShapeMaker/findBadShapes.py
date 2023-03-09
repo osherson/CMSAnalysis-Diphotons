@@ -27,10 +27,8 @@ xstep = 10
 #xstep = 50
 xlist = [xx for xx in range(xmin, xmax+xstep, xstep)]
 
-alphamin, alphamax = 0.005, 0.025
-alphastep = 0.001
-alphalist = [round(aa,4) for aa in np.arange(alphamin, alphamax+alphastep, alphastep)]
-alphalist = [0.005]
+
+alphalist = float(sys.argv[1])
 
 shape = "alpha"
 
@@ -42,8 +40,7 @@ if("clean" in sys.argv):
 
 xapairs = []
 for mx in xlist:
-  for aa in alphalist:
-    xapairs.append((mx, aa))
+  xapairs.append((mx, alphalist))
 
 def getNearestX(inx):
   for ii in range(0,len(known_x)-1):
@@ -57,7 +54,7 @@ def getstr(phim):
 
 pnames = ["a1","a2","n1","n2","mean","sigma", "N"]
 def getParam(signal, pname):
-  fname = "./inputs/Shapes_fromInterpo/unBinned/{}/params_alpha.txt".format(signal)
+  fname = "../inputs/Shapes_fromInterpo/unBinned/{}/params_alpha.txt".format(signal)
   pind = pnames.index(pname)
 
   fil = open(fname,"r")
@@ -65,7 +62,7 @@ def getParam(signal, pname):
   param = float(lin.split(",")[pind])
   return param
 
-bfile = open("badsignals.txt","w")
+bfile = open("BadSignals/badsignals_alpha{}.txt".format(alphalist),"w")
 for ii in range(1,len(xapairs)-1):
   (xm,alpha) = xapairs[ii]
   phim = getstr(xm*alpha)
@@ -77,7 +74,7 @@ for ii in range(1,len(xapairs)-1):
   sigup = "X{}A{}".format(xup,phiup)
 
   for mypar in pnames:
-    if(mypar != "a2"):continue
+    if(mypar != sys.argv[2]):continue
     pp,pd,pu = getParam(sig,mypar),getParam(sigdown,mypar),getParam(sigup,mypar)
 
     maxp,minp = max(pd,pu),min(pd,pu)
@@ -97,7 +94,7 @@ for ii in range(1,len(xapairs)-1):
 
     else:
       if(pp < minp or pp > maxp):
-        print("Found bad signal: {} {}".format(xm,alpha))
+        print("Bad signal: {} variable. {} {}".format(mypar,xm,alpha))
         bfile.write("Bad signal: {} variable.\n{} {}\n".format(mypar,xm,alpha))
 
 

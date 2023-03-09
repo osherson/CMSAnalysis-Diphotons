@@ -4,6 +4,7 @@ import sys,os
 from array import array
 
 ROOT.gROOT.SetBatch()
+ROOT.gRandom.SetSeed(0)
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -26,43 +27,46 @@ if("clean" in sys.argv):
   print("Deleting old plots")
   os.system("rm -rf Plots/alpha*")
 
-xmin, xmax = 300, 3000
-xstep = 10
-xlist = [float(xx) for xx in range(xmin, xmax+xstep, xstep)]
 alphamin, alphamax = 0.005, 0.025
 alphastep = 0.001
 alphalist = [round(aa,4) for aa in np.arange(alphamin, alphamax+alphastep, alphastep)]
+alphalist = [0.01]
 
 pnames = ["a1","a2","n1","n2","mean","sigma", "N"]
 
-oFile = ROOT.TFile("Plots/Widths/param_hists.root","recreate")
-oFile.cd()
+for palpha in alphalist:
+  print("Starting alpha {}".format(palpha))
+  a1a, a2a, n1a, n2a, meana, siga, Na = array("d"),array("d"),array("d"),array("d"),array("d"),array("d"),array("d")
+  xarr = array("d")
+  MakeFolder("Plots/Widths/alpha{}".format(palpha))
 
-for (pnum,pname) in enumerate(pnames):
-  #if(pname != "mean"):continue
-  hist = ROOT.TH2F("hist_{}".format(pname),"{}; X Mass (GeV); #alpha", len(xlist)-1, np.array(xlist), len(alphalist)-1, np.array(alphalist))
   for xaa in os.listdir(int_dir):
     xm,phim,alpha = getXPhiAlpha(xaa)
     intpath = os.path.join(int_dir,xaa)
+    if(alpha != palpha): continue
 
     fname = "../../inputs/Shapes_fromInterpo/unBinned/{}/params_alpha.txt".format(xaa)
-    if(not os.path.exists(fname)): 
-      print("bad")
-      continue
+    if(not os.path.exists(fname)): continue
     pfile = open(fname,"r")
     lin=pfile.readline()
-    param = float(lin.split(",")[pnum])
-    hist.Fill(xm,alpha,param)
+    a1a.append(float(lin.split(",")[0]))
+    a2a.append(float(lin.split(",")[1]))
+    n1a.append(float(lin.split(",")[2]))
+    n2a.append(float(lin.split(",")[3]))
+    meana.append(float(lin.split(",")[4]))
+    siga.append(float(lin.split(",")[5]))
+    Na.append(float(lin.split(",")[6]))
 
-  hist.SetTitle(pname)
-  hist.GetXaxis().SetTitle("X Mass (GeV)")
-  hist.GetZaxis().SetRangeUser(0,hist.GetMaximum())
-  hist.GetYaxis().SetTitle("#alpha")
-  c1 = ROOT.TCanvas()
-  c1.cd()
-  hist.Draw("colz")
-  c1.Print("Plots/Widths/{}_hist2D.png".format(pname))
-  hist.Write()
+    xarr.append(xm)
 
-oFile.Close()
-  
+
+  for (pname,ar) in zip(pnames,[a1a, a2a, n1a, n2a, meana, siga, Na]):
+    tg = ROOT.TGraph(len(xarr),xarr,ar)
+    tg.SetTitle(pname)
+    cc = ROOT.TCanvas("","",650,650)
+    cc.cd()
+    tg.SetMarkerStyle(20)
+    tg.Draw()
+    cc.Print("Plots/Widths/alpha{}/{}.png".format(palpha,pname))
+
+

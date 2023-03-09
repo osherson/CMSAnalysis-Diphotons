@@ -13,4 +13,4 @@ max_materialize = 500
 error = ./condor_logfiles/prod_IM_EB_$(cluster)_$(process).stderr
 log = ./condor_logfiles/prod_IM_EB_$(cluster)_$(process).log
 Arguments = $(cluster) $(process)
- Queue 5691
+ Queue 61

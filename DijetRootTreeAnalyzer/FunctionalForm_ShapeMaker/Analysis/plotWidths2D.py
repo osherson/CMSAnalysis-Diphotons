@@ -3,7 +3,7 @@ import ROOT
 import sys,os
 from array import array
 
-ROOT.gROOT.SetBatch()
+#ROOT.gROOT.SetBatch()
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -35,15 +35,19 @@ alphalist = [round(aa,4) for aa in np.arange(alphamin, alphamax+alphastep, alpha
 
 pnames = ["a1","a2","n1","n2","mean","sigma", "N"]
 
-oFile = ROOT.TFile("Plots/Widths/param_hists.root","recreate")
-oFile.cd()
+allparams = {}
 
-for (pnum,pname) in enumerate(pnames):
-  #if(pname != "mean"):continue
-  hist = ROOT.TH2F("hist_{}".format(pname),"{}; X Mass (GeV); #alpha", len(xlist)-1, np.array(xlist), len(alphalist)-1, np.array(alphalist))
+for palpha in alphalist:
+  #if(palpha > 0.006):continue
+  print("Starting alpha {}".format(palpha))
+  a1a, a2a, n1a, n2a, meana, siga, Na = array("d"),array("d"),array("d"),array("d"),array("d"),array("d"),array("d")
+  xarr = array("d")
+
   for xaa in os.listdir(int_dir):
     xm,phim,alpha = getXPhiAlpha(xaa)
     intpath = os.path.join(int_dir,xaa)
+    #if(xaa != "X600A3"): continue
+    if(alpha != palpha): continue
 
     fname = "../../inputs/Shapes_fromInterpo/unBinned/{}/params_alpha.txt".format(xaa)
     if(not os.path.exists(fname)): 
@@ -51,18 +55,30 @@ for (pnum,pname) in enumerate(pnames):
       continue
     pfile = open(fname,"r")
     lin=pfile.readline()
-    param = float(lin.split(",")[pnum])
-    hist.Fill(xm,alpha,param)
+    a1a.append(float(lin.split(",")[0]))
+    a2a.append(float(lin.split(",")[1]))
+    n1a.append(float(lin.split(",")[2]))
+    n2a.append(float(lin.split(",")[3]))
+    meana.append(float(lin.split(",")[4]))
+    siga.append(float(lin.split(",")[5]))
+    Na.append(float(lin.split(",")[6]))
+
+    xarr.append(xm)
+
+  allparams[palpha] = [xarr, a1a, a2a, n1a, n2a, meana, siga, Na]
+
+for pp in range(len(pnames)):
+  pname = pnames[pp]
+  hist = ROOT.TH2F("hist_{}".format(pname),"{}; X Mass (GeV); #alpha", len(xlist)-1, np.array(xlist), len(alphalist)-1, np.array(alphalist))
+  #hist = ROOT.TH2F("hist_{}".format(pname),"{}; X Mass (GeV); #alpha", 100, 0, 2000, 100, 0, 0.03)
+  for ka in allparams.keys():
+    for vv in range(len(allparams[ka][0])):
+      hist.Fill(allparams[ka][0][vv], ka, allparams[ka][pp+1][vv])
 
   hist.SetTitle(pname)
   hist.GetXaxis().SetTitle("X Mass (GeV)")
-  hist.GetZaxis().SetRangeUser(0,hist.GetMaximum())
   hist.GetYaxis().SetTitle("#alpha")
-  c1 = ROOT.TCanvas()
-  c1.cd()
+  cc = ROOT.TCanvas()
+  cc.cd()
   hist.Draw("colz")
-  c1.Print("Plots/Widths/{}_hist2D.png".format(pname))
-  hist.Write()
-
-oFile.Close()
-  
+  cc.Print("Plots/Widths/{}_2D.png".format(pname))

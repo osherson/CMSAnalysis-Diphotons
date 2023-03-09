@@ -16,12 +16,29 @@ def WriteAlphaEff(signal, anum, eff, sdir):
   oFile.close()
   return
 
+def WriteAlphaEff_su(signal, anum, eff, sdir):
+  oFile = open("{}/alphaFraction_alpha{}_{}_su.txt".format(sdir,anum,sig), "w")
+  #print(anum, eff)
+  oFile.write(str(eff))
+  oFile.close()
+  return
+
 def WriteTotalEff(signal, anum, aeff, sdir):
   ceff_file = open("../inputs/Shapes_fromInterpo/unBinned/{}/{}.txt".format(sig,sig),"r")
   ceff = float(ceff_file.readlines()[0])
   teff = ceff * aeff
 
   oFile = open("{}/{}.txt".format(sdir,signal),"w")
+  oFile.write(str(teff))
+  oFile.close()
+  return
+
+def WriteTotalEff_su(signal, anum, aeff, sdir):
+  ceff_file = open("../inputs/Shapes_fromInterpo/unBinned/{}/{}.txt".format(sig,sig),"r")
+  ceff = float(ceff_file.readlines()[0])
+  teff = ceff * aeff
+
+  oFile = open("{}/{}_su.txt".format(sdir,signal),"w")
   oFile.write(str(teff))
   oFile.close()
   return
@@ -94,8 +111,8 @@ for sig in os.listdir(int_dir):
   x,phi,alpha = getXPhiAlpha(sig)
   pdone = int(float(count)/float(nfiles)*100) 
   #if(count % 100 == 0): print("{}/{} Files Completed {:.1f}%".format(count, nfiles, pdone))
-  #if(alpha != 0.008): continue
-  #if(x < 500 or x > 520): continue
+  #if(alpha != 0.005): continue
+  #if(x < 400 or x > 410): continue
   print(sig)
   count += 1
   #if(count > 20): break
@@ -110,12 +127,14 @@ for sig in os.listdir(int_dir):
 
   if("h_alpha_fine_i" in nF.GetListOfKeys()):
     ahist = nF.Get("h_alpha_fine_i")
+    ahist_su = nF.Get("h_alpha_su")
     ccount += 1
   else:
     ahist = nF.Get("h_alpha_fine")
 
   try:
     tI = ahist.Integral()
+    tI_su = ahist_su.Integral()
   except AttributeError:
     print("Bad Point: {}".format(int_dir))
     continue
@@ -137,56 +156,48 @@ for sig in os.listdir(int_dir):
     #print(abin, lA, hA)
     #print(frac)
     if(frac < thresh): continue
-    print(abin, frac)
+    #print(abin, frac)
     qfraclist.append(frac)
-    #print("Efficiency in Alpha Bin {}, [{}, {}] = {:.3f}".format(abin,lA,hA,frac))
+
+    lAb_su = ahist_su.FindBin(lA)
+    hAb_su = ahist_su.FindBin(hA)
+    aI_su = ahist_su.Integral(lAb_su,hAb_su)
+    frac_su = aI_su / tI_su
+
+    print("{}, {:4f}, {:.4f}, {:.4f}".format(abin, frac*100, frac_su*100, abs(frac_su - frac)/frac * 100))
+
     MakeFolder("{}{}".format(save_dir,abin))
     thisdir = "{}{}/{}".format(save_dir,abin,sig)
     MakeFolder(thisdir)
 
 
-    WriteAlphaEff(sig,abin,frac,thisdir)
-    WriteTotalEff(sig,abin,frac,thisdir)
-    WriteAlphaRange(sig,lA,hA,thisdir)
-    #print("cp {}/{}/*.root {}/.".format(int_dir,sig,thisdir))
-    #print("mv {}/PLOTS.root {}/PLOTS_{}.root".format(thisdir, thisdir, abin))
-    os.system("cp {}/{}/Sig*.root {}/.".format(int_dir,sig,thisdir))
-    #os.system("mv {}/PLOTS.root {}/PLOTS_{}.root".format(thisdir, thisdir, abin))
+    WriteAlphaEff_su(sig,abin,frac_su,thisdir)
+    WriteTotalEff_su(sig,abin,frac_su,thisdir)
+    #WriteAlphaRange(sig,lA,hA,thisdir)
+    #os.system("cp {}/{}/Sig*.root {}/.".format(int_dir,sig,thisdir))
 
-    unb_plots = TFile("{}/{}/PLOTS.root".format(int_dir,sig), "read")
-    S1 = unb_plots.Get("h_AveDijetMass_1GeV")
-    S1r = unb_plots.Get("{}_XM".format(sig))
-
-    dfile = TFile("/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_DATA/alphaBinning/{}/DATA.root".format(abin), "read")
-    D1 = dfile.Get("data_XM1")
-    D1r = dfile.Get("data_XM")
-
-    n_plots = TFile("{}/PLOTS_{}.root".format(thisdir,abin),"recreate")
-    n_plots.cd()
-    S1.Write()
-    S1r.Write()
-    D1.Write()
-    D1r.Write()
-    n_plots.Close()
-    dfile.Close()
-    unb_plots.Close()
-    os.system("cp /cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_DATA/alphaBinning/{}/DATA.root {}/.".format(abin,thisdir))
-
-  print(sum(fraclist))
-  print(sum(qfraclist))
-
-oF.close()
-print("Corrected files: {}".format(ccount))
-
-fhist = TH1D("fracs", "Fractions", 100, 0, 10)
-for ff in allfracs:
-  fhist.Fill(ff*100)
-
-cc = ROOT.TCanvas()
-cc.cd()
-fhist.Draw("hist")
-cc.Print("tmp.png")
-
-
-
-
+#    unb_plots = TFile("{}/{}/PLOTS.root".format(int_dir,sig), "read")
+#    S1 = unb_plots.Get("h_AveDijetMass_1GeV")
+#    S1r = unb_plots.Get("{}_XM".format(sig))
+#
+#    dfile = TFile("/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_DATA/alphaBinning/{}/DATA.root".format(abin), "read")
+#    D1 = dfile.Get("data_XM1")
+#    D1r = dfile.Get("data_XM")
+#
+#    n_plots = TFile("{}/PLOTS_{}.root".format(thisdir,abin),"recreate")
+#    n_plots.cd()
+#    S1.Write()
+#    S1r.Write()
+#    D1.Write()
+#    D1r.Write()
+#    n_plots.Close()
+#    dfile.Close()
+#    unb_plots.Close()
+#    os.system("cp /cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_DATA/alphaBinning/{}/DATA.root {}/.".format(abin,thisdir))
+#
+#  print(sum(fraclist))
+#  print(sum(qfraclist))
+#
+#oF.close()
+#print("Corrected files: {}".format(ccount))
+#

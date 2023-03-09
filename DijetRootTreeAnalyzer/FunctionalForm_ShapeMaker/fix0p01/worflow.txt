@@ -1,5 +1,6 @@
 python plotWidths2D.py
 python findAnomalies.py
-python makeOneBadFile.py
-python getParams.py
 python MakeInterpoFunctions.py 
+
+To check:
+python plotWidths2D_afterCorrection.py

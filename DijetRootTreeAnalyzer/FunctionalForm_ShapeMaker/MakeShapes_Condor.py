@@ -8,6 +8,9 @@ import math
 import scipy
 from array import array
 import csv
+import time
+
+#ROOT.gRandom.SetSeed(0)
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -116,23 +119,23 @@ def MixArray(A):
 	return out
 
 def FIND(V, X, A, a):
-	sV = StandardizeArray(V)
-	sX = StandardizeArray(X)
-	sA = StandardizeArray(A)
-	sa = StandardizeArray(a)
-	data = MixArray([X,A,a])
-	string_form = "1"
-	for i in range(4):
+  sV = StandardizeArray(V)
+  sX = StandardizeArray(X)
+  sA = StandardizeArray(A)
+  sa = StandardizeArray(a)
+  data = MixArray([X,A,a])
+  string_form = "1"
+  for i in range(4):
 			string_form += "++x["+str(i)+"]"
-	LINF = TLinearFitter(3, string_form)
-	LINF.AssignData(len(X), 3, scipy.array(data), scipy.array(V))
-	done = False
-	while not done:
+  LINF = TLinearFitter(3, string_form)
+  LINF.AssignData(len(X), 3, scipy.array(data), scipy.array(V))
+  done = False
+  while not done:
 		good = 1. - LINF.Eval()
 		if good == 1. : done = True
-	for i in range(3): print LINF.GetParameter(i)
-	print good
-	return LINF, sV, sX, sA, sa
+  for i in range(3): print LINF.GetParameter(i)
+  print good
+  return LINF, sV, sX, sA, sa
 
 def MakePredictor(F, cV, cX, cA, ca):
   def P(X,A):
@@ -145,7 +148,7 @@ def MakePredictor(F, cV, cX, cA, ca):
 	
   return P
 
-def MakeFunc(tn, shape, inx, inalpha):
+def MakeFunc(tn, shape, inx, inalpha, odir):
   print "Reading in params"
   if(tn=="nominal"):
     fname = "{}/fitparams_{}.csv".format(dir_path,shape)
@@ -169,9 +172,12 @@ def MakeFunc(tn, shape, inx, inalpha):
       thisx, thisalpha = float(r[0]), float(r[1])
       thisphi = thisx*thisalpha
       if(shape == "alpha" and inalpha==0.005 and thisalpha > 0.02): continue
-      if(shape == "alpha" and inalpha==0.01 and thisalpha > 0.02): continue
+      #if(shape == "alpha" and inalpha==0.01 and thisalpha > 0.025): continue
+      #if(shape == "alpha" and inalpha==0.01 and thisalpha > 0.02): continue
       #if(shape == "alpha" and inx<=400 and thisx > 2000): continue
       if(shape == "alpha" and inx==2000 and thisx < 400): continue
+      #if(shape == "alpha" and inx>=2000 and thisx < 600): continue
+      #if(shape == "alpha" and inalpha==0.01 and thisalpha >= 0.02): continue
       X.append(thisx)
       a.append(thisalpha)
       A.append(thisphi)
@@ -197,6 +203,13 @@ def MakeFunc(tn, shape, inx, inalpha):
       G.SetParameter("mean", Predictors[4](X,a))
       G.SetParameter("sigma", Predictors[5](X,a))
       G.SetParameter("N", Predictors[6](X,a))
+
+      pfile = open("{}/params_{}.txt".format(odir,shape),"w")
+      print("a1: {}".format(Predictors[0](X,a)))
+      print("a2: {}".format(Predictors[1](X,a)))
+      pfile.write("{},{},{},{},{},{},{}".format(Predictors[0](X,a),Predictors[1](X,a),Predictors[2](X,a),Predictors[3](X,a),Predictors[4](X,a),Predictors[5](X,a),Predictors[6](X,a)))
+      pfile.close()
+
       return G
     return CustDSCB
 
@@ -226,6 +239,30 @@ def getNearestZero(hist, startbin):
       return (bb-startbin)
   return -999
 
+known_xs = [300,400,500,600,750,1000,1500,2000,3000]
+known_alphas = [0.005, 0.01, 0.015, 0.02, 0.025]
+#known_alphas = [0.005, 0.01]
+
+def getNearestX(inx):
+  inx = int(inx)
+  if(inx in known_xs): loop_xs = [xx for xx in known_xs if xx != inx]
+  else: loop_xs = known_xs
+
+  for ii in range(0,len(loop_xs)-1):
+    if(loop_xs[ii] <= inx and loop_xs[ii+1] > inx):
+      return loop_xs[ii], loop_xs[ii+1]
+
+def readParams(inx, alpha):
+  print(inx,alpha)
+  pfile = open("fitparams_alpha.csv")
+  for lin in pfile.readlines():
+    sl = lin.split(",")
+    fx = int(sl[0])
+    if(fx == inx):
+      fa = float(sl[1])
+      if(fa == alpha):
+        return float(sl[4])
+
 TREES = [
 	"nominal" ,
   "PU",
@@ -235,9 +272,6 @@ TREES = [
 	]
 
 
-known_xs = [300,400,500,600,750,1000,1500,2000]#,3000]
-known_alphas = [0.005, 0.01, 0.015, 0.02, 0.025]
-#known_alphas = [0.005, 0.01]
 
 #xmin, xmax = 320, 3000
 xmin, xmax = 320, 400
@@ -262,6 +296,7 @@ def MakeShape(x, alpha):
       x=str(x)
       a=str(round(a,4)).replace(".","p")
       newFolder = "{}/../inputs/Shapes_fromInterpo/unBinned/X{}A{}".format(dir_path,x,a)
+      #newFolder = "{}/inputs/Shapes_fromInterpo/unBinned/X{}A{}".format(dir_path,x,a)
       if(newFolder.endswith("p0")): newFolder = newFolder[:-2]
       MakeFolder(newFolder)
 
@@ -272,12 +307,12 @@ def MakeShape(x, alpha):
         while(s1int <= 0.0):
           lc += 1
           print("Starting Loop {} ".format(lc))
-          F = MakeFunc(tname, shape, x, alpha)
+          F = MakeFunc(tname, shape, x, alpha, newFolder)
           P = F(float(x), float(a.replace("p",".")), "test"+x+a)
           S1 = TH1F("h_AveDijetMass_1GeV_raw", ";Dicluster Mass (GeV)", len(X1B)-1, numpy.array(X1B))
           S1.FillRandom("test"+x+a, 10000)
           s1int = S1.Integral()
-          if(lc >=4):
+          if(lc >=100):
 
             print("Too many loops. Giving Up")
             break
@@ -297,11 +332,6 @@ def MakeShape(x, alpha):
         #f.Write()
         oF.Write()
 
-        #cc=TCanvas()
-        #cc.cd()
-        #s1.GetXaxis().SetRangeUser(0.75*float(x),1.25*float(x))
-        #s1.Draw("hist")
-        #cc.Print("tmp.png")
         
         if(tname=="nominal"):
           dataFile = ROOT.TFile("{}/DATA.root".format(DATA_DIR), "read")
@@ -327,16 +357,38 @@ def MakeShape(x, alpha):
         lc = 0
         isBadDown = False
         isBadUp = False
+        isOutOfRange = False
+        isNan = False
+
+        xdown,xup = getNearestX(x)
+
         while(s1int <= 0.0 or isBadDown==True or isBadUp==True):
+        #while(s1int <= 0.0 or isBadDown==True or isBadUp==True or isOutOfRange==True or isNan==True):
           print("Starting Loop {}".format(lc))
           isBadDown = False
           isBadUp = False
           lc += 1
-          F = MakeFunc(tname, shape, x, alpha)
+          F = MakeFunc(tname, shape, x, alpha, newFolder)
           P = F(float(x), float(a.replace("p",".")), "test"+x+a)
           S1 = TH1F("h_alpha_fine", ";#alpha", len(AfineB)-1, numpy.array(AfineB))
           S1.FillRandom("test"+x+a, 10000)
           s1int = S1.Integral()
+
+#          pfile = open("{}/params_alpha.txt".format(newFolder),"r")
+#          lin = pfile.readlines()[0]
+#          lin = lin.split(",")
+#          if("nan" in lin or "-nan" in lin): 
+#            isnan = True
+#            continue
+#          a1=lin[1]
+#          if(a1 !="nan"): a1 = float(a1)
+#          pxlow,pxhigh = readParams(xdown, alpha), readParams(xup, alpha)
+#
+#          if(a1 < pxlow or a1 > pxhigh):
+#            print("Params not in range: {} , {} , {}".format(pxlow,a1,pxhigh))
+#            isOutOfRange = True
+#            continue
+
           if(s1int > 0):
             ti = S1.Integral()
             cbin = S1.FindBin(alpha)
@@ -355,6 +407,7 @@ def MakeShape(x, alpha):
           if(doOne):
             print("Before Alpha Integral: {}".format(S1.Integral(0,S1.FindBin(alpha))))
             print("After Alpha Integral: {}".format(S1.Integral(S1.FindBin(alpha),S1.GetNbinsX())))
+            print("Width: {}".format(S1.GetRMS()))
           if(lc >100):
             print("Too many loops. Giving Up")
             break
@@ -366,11 +419,11 @@ def MakeShape(x, alpha):
         oF.cd()
         s1.Write()
 
-        if(doOne):
-          cc=TCanvas()
-          cc.cd()
-          s1.Draw("hist")
-          cc.Print("tmp.png")
+        #if(doOne):
+          #cc=TCanvas()
+          #cc.cd()
+          #s1.Draw("hist")
+          #cc.Print("tmp.png")
 
 
       oF.Save()
