@@ -18,9 +18,12 @@ ct = 0
 #for dir_base in [gen_dir]:
 for dir_base in [interp_dir]:
   for alphaBin in os.listdir(dir_base):
+    if(not alphaBin.isdigit()): continue
     for xx in os.listdir(os.path.join(dir_base,alphaBin)):
       #if(ct > 1000): break #For testing
       mydir = "{}/{}/{}".format(gen_dir, alphaBin, xx)
+      xmass = int(xx[1:xx.find("A")])
+      #if(xmass >= 1000): continue
   
       rt_file = open("Call_template.sh","r")
       #r_file = open("CallFiles/Call_alpha{}_{}.sh".format(alphaBin,xx),"w")

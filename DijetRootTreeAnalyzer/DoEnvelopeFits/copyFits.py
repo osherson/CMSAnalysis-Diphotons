@@ -4,8 +4,8 @@ import sys
 print("Removing previous plots")
 os.system("rm fitPlots/*")
 
-outdir = "output"
-#outdir = "saveOutput/fb_1/"
+#outdir = "output"
+outdir = "saveOutput/Interpo/int_1_fb/"
 
 for abin in os.listdir(outdir):
   if(abin.startswith("alpha")):

@@ -1,8 +1,7 @@
 import os
 import sys
 
-#wd = "fb_1_INT"
-wd = "Interpo/int_0p01_fb"
+wd = "Interpo/int_1_fb"
 card_dir = "saveOutput/{}/combineCards/".format(wd)
 
 if(not os.path.exists("AllAlphaCards/{}".format(wd))):

@@ -13,6 +13,9 @@ LUMI["2017"] = 4.15
 LUMI["2018"] = 5.99
 LUMI["RunII"] = sum([LUMI[yy] for yy in LUMI.keys()])
 
+csv=False
+if("csv" in sys.argv): csv=True
+
 def MakeFolder(N):
     if not os.path.exists(N):
      os.makedirs(N)
@@ -176,9 +179,12 @@ def GetAlphaRange(abin):
   
   return low,hi
 
-def MakeLimitPlot():
-  #combine_dir = "combineOutput/int_0p1_fb/"
-  combine_dir = "combineOutput/int_50_fb/"
+def MakeLimitPlot(thisxs):
+  global csv
+  if(csv==True): cfile = open("LimitCSV/limits.csv","w")
+  sxs = str(thisxs).replace(".","p")
+  wd = "int_{}_fb".format(sxs)
+  combine_dir = "combineOutput/{}/".format(wd)
   #combine_dir = "combineOutput/int_100_fb/"
   xs_norm = 1.
   if("fb" in combine_dir):
@@ -200,6 +206,7 @@ def MakeLimitPlot():
     this_phi = float(xa[xa.find("A")+1 : ].replace("p","."))
     this_alpha = round(this_phi / float(this_x),3)
     if(this_alpha > 0.025):continue
+    if(this_alpha != 0.009):continue
     #if(this_x not in gen_xs or this_alpha not in gen_alphas): continue   #Ignore interpolated
     alphas.append(this_alpha)
     flist.append([this_x, this_alpha, os.path.join(combine_dir, ff)])
@@ -269,7 +276,8 @@ def MakeLimitPlot():
     #LimitPlot = TH2F("LP", ";Four-Photon Resonance Mass (GeV);(pp #rightarrow X #rightarrow #phi#phi #rightarrow (#gamma#gamma)(#gamma#gamma)) #sigma #times B (fb)", 100, 300, 3200, 1000, 0.000005, 50.)
     LimitPlot.SetStats(0)
 
-    LimitPlot.GetXaxis().SetMoreLogLabels(ROOT.kTRUE)
+    #LimitPlot.GetXaxis().SetMoreLogLabels(ROOT.kTRUE)
+    LimitPlot.GetXaxis().SetRangeUser(300,700)
 
     TH1 = GetTH(1)
     TH3 = GetTH(3)
@@ -289,6 +297,11 @@ def MakeLimitPlot():
     Obs.SetMarkerSize(0.6666)
     Onesig = makeAFillGraph(x,m1,p1,kGreen,kGreen, 1001)
     Twosig = makeAFillGraph(x,m2,p2,kYellow,kYellow, 1001)
+
+    #X_m phi_m obs exp exp+ exp- exp++ exp--
+    if(csv):
+      for (wx,oo,ee,mm,mm2,pp,pp2) in zip(x, obs, exp, m1, m2, p1, p2):
+        cfile.write("{},{},{},{},{},{},{},{}\n".format(wx,wx*aa,oo,ee,pp,mm,pp2,mm2))
 
     hp = (len(exp)//2)+1
     gx = [x[0],x[hp]]
@@ -321,7 +334,9 @@ def MakeLimitPlot():
     C = TCanvas()
     C.cd()
     C.SetLogy()
-    C.SetLogx()
+    #C.SetLogx()
+    C.SetGrid(1,1)
+    LimitPlot.SetTitle("Signal XS = {} fb".format(thisxs))
     LimitPlot.Draw()
     Twosig.Draw("Fsames")
     Onesig.Draw("Fsames")
@@ -336,11 +351,13 @@ def MakeLimitPlot():
     L.Draw("same")
     AddCMSLumi(gPad, str(LUMI["RunII"]), "Preliminary")
     AddSignalAlphaRange(gPad,  sig_alpha)
-    savename="LimitPlots/Lim_RunII_alpha{}.png".format(str(sig_alpha).replace(".","p"))
+    MakeFolder("LimitPlots/{}".format(wd))
+    savename="LimitPlots/{}/Lim_RunII_alpha{}.png".format(wd,str(sig_alpha).replace(".","p"))
     #print("Saving plot as: {}".format(savename))
     C.Print(savename)
 
   return
 
-MakeLimitPlot()
+xs = sys.argv[1]
+MakeLimitPlot(xs)
 

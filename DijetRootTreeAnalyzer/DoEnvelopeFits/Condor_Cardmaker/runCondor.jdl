@@ -12,4 +12,4 @@ should_transfer_files = NO
 Error = ./condor_logfiles/prod_IM_EB_$(cluster)_$(process).stderr
 Log = ./condor_logfiles/prod_IM_EB_$(cluster)_$(process).log
 Arguments = $(cluster) $(process)
- Queue 7124
+ Queue 6996

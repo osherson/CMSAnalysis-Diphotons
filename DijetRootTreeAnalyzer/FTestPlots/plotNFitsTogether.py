@@ -37,7 +37,7 @@ MakeFolder(outFolder)
 dirs = []
 
 for anum in alphaBins:
-  if(anum != 12): continue
+  if(anum != 3): continue
   thisD = "{}/ThreeParams/alpha_{}".format(outdir,anum)
   found = False
   for xa in os.listdir(os.path.join(thisD)):
@@ -46,7 +46,8 @@ for anum in alphaBins:
     file5 = file3.replace("Three","Five")
     file6 = file3.replace("Three","Six")
     if(function != "moddijet" and os.path.exists(file3) and os.path.exists(file4) and os.path.exists(file5) and os.path.exists(file6)):
-      rfile = open("../inputs/Shapes_fromGen/alphaBinning/{}/{}/arange.txt".format(anum,xa))
+      #rfile = open("../inputs/Shapes_fromGen/alphaBinning/{}/{}/arange.txt".format(anum,xa))
+      rfile = open("../inputs/Shapes_fromInterpo/alphaBinning/{}/{}/arange.txt".format(anum,xa))
       rr = rfile.readline().rstrip()
       lA =float(rr.split(",")[0])
       hA =float(rr.split(",")[-1])
@@ -320,7 +321,7 @@ def makePlotTogether(flist, anum, function, lA, hA):
   
     pp.GetXaxis().SetTitleSize(2*0.06)
     pp.GetXaxis().SetLabelSize(2*0.05)
-    pp.GetXaxis().SetTitle('Average diphoton mass [TeV]')
+    pp.GetXaxis().SetTitle('Di-Cluster mass [TeV]')
   
     if(ii==0): 
       pp.SetFillStyle(3001)
