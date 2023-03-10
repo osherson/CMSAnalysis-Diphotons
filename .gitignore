@@ -129,6 +129,7 @@ DijetRootTreeAnalyzer/DoEnvelopeFits/Condor_Cardmaker/
 DijetRootTreeAnalyzer/DoEnvelopeFits/DiagnoseLimits/
 DijetRootTreeAnalyzer/DataPlots/*
 DijetRootTreeAnalyzer/EventDisplayMaker/*
+DijetRootTreeAnalyzer/EtaPeakReco/*
 
 DijetRootTreeAnalyzer/FunctionalForm_ShapeMaker/AlphaFracs/*
 DijetRootTreeAnalyzer/FunctionalForm_ShapeMaker/ConsistencyCheck/*
