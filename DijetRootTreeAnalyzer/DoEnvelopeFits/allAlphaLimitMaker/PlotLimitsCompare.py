@@ -216,14 +216,16 @@ def MakeLimitPlot(x1, exp1, mg1, pg1, x2, exp2, sig_alpha):
   Exp1.SetLineWidth(3)
   Exp1.SetLineColor(kBlack)
   Exp1.SetMarkerStyle(20)
+  Exp1.SetMarkerSize(1.5)
   Exp1.SetMarkerColor(kBlack)
 
   Onesig = makeAFillGraph(x1,mg1,pg1,kGreen,kGreen, 1001)
 
   Exp2 = TGraph(len(x2), numpy.array(x2), numpy.array(exp2))
   Exp2.SetLineStyle(kDashed)
-  Exp2.SetLineWidth(3)
-  Exp2.SetMarkerStyle(21)
+  Exp2.SetLineWidth(1)
+  Exp2.SetMarkerStyle(20)
+  Exp2.SetMarkerSize(0.75)
   Exp2.SetMarkerColor(6)
   Exp2.SetLineColor(6)
 
@@ -258,8 +260,8 @@ def MakeLimitPlot(x1, exp1, mg1, pg1, x2, exp2, sig_alpha):
 
   return
 
-gen_dir = "combineOutput/gen_norm/"
-int_dir = "combineOutput/int_Jan31_Full/"
+gen_dir = "combineOutput/old/gen_norm/"
+int_dir = "combineOutput/int_1_fb/"
 for sa in [0.005, 0.01, 0.015, 0.02, 0.025]:
   x1,exp1,m1,p1 = GetExpLimit(gen_dir, sa)
   x2,exp2,_,_ = GetExpLimit(int_dir, sa)

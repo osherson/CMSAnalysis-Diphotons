@@ -183,14 +183,16 @@ def MakeLimitPlot(thisxs):
   global csv
   if(csv==True): cfile = open("LimitCSV/limits.csv","w")
   sxs = str(thisxs).replace(".","p")
-  wd = "int_{}_fb".format(sxs)
+  #wd = "int_{}_fb".format(sxs)
+  wd = "int_1_fb_fixalpha".format(sxs)
   combine_dir = "combineOutput/{}/".format(wd)
   #combine_dir = "combineOutput/int_100_fb/"
+  xs=1.
   xs_norm = 1.
-  if("fb" in combine_dir):
-    sxs = combine_dir.split("_")[-2]
-    xs = float(sxs.replace("p","."))
-  else: xs = 1.
+  #if("fb" in combine_dir):
+  #  sxs = combine_dir.split("_")[-2]
+  #  xs = float(sxs.replace("p","."))
+  #else: xs = 1.
   scale = xs/xs_norm
 
   gen_xs = [300,400,500,600,750,1000,1500,2000,3000]
@@ -206,7 +208,7 @@ def MakeLimitPlot(thisxs):
     this_phi = float(xa[xa.find("A")+1 : ].replace("p","."))
     this_alpha = round(this_phi / float(this_x),3)
     if(this_alpha > 0.025):continue
-    if(this_alpha != 0.009):continue
+    #if(this_alpha != 0.009):continue
     #if(this_x not in gen_xs or this_alpha not in gen_alphas): continue   #Ignore interpolated
     alphas.append(this_alpha)
     flist.append([this_x, this_alpha, os.path.join(combine_dir, ff)])
@@ -277,7 +279,7 @@ def MakeLimitPlot(thisxs):
     LimitPlot.SetStats(0)
 
     #LimitPlot.GetXaxis().SetMoreLogLabels(ROOT.kTRUE)
-    LimitPlot.GetXaxis().SetRangeUser(300,700)
+    #LimitPlot.GetXaxis().SetRangeUser(300,700)
 
     TH1 = GetTH(1)
     TH3 = GetTH(3)

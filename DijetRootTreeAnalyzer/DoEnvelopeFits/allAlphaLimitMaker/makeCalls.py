@@ -9,7 +9,7 @@ if("clean" in sys.argv):
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
-wd = "Interpo/int_1_fb"
+wd = "Interpo/int_1_fb_fixalpha"
 card_dir = "../AllAlphaCards/{}".format(wd)
 
 ct = 0
