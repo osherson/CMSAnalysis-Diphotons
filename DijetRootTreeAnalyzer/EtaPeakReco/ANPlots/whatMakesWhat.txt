@@ -1,0 +1,11 @@
+
+saveMassPlot_fromPico.py
+this makes the full mass plot, as in Fig 32 of ANv6. Make sure to run on all years
+
+makeDiphoCutPlot.py
+This makes the mass plot, pass and fail, as in Fig 33 of ANv6
+
+makePlotAndPico_EWindows.py
+makes energy window plots of different particles, 2D of mass v energy, 2D of mass v delta R, delta R plot, mass plot in e30 - 60. 
+Then, makes a cut on 30 < e < 60 and deltaR < 0.15. Saves pico tree
+Plots corrspond to ANv6, fig 34, 35, 36, 37
