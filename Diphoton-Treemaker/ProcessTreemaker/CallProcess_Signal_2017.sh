@@ -14,4 +14,4 @@ cd $myd
 
 eval `scramv1 runtime -sh`
 
-python ProcessSignal.py 2017
+python ProcessSignal_dr.py 2017

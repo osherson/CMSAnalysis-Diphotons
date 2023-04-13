@@ -13,7 +13,9 @@ dgq = sys.argv[1]
 
 
 if dgq == 'gjets':
-  base_dir = "/cms/sclark-2/RUCLU_Outputs/GJets/2018/"
+  base_dir = "/cms/sclark-2/RUCLU_Outputs/GJets/2016/"
+  #base_dir = "/cms/sclark-2/RUCLU_Outputs/GJets/2017/"
+  #base_dir = "/cms/sclark-2/RUCLU_Outputs/GJets/2018/"
 
   Runlist = [
             "HT40To100",
@@ -25,8 +27,8 @@ if dgq == 'gjets':
 
 
 
-Chain = ROOT.TChain("flattenerMatching/tree")
-#Chain = ROOT.TChain("flattener/tree")
+#Chain = ROOT.TChain("flattenerMatching/tree")
+Chain = ROOT.TChain("flattener/tree")
 
 bb=""
 

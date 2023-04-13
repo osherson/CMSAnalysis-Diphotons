@@ -16,6 +16,9 @@ Creates the Functional Forms for all new signals in a loop before alpha binning.
 MakeShapes_Condor.py
 Creates the Functional Forms for one new signal. Call as MakeShapes_Condor.py 600 0.005   (args are xmass, alpha)
 
+python smearAlpha.py
+applies alpha smearing to get systematic
+
 getAlphaEfficiency.py
 Does the alpha binning from the unBinned shapes. Reads in alpha shapes, computes integral in alpha bin, saves if enough signal survives. Output is saved in
 ../inputs/Shapes_fromInterpo/alphaBinning/ . Also creates a text file AlphaFracs/fracs.csv that computes and compares the integrals between known and generated shapes
@@ -30,6 +33,7 @@ plotSystematicParams.py (3min)
 
 python MakeShapes.py
 python getAlphaEfficiency.py
+python smearAlpha.py
 
 or
 

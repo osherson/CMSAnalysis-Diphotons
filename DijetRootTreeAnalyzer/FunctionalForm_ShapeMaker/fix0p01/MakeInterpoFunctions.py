@@ -106,6 +106,7 @@ badsigs = list(set(badsigs))
 
 for (xm,alpha) in badsigs:
   #if(xm != 300 or alpha != 0.02): continue
+  if(xm == 300): continue
   amass = xm*alpha
   samass = str(amass).replace(".","p")
   salpha=str(alpha).replace(".","p")

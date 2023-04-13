@@ -63,7 +63,8 @@ AfineB = sorted(AfineB)
 pnames = ["a1","a2","n1","n2","mean","sigma","N"]
 count = 0
 
-xmin, xmax = 300, 3000
+#xmin, xmax = 300, 3000
+xmin, xmax = 310, 2990
 xstep = 10
 xlist = [xx for xx in range(xmin, xmax+xstep, xstep)]
 alphamin, alphamax = 0.005, 0.025

@@ -12,8 +12,8 @@ import Helper
 dir_path = os.path.dirname(os.path.realpath(__file__)) #Get directory where this Treemaker.py is located
 gInterpreter.Declare('#include "{}/RDF_Functions.h"'.format(dir_path))
 
-#saveTreeFolder = "/cms/sclark-2/DiPhotonsTrees/GJets/" 
-saveTreeFolder = "/cms/sclark-2/DiPhotonsTrees/QCD/" 
+saveTreeFolder = "/cms/sclark-2/DiPhotonsTrees/GJets/" 
+#saveTreeFolder = "/cms/sclark-2/DiPhotonsTrees/DYJets/" 
 
 #ROOT.ROOT.EnableImplicitMT()
 RDF = ROOT.ROOT.RDataFrame
@@ -25,6 +25,7 @@ def Treemaker(folder, Dataset, isData, year):
   oF.Write()
   oF.Close()
   tree = "flattenerMatching/tree"
+  #tree = "flattener/tree"
   Chain = TChain(tree)
   fcount = 0
   for path, subdirs, files in os.walk(folder):
@@ -33,14 +34,15 @@ def Treemaker(folder, Dataset, isData, year):
       if (File.endswith(".root") and "flat" in File):
         if(os.path.getsize(File) > 100):
             fcount += 1
-            #if(fcount > 10): break
+            #if(fcount > 5): break
             print os.path.join(path, name)
             Chain.Add(File)
 
   # File dependent setup:
   if isData:
-      #dpindex, eleindex = 0,3 #GJets
-      dpindex, eleindex = 0,3 #QCD
+      dpindex, eleindex = 0,3 #GJets
+      #dpindex, eleindex = 0,3 #QCD
+      #dpindex, eleindex = 13,98 #DYJets, 2016 only
       Branches = [
           ["pico_skim", 10, 1., 1.],
           ["pico_full", 1, 1., 1.]
@@ -48,9 +50,14 @@ def Treemaker(folder, Dataset, isData, year):
   else:
       Nevt = float(Helper.getNEvents(year, Dataset))
       W = 1./Nevt
-      if("16" in year): dpindex, eleindex = 13, 101
-      if("17" in year): dpindex, eleindex = 0, 6
-      if("18" in year): dpindex, eleindex = 0, 3
+      #if("16" in year): dpindex, eleindex = 13, 101
+      #if("17" in year): dpindex, eleindex = 0, 6
+      #if("18" in year): dpindex, eleindex = 0, 3
+
+      #For DYJets
+      if("16" in year): dpindex, eleindex = 13, 98
+      if("17" in year): dpindex, eleindex = 9999,9999 #Get Triggers
+      if("18" in year): dpindex, eleindex = 9999,9999 #Get Triggers
       Branches = [
           ["pico_nom", 1, 1., W],
           ["pico_scale_up", 1, 1.005, W],
@@ -111,12 +118,12 @@ def Treemaker(folder, Dataset, isData, year):
     # Save to the file we created earlier:
     branchList = ROOT.std.vector('std::string')()
     for k in Helper.keeplist: branchList.push_back(k)
-    branchList.push_back("gen_ID")
-    branchList.push_back("gen_pt")
-    branchList.push_back("gen_eta")
-    branchList.push_back("gen_phi")
-    branchList.push_back("gen_energy")
-    branchList.push_back("gen_mass")
+    #branchList.push_back("gen_ID")
+    #branchList.push_back("gen_pt")
+    #branchList.push_back("gen_eta")
+    #branchList.push_back("gen_phi")
+    #branchList.push_back("gen_energy")
+    #branchList.push_back("gen_mass")
     snapshotOptions = ROOT.RDF.RSnapshotOptions()
     snapshotOptions.fMode = "UPDATE" 
     Rdf.Snapshot(b[0], saveTreeFolder+Name+".root", branchList, snapshotOptions)

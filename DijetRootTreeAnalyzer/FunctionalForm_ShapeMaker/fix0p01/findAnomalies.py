@@ -35,7 +35,7 @@ oFile = ROOT.TFile("Plots/SmoothedHistsY/hists.root","recreate")
 oFile.cd()
 
 for pname in pnames:
-  #if(pname != "a1"):continue
+  #if(pname != "n1"):continue
 
   hist = histfile.Get("hist_{}".format(pname))
   badlist = []
@@ -61,14 +61,11 @@ for pname in pnames:
   for ny in range(hist.GetNbinsY()+1):
     falpha = hist.GetYaxis().GetBinLowEdge(ny)+hist.GetYaxis().GetBinWidth(ny)
     #if(falpha != 0.011): continue
-    #print(falpha)
+    print(falpha)
 
-    x1,x2 = hist.GetXaxis().GetBinLowEdge(0)+hist.GetXaxis().GetBinWidth(0), hist.GetXaxis().GetBinLowEdge(nxbins)+hist.GetXaxis().GetBinWidth(nxbins)
+    x1,x2 = hist.GetXaxis().GetBinLowEdge(1)+hist.GetXaxis().GetBinWidth(1), hist.GetXaxis().GetBinLowEdge(nxbins-1)+hist.GetXaxis().GetBinWidth(nxbins-1)
     firstbin,lastbin = hist.FindBin(x1,falpha), hist.FindBin(x2,falpha)
     z1,z2 = hist.GetBinContent(firstbin), hist.GetBinContent(lastbin)
-    #print(x1, x2)
-    #print(firstbin, lastbin, lastbin-firstbin)
-    #print(z1, z2)
 
     slope = (z2-z1)/(x2-x1)
     intercept = z1-slope*x1
@@ -77,6 +74,9 @@ for pname in pnames:
     for (nx,bb) in enumerate(range(firstbin,lastbin)):
       thiscontent = hist.GetBinContent(bb)
       thisx = hist.GetXaxis().GetBinLowEdge(nx)+hist.GetXaxis().GetBinWidth(nx) 
+      if(thiscontent==0): 
+        #print("bad",thisx)
+        continue
       pdiff = abs(linval[nx] - thiscontent) / (thiscontent) * 100
       #print(linval[nx], thiscontent, pdiff)
       if(pdiff > 5 or (falpha==0.01 and pname != "mean")):
@@ -144,6 +144,8 @@ for pname in pnames:
     for (na,thisalpha) in enumerate(alphalist):
       thisbin = smooth.FindBin(fX,thisalpha)
       thiscontent = smooth.GetBinContent(thisbin)
+      if(thiscontent==0):
+        continue
       pdiff = abs(linval[na] - thiscontent) / (thiscontent) * 100
       if(pdiff > 5 or (falpha==0.01 and pname != "mean")):
         zeroy.SetBinContent(thisbin,0)

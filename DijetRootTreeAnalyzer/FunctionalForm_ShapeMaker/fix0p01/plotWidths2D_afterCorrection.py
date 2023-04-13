@@ -34,6 +34,7 @@ alphastep = 0.001
 alphalist = [round(aa,4) for aa in np.arange(alphamin, alphamax+alphastep, alphastep)]
 
 pnames = ["a1","a2","n1","n2","mean","sigma", "N"]
+#pnames = ["a1"]
 
 oFile = ROOT.TFile("Plots/Widths/param_hists.root","recreate")
 oFile.cd()
@@ -50,7 +51,7 @@ for (pnum,pname) in enumerate(pnames):
     if(not os.path.exists(fname)):
       fname = "../../inputs/Shapes_fromInterpo/unBinned/{}/params_alpha.txt".format(xaa)
       if(not os.path.exists(fname)): 
-        print("bad")
+        #print("bad", xaa)
         continue
     else: ccount += 1
     pfile = open(fname,"r")

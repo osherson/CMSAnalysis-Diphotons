@@ -20,16 +20,17 @@ def GetXPhiAlpha(ins):
 I_DIR = "../../inputs/Shapes_fromInterpo/unBinned"
 G_DIR = "../../inputs/Shapes_fromGen/unBinned"
 
-GEN_XS = [300,400,500,600,750,1000,1500,2000]
+#GEN_XS = [300,400,500,600,750,1000,1500,2000]
+GEN_XS = [400,500,600,650,750,1000,1100,1500,2000]
 #GEN_XS = [1000]
 
-AlphaBins = [ 0.003, 0.00347, 0.00395, 0.00444, 0.00494, 0.00545, 0.00597, 0.0065, 0.00704, 0.00759, 0.00815, 0.00872, 0.0093, 0.01049, 0.01505, 0.03]
+AlphaBins = [ 0.003, 0.00347, 0.00395, 0.00444, 0.00494, 0.00545, 0.00597, 0.0065, 0.00704, 0.00759, 0.00815, 0.0093, 0.01049, 0.01505, 0.03]
 
 for plot_alpha in GEN_XS:
   int_files, gen_files = [],[]
   #if(plot_alpha != 1000): continue
 
-  for ii,alphaDir in enumerate([I_DIR, G_DIR]):
+  for ii,alphaDir in enumerate([I_DIR]):
     for si in os.listdir(alphaDir):
       xx,pp,aa = GetXPhiAlpha(si)
       if(xx < 297 or xx > 3000): continue
@@ -60,19 +61,23 @@ for plot_alpha in GEN_XS:
   for src, xm, pm, alph, fil in allFiles:
     #print(src, xm, pm, alph, fil)
     tFile = ROOT.TFile(fil, "read")
-    rinthist = tFile.Get("h_alpha_fine")
     try:
       if(src=="int"):
+        rinthist = tFile.Get("h_alpha_fine_i")
+        #rinthist = tFile.Get("h_alpha_fine")
         AfineB = list(numpy.linspace(0.0,0.035, 1001))
         myhist = ROOT.TH1D(rinthist.GetName()+'_f','',len(AfineB)-1,numpy.array(AfineB))
         for i in range(1,rinthist.GetNbinsX()+1):
           myhist.Fill(rinthist.GetBinCenter(i),rinthist.GetBinContent(i))
         myhist.SetLineColor(ROOT.kBlue)
         myhist.SetFillColor(ROOT.kBlue)
+        myhist.SetFillStyle(3224)
       elif(src=="gen"):
+        rinthist = tFile.Get("h_alpha_fine")
         myhist = rinthist.Clone(rinthist.GetName()+'_f')
         myhist.SetLineColor(ROOT.kRed)
         myhist.SetFillColor(ROOT.kRed)
+        myhist.SetLineWidth(2)
     except AttributeError: 
       print("Problem with {}".format(fil))
       continue

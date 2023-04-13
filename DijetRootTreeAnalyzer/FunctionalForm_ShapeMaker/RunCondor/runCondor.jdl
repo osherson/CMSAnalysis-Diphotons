@@ -9,8 +9,8 @@ should_transfer_files = NO
 
 max_materialize = 500
 
-#Output = ./condor_logfiles/prod_IM_EB_$(cluster)_$(process).stdout
+Output = ./condor_logfiles/prod_IM_EB_$(cluster)_$(process).stdout
 error = ./condor_logfiles/prod_IM_EB_$(cluster)_$(process).stderr
 log = ./condor_logfiles/prod_IM_EB_$(cluster)_$(process).log
 Arguments = $(cluster) $(process)
- Queue 61
+ Queue 5691

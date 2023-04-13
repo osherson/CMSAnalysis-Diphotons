@@ -178,6 +178,8 @@ def MakeFunc(tn, shape, inx, inalpha, odir):
       if(shape == "alpha" and inx==2000 and thisx < 400): continue
       #if(shape == "alpha" and inx>=2000 and thisx < 600): continue
       #if(shape == "alpha" and inalpha==0.01 and thisalpha >= 0.02): continue
+
+      if(shape == "X" and inX > 2200 and thisx < 500): continue
       X.append(thisx)
       a.append(thisalpha)
       A.append(thisphi)
@@ -272,26 +274,19 @@ TREES = [
 	]
 
 
-
-#xmin, xmax = 320, 3000
-xmin, xmax = 320, 400
-xstep = 10
-fine_xs = [xx for xx in range(xmin, xmax+xstep, xstep)]
-
-alphamin, alphamax = 0.005, 0.03
-nalphas = 25+1
-fine_alphas = numpy.linspace(alphamin, alphamax, nalphas)
-
-
 if(doOne): useShapes = ["alpha"]
 else: useShapes = ["X","alpha"]
-#else: useShapes = ["alpha"]
+#useShapes=["X"]
+#useShapes=["alpha"]
+
+NFILLPOINTS = 1000000
+#NFILLPOINTS = 10000
 
 def MakeShape(x, alpha):
   for shape in useShapes:
     for tname in TREES:
-      if(shape=="alpha" and tname !="nominal"): continue
-      #if(tname !="nominal"):continue
+      if(shape=="alpha" and tname !="nominal"): continue #Keep this
+      #if(tname !="nominal"):continue #testing
       a = int(x)*alpha
       x=str(x)
       a=str(round(a,4)).replace(".","p")
@@ -310,7 +305,7 @@ def MakeShape(x, alpha):
           F = MakeFunc(tname, shape, x, alpha, newFolder)
           P = F(float(x), float(a.replace("p",".")), "test"+x+a)
           S1 = TH1F("h_AveDijetMass_1GeV_raw", ";Dicluster Mass (GeV)", len(X1B)-1, numpy.array(X1B))
-          S1.FillRandom("test"+x+a, 10000)
+          S1.FillRandom("test"+x+a, NFILLPOINTS)
           s1int = S1.Integral()
           if(lc >=100):
 
@@ -365,13 +360,16 @@ def MakeShape(x, alpha):
         while(s1int <= 0.0 or isBadDown==True or isBadUp==True):
         #while(s1int <= 0.0 or isBadDown==True or isBadUp==True or isOutOfRange==True or isNan==True):
           print("Starting Loop {}".format(lc))
+          if(lc >100):
+            print("Too many loops. Giving Up")
+            break
           isBadDown = False
           isBadUp = False
           lc += 1
           F = MakeFunc(tname, shape, x, alpha, newFolder)
           P = F(float(x), float(a.replace("p",".")), "test"+x+a)
           S1 = TH1F("h_alpha_fine", ";#alpha", len(AfineB)-1, numpy.array(AfineB))
-          S1.FillRandom("test"+x+a, 10000)
+          S1.FillRandom("test"+x+a, NFILLPOINTS)
           s1int = S1.Integral()
 
 #          pfile = open("{}/params_alpha.txt".format(newFolder),"r")
@@ -408,9 +406,6 @@ def MakeShape(x, alpha):
             print("Before Alpha Integral: {}".format(S1.Integral(0,S1.FindBin(alpha))))
             print("After Alpha Integral: {}".format(S1.Integral(S1.FindBin(alpha),S1.GetNbinsX())))
             print("Width: {}".format(S1.GetRMS()))
-          if(lc >100):
-            print("Too many loops. Giving Up")
-            break
         print "--- - ", shape, tname
         print x,a
         s1 = S1.Clone("h_alpha_fine")
@@ -419,11 +414,11 @@ def MakeShape(x, alpha):
         oF.cd()
         s1.Write()
 
-        #if(doOne):
-          #cc=TCanvas()
-          #cc.cd()
-          #s1.Draw("hist")
-          #cc.Print("tmp.png")
+        if(doOne):
+          cc=TCanvas()
+          cc.cd()
+          s1.Draw("hist")
+          cc.Print("tmp.png")
 
 
       oF.Save()

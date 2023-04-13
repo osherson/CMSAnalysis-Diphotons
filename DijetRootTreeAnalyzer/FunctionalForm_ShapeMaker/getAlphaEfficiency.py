@@ -117,7 +117,7 @@ for sig in os.listdir(int_dir):
   try:
     tI = ahist.Integral()
   except AttributeError:
-    print("Bad Point: {}".format(int_dir))
+    print("Bad Point: {}".format(nomfile))
     continue
 
   if(not os.path.exists("../inputs/Shapes_fromInterpo/unBinned/{}/{}.txt".format(sig,sig))):
@@ -137,7 +137,7 @@ for sig in os.listdir(int_dir):
     #print(abin, lA, hA)
     #print(frac)
     if(frac < thresh): continue
-    print(abin, frac)
+    #print(abin, frac)
     qfraclist.append(frac)
     #print("Efficiency in Alpha Bin {}, [{}, {}] = {:.3f}".format(abin,lA,hA,frac))
     MakeFolder("{}{}".format(save_dir,abin))
@@ -172,8 +172,8 @@ for sig in os.listdir(int_dir):
     unb_plots.Close()
     os.system("cp /cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_DATA/alphaBinning/{}/DATA.root {}/.".format(abin,thisdir))
 
-  print(sum(fraclist))
-  print(sum(qfraclist))
+  #print(sum(fraclist))
+  #print(sum(qfraclist))
 
 oF.close()
 print("Corrected files: {}".format(ccount))

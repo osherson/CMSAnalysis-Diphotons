@@ -1,6 +1,7 @@
 python plotWidths2D.py
 python findAnomalies.py
-python MakeInterpoFunctions.py 
+#python MakeInterpoFunctions.py 
+python MakeFromSmooth.py
 
 To check:
 python plotWidths2D_afterCorrection.py

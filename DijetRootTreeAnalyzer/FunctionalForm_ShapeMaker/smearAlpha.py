@@ -23,6 +23,8 @@ for sig in os.listdir(int_dir):
   count += 1
   #if(sig != "X600A3") : continue
   xm,phi,alpha = getXPhiAlpha(sig)
+  if(xm==300):continue
+  if(xm==3000):continue
   if(count % 100 == 0): 
     print("{}/{} ({:.2f})%".format(count,total,float(count)/float(total)*100))
   hfname = int_dir + "/" + sig + "/Sig_nominal.root"

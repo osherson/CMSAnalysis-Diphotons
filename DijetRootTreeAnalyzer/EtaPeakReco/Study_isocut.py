@@ -54,7 +54,9 @@ if dgq == 'muon16':
           ]
 
 if dgq == 'gjets':
-  base_dir = "/cms/sclark-2/RUCLU_Outputs/GJets/2016/"
+  #base_dir = "/cms/sclark-2/RUCLU_Outputs/GJets/2016/"
+  #base_dir = "/cms/sclark-2/RUCLU_Outputs/GJets/2017/"
+  base_dir = "/cms/sclark-2/RUCLU_Outputs/GJets/2018/"
 
   Runlist = [
             "HT40To100",
@@ -78,32 +80,6 @@ if dgq == 'qcd':
             "HT2000toInf",
             ]
 
-if dgq == 'mc':
-  base_dir = "/cms/sclark-2/RUCLU_Outputs/GJets/2016/"
-
-  gRunlist = [
-            "HT40To100",
-            "HT100To200",
-            "HT200To400",
-            "HT400To600",
-            "HT600ToInf",
-            ]
-  gRunlist = [base_dir + rr for rr in gRunlist]
-
-  base_dir = "/cms/sclark/RUCLU_Outputs/qcd/2016/"
-
-  qRunlist = [
-            "HT100to200",
-            "HT200to300",
-            "HT300to500",
-            "HT500to700",
-            "HT700to1000",
-            "HT1000to1500",
-            "HT1500to2000",
-            "HT2000toInf",
-            ]
-  qRunlist = [base_dir + rr for rr in qRunlist]
-  Runlist = gRunlist + qRunlist
 
 
 if "data" not in dgq and "muon" not in dgq: Chain = ROOT.TChain("flattenerMatching/tree")
@@ -143,6 +119,8 @@ elif('17' in dgq):
   file1 = open('./tnames17.txt', 'r')
 elif('18' in dgq):
   file1 = open('./tnames18.txt', 'r')
+else:
+  file1 = open('./tnames18.txt', 'r')
 
 Lines = file1.readlines()
 count = 0
@@ -176,10 +154,10 @@ Rdf = Rdf.Filter("nJets >= 1", "barrel jets")
 ROOT.gInterpreter.Declare('#include "./HelperFuncs.h"')
 Rdf = Rdf.Define("nj_dr", "getClosestJetDR(ruclu_eta, ruclu_phi, ruclu_energy, moe, jet_pt_b, jet_eta_b, jet_phi_b, jet_mass_b)")
 
-#myCuts = "nj_dr < 0.4 && ruclu_energy>30 && ruclu_energy<60 && diphoScores>0.9"
-#myfCuts = "nj_dr < 0.4 && (ruclu_energy>30 && ruclu_energy<60) && diphoScores<0.9"
-myCuts = "nj_dr < 0.4 && ruclu_energy>{} && ruclu_energy<{} && diphoScores>0.9".format(elow, ehigh)
-myfCuts = "nj_dr < 0.4 && ruclu_energy>{} && ruclu_energy<{} && diphoScores<0.9".format(elow, ehigh)
+#myCuts = "nj_dr < 0.4 && ruclu_energy>{} && ruclu_energy<{} && diphoScores>0.9".format(elow, ehigh)
+#myfCuts = "nj_dr < 0.4 && ruclu_energy>{} && ruclu_energy<{} && diphoScores<0.9".format(elow, ehigh)
+myCuts = "nj_dr < 0.15 && ruclu_energy>{} && ruclu_energy<{} && diphoScores>0.9".format(elow, ehigh)
+myfCuts = "nj_dr < 0.15 && ruclu_energy>{} && ruclu_energy<{} && diphoScores<0.9".format(elow, ehigh)
 
 for rcol in ["ruclu_energy", "ruclu_eta", "ruclu_phi", "moe", "diphoScores", "monophoScores"]:
   Rdf = Rdf.Define("{}_pp".format(rcol), "{}[ ({}) ]".format(rcol, myCuts) ) #Only passing clusters
@@ -214,6 +192,7 @@ Rdf = Rdf.Define("ClusterMass_iso_ff","ClusterMass_ff[eratio_ff > 0.5 && eratio_
 ### 
 # Pass Plots
 masshist_pp = Rdf.Histo1D(("mass_pp","Diphoton Mass, pass; Mass(GeV); Events",nbins_dipho, dipho_low, dipho_high), 'ClusterMass_iso_pp', 'nWgt')
+print("Pass Entries: {}".format(masshist_pp.GetValue().GetEntries()))
 #energyhist_pp = Rdf.Histo1D(("energy_pp","Cluster Energy, pass; Energy (GeV); Events",100, 25, 65), 'energy_iso_pp', 'nWgt')
 #etahist_pp = Rdf.Histo1D(("eta_pp","Cluster #eta, pass; #eta; Events",100, -2, 2), 'eta_iso_pp', 'nWgt')
 #phihist_pp = Rdf.Histo1D(("phi_pp","Cluster #phi, pass; #phi; Events",100, -4, 4), 'phi_iso_pp', 'nWgt')
@@ -230,6 +209,7 @@ twoD_E_pp = Rdf.Histo2D(("etwod_pp"," (Cluster Energy / Jet Energy) vs. Diphoton
 ### 
 # Fail Plots
 masshist_ff = Rdf.Histo1D(("mass_ff","Diphoton Mass, fail",nbins_dipho, dipho_low, dipho_high), 'ClusterMass_iso_ff', 'nWgt')
+print("Fail Entries: {}".format(masshist_ff.GetValue().GetEntries()))
 #energyhist_ff = Rdf.Histo1D(("energy_ff","Cluster Energy, fail; Energy (GeV); Events",100, 25, 65), 'ruclu_energy_ff', 'nWgt')
 #etahist_ff = Rdf.Histo1D(("eta_ff","Cluster #eta, fail; #eta; Events",100, -2, 2), 'eta_iso_ff', 'nWgt')
 #phihist_ff = Rdf.Histo1D(("phi_ff","Cluster #phi, fail; #phi; Events",100, -4, 4), 'phi_iso_ff', 'nWgt')

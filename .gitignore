@@ -130,6 +130,7 @@ DijetRootTreeAnalyzer/DoEnvelopeFits/DiagnoseLimits/
 DijetRootTreeAnalyzer/DataPlots/*
 DijetRootTreeAnalyzer/EventDisplayMaker/*
 DijetRootTreeAnalyzer/EtaPeakReco/*
+DijetRootTreeAnalyzer/DYJetsBKG/*
 
 DijetRootTreeAnalyzer/FunctionalForm_ShapeMaker/AlphaFracs/*
 DijetRootTreeAnalyzer/FunctionalForm_ShapeMaker/ConsistencyCheck/*

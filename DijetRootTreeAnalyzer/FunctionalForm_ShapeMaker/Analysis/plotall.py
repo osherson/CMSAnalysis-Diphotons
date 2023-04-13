@@ -19,9 +19,9 @@ def MakeFolder(N):
 
 int_dir = "../../inputs/Shapes_fromInterpo/unBinned"
 
-#useshapes = ["X","alpha"]
+useshapes = ["X","alpha"]
 #useshapes=["X"]
-useshapes = ["alpha"]
+#useshapes = ["alpha"]
 
 if("clean" in sys.argv):
   print("Deleting old plots")
@@ -31,6 +31,7 @@ for xaa in os.listdir(int_dir):
   xm,phim,alpha = getXPhiAlpha(xaa)
   #if(alpha != 0.009):continue
   #if(alpha >= 0.006):continue
+  #if(alpha != 0.01): continue
   intpath = os.path.join(int_dir,xaa)
   #if(xaa != "X1710A8p55"): continue
 
@@ -44,8 +45,8 @@ for xaa in os.listdir(int_dir):
         rinthist = intfil.Get("h_AveDijetMass_1GeV")
         #inthist = intfil.Get("{}_XM".format(xaa))
       elif(shape=="alpha"):
-        #rinthist = intfil.Get("h_alpha_fine")
-        rinthist = intfil.Get("h_alpha_fine_i")
+        rinthist = intfil.Get("h_alpha_fine")
+        #rinthist = intfil.Get("h_alpha_fine_i")
         #genhist.Rebin(5)
         #inthist.Rebin(5)
     else:
@@ -56,6 +57,7 @@ for xaa in os.listdir(int_dir):
       rinthist.SetFillColor(ROOT.kRed)
     except AttributeError:
       print("Bad mass point: {}".format(xaa))
+      print(intpath, infname)
       continue
 
     #c = ROOT.TCanvas()

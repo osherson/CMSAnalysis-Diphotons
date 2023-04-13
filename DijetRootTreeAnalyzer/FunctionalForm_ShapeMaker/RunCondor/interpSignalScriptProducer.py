@@ -2,7 +2,7 @@ import numpy as np
 import sys
 
 xmin, xmax = 300, 3000
-xmin, xmax = 2400, 3000
+#xmin, xmax = 2200, 3000
 xstep = 10
 #xmin, xmax = 400,550
 #xstep = 50
@@ -11,7 +11,7 @@ xlist = [xx for xx in range(xmin, xmax+xstep, xstep)]
 alphamin, alphamax = 0.005, 0.025
 alphastep = 0.001
 alphalist = [round(aa,4) for aa in np.arange(alphamin, alphamax+alphastep, alphastep)]
-alphalist = [0.01]
+#alphalist = [0.01]
 
 xapairs = []
 

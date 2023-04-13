@@ -2,7 +2,6 @@ universe = vanilla
 Requirements = (Arch == "X86_64")
 +RUQueue = "cms"
 +AccountingGroup = "group_rutgers.sclark"
-use_x509userproxy = true
 
 Executable = CallProcess_Data_2018.sh
 

@@ -109,7 +109,7 @@ ccount=0
 allfracs = []
 for sig in os.listdir(int_dir):
   x,phi,alpha = getXPhiAlpha(sig)
-  pdone = int(float(count)/float(nfiles)*100) 
+  if(x == 300): continue
   #if(count % 100 == 0): print("{}/{} Files Completed {:.1f}%".format(count, nfiles, pdone))
   #if(alpha != 0.005): continue
   #if(x < 400 or x > 410): continue
@@ -136,7 +136,9 @@ for sig in os.listdir(int_dir):
     tI = ahist.Integral()
     tI_su = ahist_su.Integral()
   except AttributeError:
-    print("Bad Point: {}".format(int_dir))
+    print("Bad Point: {}".format(nomfile))
+    print(nomfile)
+    exit()
     continue
 
   if(not os.path.exists("../inputs/Shapes_fromInterpo/unBinned/{}/{}.txt".format(sig,sig))):
