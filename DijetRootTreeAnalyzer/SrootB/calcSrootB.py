@@ -132,7 +132,7 @@ for (comb_num,cuts) in cut_combos.items():
 
   sct = 0
   for (sig, flist) in sigdict.items():
-    #if(sct > 3): break #testing
+    if(sct > 3): break #testing
     print("Starting Signal: {}".format(sig))
     sct += 1
     schain = ROOT.TChain("pico_nom")
@@ -165,7 +165,7 @@ for (comb_num,cuts) in cut_combos.items():
     bkg=ddf.Count().GetValue()
 
     scalefactor = (myxs / myngen) * LUMI
-    sval = sdf.Count().GetValue() 
+    sval = sdf.Count().GetValue() * scalefactor
     print("Background Value: {}".format(bkg))
     print("Signal Value: {}".format(sval))
     print(bkg,sval)
