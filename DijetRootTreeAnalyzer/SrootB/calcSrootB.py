@@ -3,25 +3,34 @@ import numpy as np
 import os,sys
 import itertools
 
+#deta_cuts = [0.5, 1.5, 2.5, 3.5]
+
 masym_cuts = [0.1, 0.25, 0.35, 0.5]
-deta_cuts = [0.5, 1.5, 2.5, 3.5]
+#deta_cuts = [0.5, 1.5, 2.5, 3.5]
+deta_cuts = [0.5, 1.0, 1.5]
 dipho_cuts = [0, 0.5, 0.75, 0.9]
 iso_cuts = [0,0.1, 0.5, 0.8, 0.9]
 combinations = itertools.product(masym_cuts, deta_cuts, dipho_cuts, iso_cuts)
 
-cut_combos = {}
+#ncomb=0
+#for (num,cc) in enumerate(combinations):
+#  ncomb += 1
+#print("N Combinations: {}".format(ncomb))
+#exit()
 
+cut_combos = {}
 for (num,cc) in enumerate(combinations):
   #if(num > 4): break
   #if(num >= 100): continue
   #if(num < 100 or num >= 200): continue
   #if(num < 200 ): continue
   if(num != int(sys.argv[1])):continue
-  if(os.path.exists("CutOutFiles/cut{}_out.csv".format(num))):
-    print("We already did this")
-    exit()
+  #if(os.path.exists("CutOutFiles/cut{}_out.csv".format(num))):
+  #  print("We already did this")
+  #  exit()
   cut_combos[num]=cc
 RDF = ROOT.RDataFrame.RDataFrame
+#print(cut_combos)
 
 def GetXPhiAlpha(ins):
   X = int(ins[ins.find("X")+1 : ins.find("A")])
