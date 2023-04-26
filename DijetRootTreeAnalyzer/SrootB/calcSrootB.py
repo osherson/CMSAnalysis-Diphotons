@@ -3,6 +3,26 @@ import numpy as np
 import os,sys
 import itertools
 
+def getNgen(signal):
+  ys = [2016,2017,2018]
+  ngs = []
+  xmass = signal[1:signal.find("A")]
+  amass = signal[signal.find("A")+1:].replace("p",".")
+
+  for yy in ys:
+     fname = "../../Diphoton-Treemaker/HelperFiles/Signal_NEvents_{}.csv".format(yy)
+     myFile = open(fname, "r")
+     Lines = myFile.readlines()
+     nevt = 0
+     for line in Lines:
+       s=line.split(",")
+       if(s[0]==xmass and s[1]==amass):
+         nevt = int(s[2])
+     
+     ngs.append(nevt)
+
+  return sum(ngs)
+
 #deta_cuts = [0.5, 1.5, 2.5, 3.5]
 
 masym_cuts = [0.1, 0.25, 0.35, 0.5]
@@ -43,9 +63,23 @@ xaastorage = "/cms/xaastorage-2/DiPhotonsTrees/"
 dchain = ROOT.TChain("pico_skim")
 sigdict = {}
 
+LUMI = 136.1 / 10
+
+XS = { 300: 3746.96,
+       400: 1017.87,
+       500: 353.898,
+       600: 158.506,
+       750: 45.9397,
+       1000: 9.59447,
+       1500: 0.847454,
+       2000: 0.122826 ,
+       3000: 0.00531361,
+      }
+
+
 for fil in os.listdir(xaastorage):
   if(fil.startswith("Run") and fil.endswith(".root")):
-    #if(fil != "Run_C_2017.root"): continue #Testing only
+    if(fil != "Run_C_2017.root"): continue #Testing only
     print("data file: {}".format(fil))
     dchain.Add(os.path.join(xaastorage,fil))
   elif(fil.startswith("X") and fil.endswith(".root")):
@@ -99,6 +133,7 @@ for (comb_num,cuts) in cut_combos.items():
   sct = 0
   for (sig, flist) in sigdict.items():
     #if(sct > 3): break #testing
+    print("Starting Signal: {}".format(sig))
     sct += 1
     schain = ROOT.TChain("pico_nom")
     for ff in flist: 
@@ -115,15 +150,24 @@ for (comb_num,cuts) in cut_combos.items():
     sigstd = smh.GetStdDev()
     print(sigmean, sigstd)
 
-    #Apply mass window
-    xlow = sigmean - 2*sigstd
-    xhigh = sigmean + 2*sigstd
-    dmass = ddf.Filter("XM > {} && XM < {}".format(xlow, xhigh), "Mass window")
-    sdf = sdf.Filter("XM > {} && XM < {}".format(xlow, xhigh), "Mass window")
-    bkg=dmass.Count().GetValue()
+    myngen = getNgen(sig)
+    myxs = XS[int(sig[1:sig.find("A")])]
+    print("NGen", myngen)
+    print("XSec: ", myxs)
 
-    sval = sdf.Count().GetValue()
+    #Apply mass window
+    #xlow = sigmean - 2*sigstd
+    #xhigh = sigmean + 2*sigstd
+    #dmass = ddf.Filter("XM > {} && XM < {}".format(xlow, xhigh), "Mass window")
+    #sdf = sdf.Filter("XM > {} && XM < {}".format(xlow, xhigh), "Mass window")
+    #bkg=dmass.Count().GetValue()
+
+    bkg=ddf.Count().GetValue()
+
+    scalefactor = (myxs / myngen) * LUMI
+    sval = sdf.Count().GetValue() 
     print("Background Value: {}".format(bkg))
+    print("Signal Value: {}".format(sval))
     print(bkg,sval)
     srootb = sval/np.sqrt(bkg+sval)
     
