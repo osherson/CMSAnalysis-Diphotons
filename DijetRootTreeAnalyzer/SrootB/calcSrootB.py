@@ -40,7 +40,7 @@ def GetXPhiAlpha(ins):
 
 xaastorage = "/cms/xaastorage-2/DiPhotonsTrees/"
 
-dchain = ROOT.TChain("pico_full")
+dchain = ROOT.TChain("pico_skim")
 sigdict = {}
 
 for fil in os.listdir(xaastorage):
@@ -90,8 +90,8 @@ for (comb_num,cuts) in cut_combos.items():
   #if(comb_num > 2): break
 
   ddf = ddf.Filter("masym < {} && deta < {} && clu1_dipho > {} && clu2_dipho > {} && clu1_iso > {} && clu2_iso > {}".format(cuts[0],cuts[1],cuts[2],cuts[2],cuts[3],cuts[3]))
-  bkg=ddf.Count().GetValue()
-  print("Background Value: {}".format(bkg))
+  #bkg=ddf.Count().GetValue()
+  #print("Background Value: {}".format(bkg))
 
   cfile = open("CutOutFiles/cut{}_out.csv".format(comb_num), "w")
   cfile.write("masym,deta,dipho,iso,s,b,srootb,signal\n")
@@ -108,7 +108,23 @@ for (comb_num,cuts) in cut_combos.items():
     sdf = sdf.Filter("clu1_pt > 90 && clu2_pt > 90", "pt cut")
     sdf = sdf.Filter("masym < {} && deta < {} && clu1_dipho > {} && clu2_dipho > {} && clu1_iso > {} && clu2_iso > {}".format(cuts[0],cuts[1],cuts[2],cuts[2],cuts[3],cuts[3]))
 
+    smass = sdf.Histo1D(("xm_{}".format(sig),"X Mass", 5000,0,5000),"XM")
+    smh = smass.GetValue().Clone()
+    print(sig)
+    sigmean = smh.GetMean()
+    sigstd = smh.GetStdDev()
+    print(sigmean, sigstd)
+
+    #Apply mass window
+    xlow = sigmean - 2*sigstd
+    xhigh = sigmean + 2*sigstd
+    dmass = ddf.Filter("XM > {} && XM < {}".format(xlow, xhigh), "Mass window")
+    sdf = sdf.Filter("XM > {} && XM < {}".format(xlow, xhigh), "Mass window")
+    bkg=dmass.Count().GetValue()
+
     sval = sdf.Count().GetValue()
+    print("Background Value: {}".format(bkg))
+    print(bkg,sval)
     srootb = sval/np.sqrt(bkg+sval)
     
     oF = open("outFiles/{}_out.csv".format(sig),"a")
