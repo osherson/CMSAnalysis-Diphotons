@@ -15,7 +15,8 @@ import time
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 
-DATA_DIR = "{}/../inputs/Shapes_DATA/alphaBinning/ALL/".format(dir_path)
+#DATA_DIR = "{}/../inputs/Shapes_DATA/alphaBinning/ALL/".format(dir_path)
+DATA_DIR = "{}/../inputs/Shapes_DATA/PreApprovalTenPercent/OneBigBin/0/".format(dir_path)
 
 doOne=False
 if("one" in sys.argv or "quick" in sys.argv):
@@ -125,7 +126,9 @@ def FIND(V, X, A, a):
   sa = StandardizeArray(a)
   data = MixArray([X,A,a])
   string_form = "1"
-  for i in range(4):
+  #for i in range(4):
+  # 	string_form += "++x["+str(i)+"]"
+  for i in range(7):
 			string_form += "++x["+str(i)+"]"
   LINF = TLinearFitter(3, string_form)
   LINF.AssignData(len(X), 3, scipy.array(data), scipy.array(V))
@@ -133,17 +136,21 @@ def FIND(V, X, A, a):
   while not done:
 		good = 1. - LINF.Eval()
 		if good == 1. : done = True
-  for i in range(3): print LINF.GetParameter(i)
+  for i in range(7): print LINF.GetParameter(i)
   print good
   return LINF, sV, sX, sA, sa
 
 def MakePredictor(F, cV, cX, cA, ca):
   def P(X,A):
     o = 0.
-    o += F.GetParameter(0)
-    o += F.GetParameter(1)*X
-    o += F.GetParameter(2)*A
-    o += F.GetParameter(3)*A/X
+    #o += F.GetParameter(0)
+    #o += F.GetParameter(1)*X
+    #o += F.GetParameter(2)*A
+    #o += F.GetParameter(3)*A/X
+    o += abs(F.GetParameter(0))
+    o += abs(F.GetParameter(1)*X)
+    o += abs(F.GetParameter(2)*A)
+    o += abs(F.GetParameter(3)*A/X)
     return o
 	
   return P
@@ -176,10 +183,9 @@ def MakeFunc(tn, shape, inx, inalpha, odir):
       #if(shape == "alpha" and inalpha==0.01 and thisalpha > 0.02): continue
       #if(shape == "alpha" and inx<=400 and thisx > 2000): continue
       if(shape == "alpha" and inx==2000 and thisx < 400): continue
-      #if(shape == "alpha" and inx>=2000 and thisx < 600): continue
-      #if(shape == "alpha" and inalpha==0.01 and thisalpha >= 0.02): continue
-
+      #if(shape == "alpha" and inalpha>=0.02 and thisalpha <= 0.005): continue
       if(shape == "X" and inX > 2200 and thisx < 500): continue
+
       X.append(thisx)
       a.append(thisalpha)
       A.append(thisphi)
@@ -191,6 +197,7 @@ def MakeFunc(tn, shape, inx, inalpha, odir):
       sig.append(float(r[7]))
       N.append(float(r[8]))
     Predictors = []
+    ct = 0
     for P in [a1,a2,n1,n2,mn,sig,N]:
       linf, cV, cX, cA, ca = FIND(P, X, A, a)
       p = MakePredictor(linf, cV, cX, cA, ca)
@@ -200,7 +207,7 @@ def MakeFunc(tn, shape, inx, inalpha, odir):
       G.SetParNames("a1","a2","n1","n2","mean","sigma", "N");
       G.SetParameter("a1", Predictors[0](X,a))
       G.SetParameter("a2", Predictors[1](X,a))
-      G.SetParameter("n1", Predictors[2](X,a))
+      G.SetParameter("n1", abs(Predictors[2](X,a)))
       G.SetParameter("n2", Predictors[3](X,a))
       G.SetParameter("mean", Predictors[4](X,a))
       G.SetParameter("sigma", Predictors[5](X,a))
@@ -209,6 +216,8 @@ def MakeFunc(tn, shape, inx, inalpha, odir):
       pfile = open("{}/params_{}.txt".format(odir,shape),"w")
       print("a1: {}".format(Predictors[0](X,a)))
       print("a2: {}".format(Predictors[1](X,a)))
+      print("n1: {}".format(Predictors[2](X,a)))
+      print("n2: {}".format(Predictors[3](X,a)))
       pfile.write("{},{},{},{},{},{},{}".format(Predictors[0](X,a),Predictors[1](X,a),Predictors[2](X,a),Predictors[3](X,a),Predictors[4](X,a),Predictors[5](X,a),Predictors[6](X,a)))
       pfile.close()
 
@@ -290,9 +299,12 @@ def MakeShape(x, alpha):
       a = int(x)*alpha
       x=str(x)
       a=str(round(a,4)).replace(".","p")
+      #if(alpha < 0.02): exit()
       newFolder = "{}/../inputs/Shapes_fromInterpo/unBinned/X{}A{}".format(dir_path,x,a)
       #newFolder = "{}/inputs/Shapes_fromInterpo/unBinned/X{}A{}".format(dir_path,x,a)
       if(newFolder.endswith("p0")): newFolder = newFolder[:-2]
+      print("Saving in Folder: ")
+      print(newFolder)
       MakeFolder(newFolder)
 
       if(shape=="X"):
@@ -352,12 +364,14 @@ def MakeShape(x, alpha):
         lc = 0
         isBadDown = False
         isBadUp = False
+        isNeg=False
         isOutOfRange = False
         isNan = False
 
         xdown,xup = getNearestX(x)
 
         while(s1int <= 0.0 or isBadDown==True or isBadUp==True):
+        #while(s1int <= 0.0 or isBadDown==True or isBadUp==True or isNeg==True):
         #while(s1int <= 0.0 or isBadDown==True or isBadUp==True or isOutOfRange==True or isNan==True):
           print("Starting Loop {}".format(lc))
           if(lc >100):
@@ -372,12 +386,19 @@ def MakeShape(x, alpha):
           S1.FillRandom("test"+x+a, NFILLPOINTS)
           s1int = S1.Integral()
 
-#          pfile = open("{}/params_alpha.txt".format(newFolder),"r")
-#          lin = pfile.readlines()[0]
-#          lin = lin.split(",")
-#          if("nan" in lin or "-nan" in lin): 
-#            isnan = True
-#            continue
+          pfile = open("{}/params_alpha.txt".format(newFolder),"r")
+          lin = pfile.readlines()[0]
+          lin = lin.split(",")
+          if("nan" in lin or "-nan" in lin): 
+            isnan = True
+            continue
+          n1,n2 = float(lin[2]),float(lin[3])
+          print("N1: ",n1)
+          #if(n1 < 0 or n2 < 0):
+            #isNeg=True
+            #print("Negative. Rerunning")
+            #continue
+#            exit()
 #          a1=lin[1]
 #          if(a1 !="nan"): a1 = float(a1)
 #          pxlow,pxhigh = readParams(xdown, alpha), readParams(xup, alpha)

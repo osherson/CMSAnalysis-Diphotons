@@ -43,6 +43,7 @@ def do_fit(signal, shape):
   ROOT.gStyle.SetOptStat(1111);
   func = ROOT.TF1('func', DSCB, -10., 10., 7)
   sig_file_name = "../inputs/Shapes_fromGen/unBinned/{}/Sig_nominal.root".format(signal)
+  #sig_file_name = "../inputs/Shapes_fromGen/OneBigBin/0/{}/Sig_nominal.root".format(signal)
   sig_file = ROOT.TFile(sig_file_name, "read")
 
   xmass,phimass,alpha = getXPhiAlpha(signal)
@@ -68,12 +69,80 @@ def do_fit(signal, shape):
     hmass.Rebin(5)
     func = ROOT.TF1("func", DSCB, fmin, fmax, 7);
     func.SetParNames("a1","a2","n1","n2","mean","sigma", "N");
-    func.SetParameters(0.1, 0.1, 100., 100., alpha, 1e-4, hmass.GetMaximum());
-    func.SetParLimits(0, 1e-3, 2.)
-    func.SetParLimits(1, 1e-3, 3.)
-    func.SetParLimits(2, 0.1, 1e7)
-    func.SetParLimits(3, 0.1, 1e7)
-    func.SetParLimits(4, fmin, fmax)
+
+    #func.SetParameters(0.1, 0.1, 100., 100., alpha, 1e-4, hmass.GetMaximum());
+    #func.SetParLimits(0, 1e-3, 2.)
+    #func.SetParLimits(1, 1e-3, 3.)
+    #func.SetParLimits(2, 0.1, 1e7)
+    #func.SetParLimits(3, 0.1, 1e7)
+    #func.SetParLimits(4, fmin, fmax)
+
+    if(alpha == 0.005 and xmass < 1500):
+      func.SetParameters(0.1, 0.1, 5e5, 5e5, alpha, 1e-4, hmass.GetMaximum());
+      func.SetParLimits(0, 0.51, 2.)
+      func.SetParLimits(1, 1e-2, 2.)
+      func.SetParLimits(2, 5e4, 1e7)
+      func.SetParLimits(3, 5e4, 1e8)
+      func.SetParLimits(4, fmin, fmax)
+    elif(alpha ==0.005 and xmass >= 1500):
+      func.SetParameters(0.1, 0.1, 5e5, 5e5, alpha, 1e-4, hmass.GetMaximum());
+      func.SetParLimits(0, 0.51, 2.)
+      func.SetParLimits(1, 5e-2, 2.)
+      func.SetParLimits(2, 1e4, 1e7)
+      func.SetParLimits(3, 5e4, 1e8)
+      func.SetParLimits(4, fmin, fmax)
+##
+    elif(alpha==0.01 and xmass <1000):
+      func.SetParameters(1., 0.1, 5e5, 5e5, alpha, 1e-4, hmass.GetMaximum());
+      func.SetParLimits(0, 0.51, 2.)
+      func.SetParLimits(1, 1e-2, 2.)
+      func.SetParLimits(2, 5e4, 1e7)
+      func.SetParLimits(3, 5e4, 1e8)
+      func.SetParLimits(4, fmin, fmax)
+    elif(alpha==0.01 and xmass >= 1000 and xmass <= 2000):
+      func.SetParameters(1., 0.1, 1e6, 1e6, alpha, 1e-4, hmass.GetMaximum());
+      func.SetParLimits(0, 0.61, 2.)
+      func.SetParLimits(1, 0.061, 2.)
+      func.SetParLimits(2, 1e-2, 1e7)
+      func.SetParLimits(3, 5e-2, 1e8)
+      func.SetParLimits(4, fmin, fmax)
+    elif(alpha==0.01 and xmass == 3000):
+      func.SetParameters(1., 1., 5e5, 5e5, alpha, 1e-4, hmass.GetMaximum());
+      func.SetParLimits(0, 0.61, 2.)
+      func.SetParLimits(1, 0.61, 2.)
+      func.SetParLimits(2, 1e2, 1e7)
+      func.SetParLimits(3, 5e2, 1e8)
+      func.SetParLimits(4, fmin, fmax)
+##
+    elif(alpha==0.015 and xmass <1000):
+      func.SetParameters(1., 0.1, 5e6, 5e5, alpha, 1e-4, hmass.GetMaximum());
+      func.SetParLimits(0, 0.41, 2.)   #a1
+      func.SetParLimits(1, 1e-2, 2.)   #a2
+      func.SetParLimits(2, 5e-2, 1e7)   #n1
+      func.SetParLimits(3, 5e4, 1e8)   #n2
+      func.SetParLimits(4, fmin, fmax) #mu
+    elif(alpha==0.015 and xmass >= 1000):# and xmass <= 2000):
+      func.SetParameters(1., 1., 5., 0.05, alpha, 1e-4, hmass.GetMaximum());
+      func.SetParLimits(0, 0.5, 10.)  #a1
+      func.SetParLimits(1, 0.5, 10.)  #a2
+      func.SetParLimits(2, 1., 1e3)  #n1
+      func.SetParLimits(3, 1., 1e3)  #n2
+      func.SetParLimits(4, fmin, fmax)#mu
+##
+    elif(alpha>=0.02 and xmass <1000):
+      func.SetParameters(1., 0.1, 5e6, 5e5, alpha, 1e-4, hmass.GetMaximum());
+      func.SetParLimits(0, 0.41, 2.)   #a1
+      func.SetParLimits(1, 1e-2, 2.)   #a2
+      func.SetParLimits(2, 5e-2, 1e7)   #n1
+      func.SetParLimits(3, 5e4, 1e8)   #n2
+      func.SetParLimits(4, fmin, fmax) #mu
+    elif(alpha>=0.02 and xmass >= 1000):# and xmass <= 2000):
+      func.SetParameters(1., 1., 5., 0.05, alpha, 1e-4, hmass.GetMaximum());
+      func.SetParLimits(0, 0.5, 10.)  #a1
+      func.SetParLimits(1, 0.5, 10.)  #a2
+      func.SetParLimits(2, 1., 1e3)  #n1
+      func.SetParLimits(3, 1., 1e3)  #n2
+      func.SetParLimits(4, fmin, fmax)#mu
 
     hmass.GetXaxis().SetTitle("#alpha")
     hmass.SetTitle("{} Signal #alpha Fit".format(signal))
@@ -132,7 +201,7 @@ def do_fit(signal, shape):
   #l.DrawLatex(0.7,0.96,"%i pb^{-1} (%i TeV)"%(lumi,w.var('sqrts').getVal()/1000.))
   l.DrawLatex(0.1,0.86,"#\chi^{2}/ndf=%.1f / %i = %.2f"%(round(chi2,1), ndf, chi2/ndf))
 
-  cc.Print("FitPlots/{}_{}.png".format(signal,shape))
+  cc.Print("FitPlots_alpha/{}_{}.png".format(signal,shape))
 
   return 
 
@@ -144,15 +213,16 @@ if(os.path.exists("fitparams_X.txt")):
 if(os.path.exists("fitparams_alpha.txt")):
   os.system("rm fitparams_alpha.txt")
   os.system("touch fitparams_alpha.txt")
-
 #if(os.path.exists("fitparams_phi.txt")):
 #  os.system("rm fitparams_phi.txt")
 #  os.system("touch fitparams_phi.txt")
 
 for xx in os.listdir(sig_dir):
   x,p,a = getXPhiAlpha(xx)
-  if(x == 200): continue
-  if(a > 0.025): continue
+  if(x == 200): continue #permanent
+  if(a > 0.025): continue #permanent
+  #if(a != 0.025): continue
+  #if(x >= 1000 ): continue
   #if(x != 500): continue
   #if(a != 0.01): continue
   #if(p != 3): continue

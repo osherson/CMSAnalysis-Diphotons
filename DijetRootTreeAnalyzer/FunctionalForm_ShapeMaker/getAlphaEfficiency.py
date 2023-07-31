@@ -36,6 +36,16 @@ def MakeFolder(N):
   if not os.path.exists(N):
     os.makedirs(N)
 
+anoms = []
+anfile = "fix0p01/CorrectedParams/a1.txt"
+for lin in open(anfile,"read").readlines():
+    v = lin.strip().split(",")
+    anoms.append((int(v[0]), float(v[1])))
+
+#10% Comb bins
+#AlphaBins = [ 0.003, 0.00347, 0.00395,   0.00444, 0.00494, 0.00545, 0.00597, 0.0065, 0.00704, 0.00759, 0.00815, 0.0093, 0.01049, 0.03]
+
+#Full NDoF Comb Bins
 AlphaBins = [
                0.003,
                0.00347, 
@@ -44,44 +54,20 @@ AlphaBins = [
                0.00494, 
                0.00545, 
                0.00597, 
-               0.0065, 
+               #0.0065, 
                0.00704, 
-               0.00759, 
+               #0.00759, 
                0.00815, 
-               #0.00872, 
-               0.0093, 
-               #0.00989, 
-               0.01049, 
-               #0.0111, 
-               #0.01173, 
-               #0.01237, 
-               #0.01302, 
-               #0.01368, 
-               #0.01436,
-               #0.01505, 
-               #0.01575, 
-               #0.01647, 
-               #0.0172, 
-               #0.01794, 
-               #0.0187, 
-               #0.01947, 
-               #0.02026, 
-               #0.02106, 
-               #0.02188, 
-               #0.02271, 
-               #0.02356, 
-               #0.02443, 
-               #0.02531, 
-               #0.02621, 
-               #0.02713, 
-               #0.02806, 
-               #0.02901, 
                0.03]
 
+#All Reso Bins
+#AlphaBins = [ 0.003, 0.00347, 0.00395,   0.00444, 0.00494, 0.00545, 0.00597, 0.0065, 0.00704, 0.00759, 0.00815, 0.00872, 0.0093, 0.00989, 0.01049, 0.0111, 0.01173, 0.01237, 0.01302, 0.01368, 0.01436, 0.01505, 0.01575, 0.01647, 0.0172, 0.01794, 0.0187, 0.01947, 0.02026, 0.02106, 0.02188, 0.02271, 0.02356, 0.02443, 0.02531, 0.02621, 0.02713, 0.02806, 0.02901, 0.03]
+
 int_dir = "../inputs/Shapes_fromInterpo/unBinned/"
-thresh = 0.05
+thresh = 0.001
 
 save_dir = "../inputs/Shapes_fromInterpo/alphaBinning/"
+#save_dir = "../inputs/Shapes_fromInterpo/alphaBinning_allBins/"
 
 nfiles = len([name for name in os.listdir(int_dir)])
 
@@ -96,6 +82,11 @@ for sig in os.listdir(int_dir):
   #if(count % 100 == 0): print("{}/{} Files Completed {:.1f}%".format(count, nfiles, pdone))
   #if(alpha != 0.008): continue
   #if(x < 500 or x > 520): continue
+  #if(x != 1000): continue
+  #if(sig != "X990A9p9"):continue
+  #if((x,alpha) not in anoms): continue
+  #else:
+  #  print(x,alpha)
   print(sig)
   count += 1
   #if(count > 20): break
@@ -134,16 +125,17 @@ for sig in os.listdir(int_dir):
     frac = aI / tI
     fraclist.append(frac)
     allfracs.append(frac)
+    if(frac < thresh): 
+      continue
+      #frac = 1e-6
+    if(frac < 1e-7): frac = 1e-7
     #print(abin, lA, hA)
-    #print(frac)
-    if(frac < thresh): continue
     #print(abin, frac)
     qfraclist.append(frac)
     #print("Efficiency in Alpha Bin {}, [{}, {}] = {:.3f}".format(abin,lA,hA,frac))
     MakeFolder("{}{}".format(save_dir,abin))
     thisdir = "{}{}/{}".format(save_dir,abin,sig)
     MakeFolder(thisdir)
-
 
     WriteAlphaEff(sig,abin,frac,thisdir)
     WriteTotalEff(sig,abin,frac,thisdir)
@@ -157,7 +149,12 @@ for sig in os.listdir(int_dir):
     S1 = unb_plots.Get("h_AveDijetMass_1GeV")
     S1r = unb_plots.Get("{}_XM".format(sig))
 
-    dfile = TFile("/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_DATA/alphaBinning/{}/DATA.root".format(abin), "read")
+    #print(S1.Integral())
+    #print(S1r.Integral())
+
+    #dfile = TFile("/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_DATA/alphaBinning/{}/DATA.root".format(abin), "read")
+    #dfile = TFile("/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_DATA/PreApprovalTenPercent/10_loose/{}/DATA.root".format(abin), "read")
+    dfile = TFile("/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_DATA/Unblinding/full_tight_ndofBins//{}/DATA.root".format(abin), "read")
     D1 = dfile.Get("data_XM1")
     D1r = dfile.Get("data_XM")
 
