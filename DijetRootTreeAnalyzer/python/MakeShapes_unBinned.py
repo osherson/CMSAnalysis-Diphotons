@@ -122,8 +122,9 @@ for thisSigIndex, oneSig in SignalsGenerated.items():
   doOneInput(whichSig, sX1sd, "h_AveDijetMass_1GeV", "Sig_SD", True)
   doOneInput(whichSig, sA1sd, "h_alpha_fine", "Sig_SD", True)
 
-  dataFile = ROOT.TFile("/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_DATA/alphaBinning/ALL/DATA.root","read")
-  os.system("cp /cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_DATA/alphaBinning/ALL/DATA.root {}/DATA.root".format(new_dir))
+  #dataFile = ROOT.TFile("/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_DATA/alphaBinning/ALL/DATA.root","read")
+  dataFile = ROOT.TFile("/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_DATA/PreApprovalTenPercent/OneBigBin/0/DATA.root","read")
+  os.system("cp {} {}/DATA.root".format(dataFile.GetName(), new_dir))
   dX = dataFile.Get("data_XM")
   dX1 = dataFile.Get("data_XM1")
   dXvA = dataFile.Get("data_XvA")

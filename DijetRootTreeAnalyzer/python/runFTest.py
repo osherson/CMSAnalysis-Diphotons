@@ -6,17 +6,16 @@ import FTest
 ROOT.gROOT.SetBatch()
 
 sNparams = [("Three",3),("Four",4),("Five",5),("Six",6)]
+#sNparams = [("Three",3),("Four",4)]
 
-BD = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/DoAlphaFits/saveOutput/"
+BD = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/DoEnvelopeFits/saveOutput/Unblind/FTest/"
 
 anum=1
 
-#anums = range(0,14+1)
-#anums = range(12,14+1)
-anums = range(3,14+1)
-anums=[14]
+anums = range(0,9)
+#anums=[3]
 functions = ["dijet","atlas","dipho","moddijet"]
-functions=["moddijet"]
+#functions=["dijet","atlas"]
 
 pValue = 0.05
 
@@ -27,9 +26,7 @@ else:
 
 for function in functions:
   for anum in anums:
-    #if(anum < 8): continue
     #if(anum != 0): continue
-    #if(anum > 1): break
     c21=0
 
     for ii in range(len(sNparams)-1):
@@ -38,21 +35,21 @@ for function in functions:
 
       if(function=="moddijet" and SP=="Six"): break
 
-      folder = BD + S + "Params/combineCards/"
-      for ff in os.listdir(folder):
-        if (ff.endswith(".txt") and "X1000" in ff and "alpha{}_".format(anum) in ff and "_{}".format(function) in ff):
-          cardL = os.path.join(folder,ff)
+      folder = BD + function + "/" + S + "Params/combineCards/"
+      for cc in os.listdir(folder):
+        if(cc.endswith("alphabin{}.txt".format(anum))):
+          cardL = os.path.join(folder,cc)
+          break
 
-      print(cardL)
-      folderP = BD + SP + "Params/combineCards/"
-      print(folderP)
-      for ff in os.listdir(folderP):
-        if (ff.endswith(".txt") and "X1000" in ff and "alpha{}_".format(anum) in ff and "_{}".format(function) in ff):
-          cardH = os.path.join(folderP,ff)
+      folder = BD + function + "/" + SP + "Params/combineCards/"
+      for cc in os.listdir(folder):
+        if(cc.endswith("alphabin{}.txt".format(anum))):
+          cardH = os.path.join(folder,cc)
+          break
 
       print("Using These Two Cards: ")
-      print(cardH)
       print(cardL)
+      print(cardH)
       print("\n")
 
       #c21 = FTest.DoFTest(cardH, NH, cardL, NL, function)
@@ -62,7 +59,7 @@ for function in functions:
       except AttributeError:
         print("FIT FAILED, Moving on")
         if(NH==6):
-          saveFile.write("{},{},999,999,0".format(anum,function))
+          saveFile.write("{},{},999,999,0\n".format(anum,function))
         continue
       os.system("mv FTest.png FTestPlots/FTest_alpha{}_{}_{}{}.png".format(anum, function, NH, NL))
 

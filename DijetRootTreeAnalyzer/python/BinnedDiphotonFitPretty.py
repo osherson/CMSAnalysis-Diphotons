@@ -27,6 +27,7 @@ def binnedFit(pdf, data, fitRange='Full', useWeight=False):
     else:
         print(data,rt.RooFit.Range(fitRange),rt.RooFit.Extended(True),rt.RooFit.Offset(True))
         nll = pdf.createNLL(data,rt.RooFit.Range(fitRange),rt.RooFit.Extended(True),rt.RooFit.Offset(True))
+        #nll = pdf.createChi2(data,rt.RooFit.Range(fitRange),rt.RooFit.Extended(True),rt.RooFit.Offset(True))
         m2 = rt.RooMinimizer(nll)
         m2.setStrategy(2)
         m2.setMaxFunctionCalls(100000)
@@ -38,6 +39,12 @@ def binnedFit(pdf, data, fitRange='Full', useWeight=False):
         if hesse_status != 3 :
             hesse_status = m2.minimize('Minuit2','hesse')
         fr = m2.save()
+
+        print("\n\n My Nll Val: ")
+        nllVal = nll.getVal()
+        ndof = 19
+        print("{} / {} = {} ".format(nllVal, ndof, nllVal/ndof))
+        
     
     return fr
 
@@ -282,11 +289,11 @@ if __name__ == '__main__':
     histoName = cfg.getVariables(box, "histoName")
 
     fitfunc=""
-    if("dijet" in options.config): fitfunc="Dijet"
     if("moddijet" in options.config): fitfunc="ModDijet"
+    elif("dijet" in options.config): fitfunc="Dijet"
     elif("atlas" in options.config): fitfunc="Atlas"
     elif("power" in options.config): fitfunc="Power"
-    elif("power6" in options.config): fitfunc="Power6"
+    elif("myexp" in options.config): fitfunc="Power"
     elif("dipho" in options.config): fitfunc="Diphoton"
 
     if options.signalFileName==None:
@@ -356,7 +363,18 @@ if __name__ == '__main__':
     myTH1.Rebin(len(x)-1,'data_obs_rebin',x)
     myRebinnedTH1 = rt.gDirectory.Get('data_obs_rebin')
     myRebinnedTH1.SetDirectory(0)
-    
+
+    #for bb in range(myRebinnedTH1.GetNbinsX()):
+    #  print(bb, myRebinnedTH1.GetBinContent(bb), myRebinnedTH1.GetBinError(bb))
+    #  #myRebinnedTH1.SetBinContent(bb,0)
+    #  if(bb < 10): 
+    #    myRebinnedTH1.SetBinError(bb,1)
+    #  else:
+    #    myRebinnedTH1.SetBinError(bb,1)
+    #myRebinnedTH1.SetBinContent(1,0)
+    #myRebinnedTH1.SetBinError(1,0)
+    #myRebinnedTH1.SetBinContent(4,0)
+    #myRebinnedTH1.SetBinError(4,0)
     myRealTH1 = convertToTh1xHist(myRebinnedTH1)        
     
     dataHist = rt.RooDataHist("data_obs","data_obs",rt.RooArgList(th1x), rt.RooFit.Import(myRealTH1))
@@ -369,8 +387,8 @@ if __name__ == '__main__':
     corrCanvas.SetRightMargin(0.15)            
     if not options.doSimultaneousFit:
         if options.doSpectrumFit:
-            fr = binnedFit(extDijetPdf,dataHist,sideband,options.useWeight)
-           # fr = binnedFit(extDijetPdf,dataHist,'6000,7000',options.useWeight)        
+            #fr = binnedFit(extDijetPdf,dataHist,sideband,options.useWeight)
+            fr = binnedFit(extDijetPdf,dataHist,'500,1000',options.useWeight)        
             rootTools.Utils.importToWS(w,fr)     
             fr.Print('v')
             fr.Print()
@@ -438,53 +456,13 @@ if __name__ == '__main__':
     boxLabel = "%s %s Fit" % (box,fitRegion)
     plotLabel = "%s Projection" % (plotRegion)
 
-    """
-    background_pdf = w.pdf('%s_bkg_unbin'%box)
-    print("background_pdf: ", background_pdf)
-    print("type(background_pdf)", type(background_pdf))
-    #These lines matter
-    background= background_pdf.asTF(rt.RooArgList(w.var("mjj")),rt.RooArgList(w.var('p0_%s'%box)))
-    rrv = w.var("mjj")
-    f2 = background_pdf.asTF(rt.RooArgList(rrv), rt.RooArgList(), rt.RooArgSet(rrv) );
-    print("rrv",rrv,type(rrv))
-    print("f2",f2,type(f2))
-    print("\n\nSTEVEN")
-    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    print(box)
-    print(background)
-    print(type(background))
-    int_b = background.Integral(w.var("mjj").getMin(),w.var("mjj").getMax())
-
-    print(background.Integral(0,3000))
-    print(background.Integral(100,300))
-    print(background.Integral(-1000,10000))
-    print(background.Integral(0,1))
-    
-    print("=============min ",w.var('mjj').getMin())
-    print("=============max ",w.var('mjj').getMax())
-    print("=============intbkg ",int_b)
-    p0_b = w.var('Ntot_%s_bkg'%box).getVal()
-    # p0_b = w.var('Ntot_%s_bkg'%box).getVal()
-    print("before division p0_b ", p0_b)
-    print("int_b: {}".format(int_b))
-    #print("MANUALLY SETTING int_b") #Do this for power
-    #int_b = 1e-12
-    #int_b =  1e-7	#
-    print("lumi: {}".format(lumi))
-    p0_b = w.var('Ntot_%s_bkg'%box).getVal() / (int_b * lumi)
-    print("after division p0_b ", p0_b)
-    # print("|===> expected bkg integral: ", w.var('Ntot_%s_bkg'%box).getVal())
-    background.SetParameter(0,p0_b)
-    """
-
-   
-#    if options.doWriteFit:
-#        fnbin = MakeNBinsFromMinToMax(14000, 0., 14000.)
-#        hb = rt.TH1F("hb_finebin", ";Average Dijet Mass [GeV];Events", len(fnbin)-1, fnbin)
-#        for j in range(1, hb.GetNbinsX()+1): hb.SetBinContent(j, background.Eval(hb.GetXaxis().GetBinCenter(j)))
-#        fhb = rt.TFile(options.outDir + "/unbinnedfit_%s.root"%box, "recreate")
-#        fhb.cd()
-#        hb.Write()
+    #if options.doWriteFit:
+    #    fnbin = MakeNBinsFromMinToMax(3000, 0., 3000.)
+    #    hb = rt.TH1F("hb_finebin", ";DiCluster Mass [GeV];Events", len(fnbin)-1, fnbin)
+    #    for j in range(1, hb.GetNbinsX()+1): hb.SetBinContent(j, background.Eval(hb.GetXaxis().GetBinCenter(j)))
+    #    fhb = rt.TFile(options.outDir + "/unbinnedfit_%s.root"%box, "recreate")
+    #    fhb.cd()
+    #    hb.Write()
     
     g_data = rt.TGraphAsymmErrors(myRebinnedTH1)
     
@@ -593,7 +571,7 @@ if __name__ == '__main__':
     myRealTH1.Draw("e0")
     h_th1x.Draw("L histsame")
     myleg.Draw("same")
-    pd_1.SetLogy()
+    #pd_1.SetLogy()
 
     l = rt.TLatex()
     l.SetTextAlign(11)
@@ -601,8 +579,10 @@ if __name__ == '__main__':
     l.SetTextFont(42)
     l.SetNDC()
     #l.DrawLatex(0.7,0.96,"%i pb^{-1} (%i TeV)"%(lumi,w.var('sqrts').getVal()/1000.))
-    l.DrawLatex(0.72,0.96,"%.1f fb^{-1} (%i TeV)"%(lumi/1000.,w.var('sqrts').getVal()/1000.))
+    #l.DrawLatex(0.72,0.96,"%.1f fb^{-1} (%i TeV)"%(lumi/(1000.),w.var('sqrts').getVal()/1000.))
     #l.DrawLatex(0.72,0.96,"%.1f fb^{-1} (%i TeV)"%(lumi      ,w.var('sqrts').getVal()/1000.))
+
+    l.DrawLatex(0.72,0.96,"%.1f fb^{-1} (%i TeV)"%(lumi,w.var('sqrts').getVal()/1000.))
     # PAS
     #l.SetTextFont(62)
     #l.SetTextSize(0.055)   
@@ -714,11 +694,13 @@ if __name__ == '__main__':
             myRebinnedDensityTH1.SetBinContent(i,0)
             myRebinnedDensityTH1.SetBinError(i,0)
 
-    myRebinnedDensityTH1.GetXaxis().SetRangeUser(w.var('mjj').getMin(),w.var('mjj').getMax())
-    #myRebinnedDensityTH1.GetXaxis().SetRangeUser(w.var('mjj').getMin(),1600)
+    #myRebinnedDensityTH1.GetXaxis().SetRangeUser(w.var('mjj').getMin(),w.var('mjj').getMax())
+    #myRebinnedDensityTH1.GetXaxis().SetRangeUser(w.var('mjj').getMin(),3001.)
+    myRebinnedDensityTH1.GetXaxis().SetRangeUser(w.var('mjj').getMin(),1800)
     #myRebinnedDensityTH1.GetXaxis().SetRangeUser(190.,w.var('mjj').getMax()) #edw X axis range top pad
     # paper:
-    myRebinnedDensityTH1.GetYaxis().SetTitle('d#sigma/dm_{4#gamma} [pb/TeV]')
+    #myRebinnedDensityTH1.GetYaxis().SetTitle('d#sigma/dm_{4#gamma} [pb/TeV]')
+    myRebinnedDensityTH1.GetYaxis().SetTitle('d#sigma/dm_{4#gamma} [fb/TeV]')
     # PAS:
     #myRebinnedDensityTH1.GetYaxis().SetTitle('d#sigma / dm_{jj} [pb / GeV]')
     myRebinnedDensityTH1.GetYaxis().SetTitleOffset(1)
@@ -730,10 +712,26 @@ if __name__ == '__main__':
     myRebinnedDensityTH1.SetMarkerColor(rt.kWhite)
     myRebinnedDensityTH1.SetLineWidth(0)    
     #Plot mins and maxes
-    myRebinnedDensityTH1.SetMaximum(2e-2)#20 #Steven changed Oct 25, 2022
 
-    #myRebinnedDensityTH1.SetMaximum(2e-5)#Linear Scale
-    myRebinnedDensityTH1.SetMinimum(5e-7)#2e-8
+    #For Log y
+    #myRebinnedDensityTH1.SetMaximum(1e-2)#20 #Steven changed Oct 25, 2022
+    #myRebinnedDensityTH1.SetMinimum(4e-4)#2e-8
+    #myRebinnedDensityTH1.SetMaximum(8e-3)#20 #Steven changed Oct 25, 2022
+
+
+    #linear
+    if(options.abin == 8):
+      myRebinnedDensityTH1.SetMaximum(1e-5)
+    elif(options.abin == 6):
+      myRebinnedDensityTH1.SetMaximum(9e-6)
+    else:
+      myRebinnedDensityTH1.SetMaximum(6e-6)
+    myRebinnedDensityTH1.SetMinimum(1e-7)#2e-8
+
+    #For linear Y
+    #myRebinnedDensityTH1.SetMaximum(8e-6)#Linear Scale
+    #myRebinnedDensityTH1.SetMinimum(0)#2e-8
+
     myRebinnedDensityTH1.Draw("axis")
     
 #    if options.doTriggerFit or options.doSimultaneousFit or options.doSpectrumFit or options.noFit:
@@ -749,7 +747,7 @@ if __name__ == '__main__':
     h_background.SetLineWidth(2)
     h_background.Draw("histsame")
 
-    rt.gPad.SetLogy()
+    #rt.gPad.SetLogy()
     
     l = rt.TLatex()
     l.SetTextAlign(11)
@@ -758,6 +756,8 @@ if __name__ == '__main__':
     l.SetNDC()
     #l.DrawLatex(0.7,0.96,"%i pb^{-1} (%i TeV)"%(lumi,w.var('sqrts').getVal()/1000.))
     l.DrawLatex(0.72,0.96,"%.1f fb^{-1} (%i TeV)"%(lumi/1000.,w.var('sqrts').getVal()/1000.))
+    #l.DrawLatex(0.72,0.96,"%.1f fb^{-1} (%i TeV)"%(lumi,w.var('sqrts').getVal()/1000.))
+
     #l.DrawLatex(0.72,0.96,"%.1f fb^{-1} (%i TeV)"%(lumi,w.var('sqrts').getVal()/1000.))
     # PAS
     #l.SetTextFont(62)
@@ -797,7 +797,7 @@ if __name__ == '__main__':
     leg.SetLineWidth(0)
     leg.SetLineColor(rt.kWhite)
     leg.AddEntry(g_data,"Data","pe")
-    #leg.AddEntry(background,"{} Fit".format(fitfunc),"l")
+    leg.AddEntry(h_background,"{} Fit".format(fitfunc),"l")
     leg.Draw()
     #background.Draw("csame")
     #g_data.Draw("pezsame")
@@ -810,7 +810,7 @@ if __name__ == '__main__':
     pave_sel.SetTextFont(42)
     pave_sel.SetTextSize(0.045)
     pave_sel.SetTextAlign(11)
-    pave_sel.AddText("#chi^{{2}} / ndf = {0:.2f} / {1:d} = {2:.2f}".format(
+    pave_sel.AddText("#chi^{{2}} / ndf = {0:.3f} / {1:d} = {2:.3f}".format(
                           list_chi2AndNdf_background[4], list_chi2AndNdf_background[5],
                           list_chi2AndNdf_background[4]/list_chi2AndNdf_background[5]))
     pave_sel.AddText("Prob. = {0:.2f}".format(rt.TMath.Prob(list_chi2AndNdf_background[4], list_chi2AndNdf_background[5])))
@@ -879,13 +879,25 @@ if __name__ == '__main__':
     #h_background.SetLineColor(rt.kRed) 
     #h_background.SetLineWidth(2)
     #h_background.Draw("histsame")
+
+    if(options.doWriteFit):
+      sfile = rt.TFile("output/saveFit_alpha{}.root".format(options.abin),"recreate")
+      hbc = h_background.Clone("fit")
+      gdc = g_data_clone.Clone("g_data")
+      myRebinnedTH1.Write()
+      myRebinnedDensityTH1.Write()
+      myRealTH1.Write()
+      hbc.Write()
+      gdc.Write()
+      sfile.Close()
         
     pad_1.Update()
 
     pad_2.cd()
     
-    h_fit_residual_vs_mass.GetXaxis().SetRangeUser(w.var('mjj').getMin(),w.var('mjj').getMax())
-    #h_fit_residual_vs_mass.GetXaxis().SetRangeUser(w.var('mjj').getMin(),1600)
+    #h_fit_residual_vs_mass.GetXaxis().SetRangeUser(w.var('mjj').getMin(),w.var('mjj').getMax())
+    h_fit_residual_vs_mass.GetXaxis().SetRangeUser(w.var('mjj').getMin(),1800)
+    #h_fit_residual_vs_mass.GetXaxis().SetRangeUser(w.var('mjj').getMin(),3001)
     #h_fit_residual_vs_mass.GetXaxis().SetRangeUser(190.,w.var('mjj').getMax()) #edw X axis range bottom pad
     h_fit_residual_vs_mass.GetYaxis().SetRangeUser(-3.5,3.5)
     h_fit_residual_vs_mass.GetYaxis().SetNdivisions(210,True)

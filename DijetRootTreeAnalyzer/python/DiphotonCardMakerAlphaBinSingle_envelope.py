@@ -20,8 +20,10 @@ def RunDataCardMaker(o):
         config = " -c {}/../config/envelope2/diphoton_multi_alpha{}.config".format(dir_path,abin)
       box=" -b "
     else:
-      config = " -c {}/../config/diphoton_{}".format(dir_path,str(o.FIT)) + ".config"
-      box = " -b diphoton_"
+      config = " -c {}/../config/{}".format(dir_path,str(o.FIT)) + ".config"
+      box = " -b "
+      print("CONFIG: {}".format(config))
+      print("BOX: {}".format(box))
 
     lumi = " --lumi " + str(int(float(o.LUM)))
     if o.FIT != "combine": box += "%s" % str(o.FIT)
@@ -30,6 +32,7 @@ def RunDataCardMaker(o):
     output = " -d output"
     xs = " --xsec " + o.XS
     xssu = " --xsecsu " + o.XSsu
+    xssd = " --xsecsd " + o.XSsd
 
     yr = str(o.YEAR)
     year = " --year " + yr
@@ -79,13 +82,20 @@ def RunDataCardMaker(o):
         jerup = " --jerUp {}/../inputs/Shapes_fromInterpo/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_PU.root"
         jerdown = " --jerDown {}/../inputs/Shapes_fromInterpo/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_PD.root"
 
+        #inputs += " {}/../inputs/Shapes_fromInterpo/alphaBinning_allBins/".format(dir_path)  + abin+"/"+sig+ "/DATA.root"
+        #inputs += " {}/../inputs/Shapes_fromInterpo/alphaBinning_allBins/".format(dir_path) + abin +"/"+sig+"/Sig_nominal.root"
+        #jesup = " --jesUp {}/../inputs/Shapes_fromInterpo/alphaBinning_allBins/".format(dir_path) + abin +"/"+sig+"/Sig_SU.root"
+        #jesdown = " --jesDown {}/../inputs/Shapes_fromInterpo/alphaBinning_allBins/".format(dir_path) + abin +"/"+sig+"/Sig_SD.root"
+        #jerup = " --jerUp {}/../inputs/Shapes_fromInterpo/alphaBinning_allBins/".format(dir_path) + abin +"/"+sig+"/Sig_PU.root"
+        #jerdown = " --jerDown {}/../inputs/Shapes_fromInterpo/alphaBinning_allBins/".format(dir_path) + abin +"/"+sig+"/Sig_PD.root"
+
       else:
         print("IN ELSE LOOP")
         print(abin)
         print(os.path.exists(dir_path + "/../inputs/Shapes_fromGen/alphaBinning/" + abin + "/" + str(o.SIG) + "/DATA.root"))
         exit()
 
-    dcstring = "python {}/../python/WriteDataCard_photons_envelope.py".format(dir_path) + config + mass + savemass + year + box + output + inputs + jesup + jesdown + jerup + jerdown + xs + xssu + lumi + multi + alphabin
+    dcstring = "python {}/../python/WriteDataCard_photons_envelope.py".format(dir_path) + config + mass + savemass + year + box + output + inputs + jesup + jesdown + jerup + jerdown + xs + xssu + xssd + lumi + multi + alphabin
     print(dcstring)
     os.system(dcstring)
 
@@ -100,6 +110,7 @@ if __name__ == "__main__":
     parser.add_option("-s", "--sig", dest="SIG", type=str, help="signal samples", metavar="THESIGNAL")
     parser.add_option("-x", "--xsec", dest="XS", type=str, help="signal xs", metavar="THESIGNALxs")
     parser.add_option("-q", "--xsecsu", dest="XSsu", type=str, help="signal xs, scale up", metavar="THESIGNALxssu")
+    parser.add_option("-r", "--xsecsd", dest="XSsd", type=str, help="signal xs, scale up", metavar="THESIGNALxssd")
     parser.add_option("-g", "--GenOrInt", dest="GI", type=str, help="Generated or Interpolated", metavar="GENORINT")
     (o, args) = parser.parse_args()
     RunDataCardMaker(o)
