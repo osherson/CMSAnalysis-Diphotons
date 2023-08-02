@@ -12,7 +12,7 @@ xmasslist = ['600','400','500','300','750','1000','1500','2000']
 #xmasslist = ['600']
 
 year = 2018
-LUMI = 13.7 * 1000  #provide lumi in PB
+LUMI = 137 * 1000  #provide lumi in PB
 XS = 0.001
 
 #To run test on one alpha bin, add fast# to command line arg
@@ -91,15 +91,22 @@ def makeThisLimit(xmass, GorI):
           eff = float(f.readline().rstrip())
           print(eff)
 
-    mycommand = "python ../python/BinnedDiphotonFit.py -c ../config/envelope2/diphoton_multi_alpha0.config -y {} -l {} -b DIPHOM_alpha0 {}/PLOTS.root -d output --fit-spectrum --write-fit --words test --sig {} --abin 0 --lowA {} --hiA {}".format(year,LUMI,dd,sig,la,ha)
+    #mycommand = "python ../python/BinnedDiphotonFit.py -c ../config/envelope2/diphoton_multi_alpha0.config -y {} -l {} -b DIPHOM_alpha0 {}/PLOTS.root -d output --fit-spectrum --write-fit --words test --sig {} --abin 0 --lowA {} --hiA {}".format(year,LUMI,dd,sig,la,ha)
+    mycommand = "python ../python/BinnedDiphotonFit.py -c ../config/ThreeParams/diphoton_dijet.config -y {} -l {} -b diphoton_dijet {}/PLOTS.root -d output --fit-spectrum --write-fit --words test --sig {} --abin 0 --lowA {} --hiA {}".format(year,LUMI,dd,sig,la,ha)
     print(mycommand)
 
     os.system(mycommand)
-    os.system("mv output/fit_mjj_Full_DIPHOM_alpha{}_2018_{}_alpha{}.png output/alpha_{}/{}/fit_mjj_Full_diphoton_{}_{}.png ".format(abin_num,sig,abin_num,abin_num,sig,sig,abin_num))
-    os.system("rm output/fit_mjj_Full_DIPHOM_alpha{}_2018_{}_alpha{}.C ".format(abin_num,sig,abin_num))
-    os.system("rm crudeFitPlot_DIPHOM_alpha{}_{}_alpha{}.png".format(abin_num,sig,abin_num))
-    os.system("mv output/DijetFitResults_DIPHOM_alpha{}_2018_{}_alpha{}.root output/alpha_{}/{}/DijetFitResults_DIPHOM_2018_{}_alpha{}.root ".format(abin_num,sig,abin_num,abin_num,sig,sig,abin_num))
-    os.system("mv output/Plots_DIPHOM_alpha{}_{}_alpha{}.root output/alpha_{}/{}/Plots_DIPHOM_alpha{}_{}.root ".format(abin_num,sig,abin_num,abin_num,sig,abin_num,sig))
+    #os.system("mv output/fit_mjj_Full_DIPHOM_alpha{}_2018_{}_alpha{}.png output/alpha_{}/{}/fit_mjj_Full_diphoton_{}_{}.png ".format(abin_num,sig,abin_num,abin_num,sig,sig,abin_num))
+    #os.system("rm output/fit_mjj_Full_DIPHOM_alpha{}_2018_{}_alpha{}.C ".format(abin_num,sig,abin_num))
+    #os.system("rm crudeFitPlot_DIPHOM_alpha{}_{}_alpha{}.png".format(abin_num,sig,abin_num))
+    #os.system("mv output/DijetFitResults_DIPHOM_alpha{}_2018_{}_alpha{}.root output/alpha_{}/{}/DijetFitResults_DIPHOM_2018_{}_alpha{}.root ".format(abin_num,sig,abin_num,abin_num,sig,sig,abin_num))
+    #os.system("mv output/Plots_DIPHOM_alpha{}_{}_alpha{}.root output/alpha_{}/{}/Plots_DIPHOM_alpha{}_{}.root ".format(abin_num,sig,abin_num,abin_num,sig,abin_num,sig))
+
+    os.system("mv output/fit_mjj_Full_diphoton_dijet_2018_{}_alpha0.png output/alpha_0/{}/fit_mjj_Full_diphoton_{}_alpha0.png ".format(sig,sig,sig))
+    os.system("rm output/fit_mjj_Full_diphoton_dijet_2018_{}_alpha0.C ".format(sig))
+    os.system("rm crudeFitPlot_diphoton_dijet_{}_alpha0.png".format(sig))
+    os.system("mv output/DijetFitResults_diphoton_dijet_2018_{}_alpha0.root output/alpha_0/{}/DijetFitResults_DIPHOM_2018_{}_alpha0.root ".format(sig,sig,sig))
+    os.system("mv output/Plots_diphoton_dijet_{}_alpha0.root  output/alpha_0/{}/Plots_DIPHOM_alpha0_{}.root ".format(sig,sig,sig))
     if clean:
       os.system("mv output/*.* output/alpha_{}/{}/.".format(abin_num,sig))
 
@@ -108,7 +115,8 @@ def makeThisLimit(xmass, GorI):
     MakeFolder("output/combineCards")
     os.system(lcommand)
 
-    cname = "output/dijet_combine_gg_{}_alphaALL_lumi-13.700_2018_DIPHOM_alpha0".format(sig)
+    #cname = "output/dijet_combine_gg_{}_alphaALL_lumi-13.700_2018_DIPHOM_alpha0".format(sig)
+    cname = "output/dijet_combine_gg_{}_alphaALL_lumi-137.000_2018_DIPHOM_alpha0".format(sig)
     ocname = "output/combineCards/CARD_multi_{}".format(sig)
     fpname = "{}/output/combineCards/CARD_multi_{}".format(os.getcwd(),sig)
 
@@ -143,6 +151,7 @@ def makeThisLimit(xmass, GorI):
       os.system(comb_command)
       os.system("mv higgsCombine_alpha{}_{}.AsymptoticLimits.mH120.root combineOutput/higgsCombine_envelope_alpha{}_{}.root".format(abin_num,nsig,abin_num,nsig))
 
+print(doInterpo)
 if(doInterpo):
   print("Using interpolated shapes")
   i_dir = "/cms/sclark/DiphotonAnalysis/CMSSW_11_1_0_pre7/src/CMSAnalysis-Diphotons/DijetRootTreeAnalyzer/inputs/Shapes_fromInterpo/unBinned"
@@ -162,4 +171,4 @@ else:
   for xm in xmasslist:
     print("\nStarting X Mass {}\n".format(xm))
     makeThisLimit(xm,"gen")
-    break
+    break #This is permanent
