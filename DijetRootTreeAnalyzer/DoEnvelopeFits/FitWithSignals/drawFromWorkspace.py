@@ -4,7 +4,7 @@ import numpy
 from array import array
 from HelperFuncs import convertToMjjHist, calculateChi2AndFillResiduals, convertToTh1xHist, GetSignalHist
 
-ROOT.gROOT.SetBatch()
+#ROOT.gROOT.SetBatch()
 if('q' in sys.argv):
   ROOT.gROOT.SetBatch()
 
@@ -405,7 +405,8 @@ for (ff,(lr,resid)) in resids.items():
 
   resid.GetXaxis().SetRangeUser(w.var('mjj').getMin(),xRangeMax)
   #resid.GetYaxis().SetRangeUser(-3.5,3.5)
-  resid.GetYaxis().SetRangeUser(-2.75,2.75)
+  pullrange = 2.75
+  resid.GetYaxis().SetRangeUser(-1*pullrange,pullrange)
   resid.GetYaxis().SetNdivisions(210,True)
   resid.SetLineWidth(1)
   #resid.SetFillColor(lcolors[ff])
@@ -433,7 +434,7 @@ for (ff,(lr,resid)) in resids.items():
   resid.GetXaxis().SetLabelOffset(1000)
   resid.GetXaxis().SetNoExponent()
   resid.GetXaxis().SetMoreLogLabels()  
-  resid.GetXaxis().SetNdivisions(999)
+  resid.GetXaxis().SetNdivisions(510)
 
 def getSigPull(hist, dgraph):
   phist = hist.Clone()
@@ -475,21 +476,21 @@ xLab.SetTextAlign(22)
 xLab.SetTextFont(42)
 xLab.SetTextSize(2*0.05)
 
-xLab.DrawLatex(300, -4, "300")
-xLab.DrawLatex(400, -4, "400")
-xLab.DrawLatex(600, -4, "600")
-xLab.DrawLatex(1000, -4, "1000")
-xLab.DrawLatex(1500, -4, "1500")
-xLab.DrawLatex(2000, -4, "2000")
-xLab.DrawLatex(3000, -4, "3000")
+xLab.DrawLatex(300, -1*pullrange*1.2, "300")
+xLab.DrawLatex(400, -1*pullrange*1.2, "400")
+xLab.DrawLatex(600, -1*pullrange*1.2, "600")
+xLab.DrawLatex(1000, -1*pullrange*1.2, "1000")
+#xLab.DrawLatex(1500, -1*pullrange*1.2, "1500")
+xLab.DrawLatex(2000, -1*pullrange*1.2, "2000")
+xLab.DrawLatex(3000, -1*pullrange*1.2, "3000")
 
 f_h2_log10_x_axis = ROOT.TF1("f_h2_log10_x_axis", "log10(x)", h_fit_residual_vs_mass.GetXaxis().GetXmin(), h_fit_residual_vs_mass.GetXaxis().GetXmax())
-a = ROOT.TGaxis(h_fit_residual_vs_mass.GetXaxis().GetXmin(), -3.5,
-              h_fit_residual_vs_mass.GetXaxis().GetXmax(), -3.5, "f_h2_log10_x_axis", 509, "BS", 0.0)
+a = ROOT.TGaxis(h_fit_residual_vs_mass.GetXaxis().GetXmin(), -pullrange,
+              h_fit_residual_vs_mass.GetXaxis().GetXmax(), -pullrange, "f_h2_log10_x_axis", 509, "BS", 0.0)
 a.SetTickSize(h_fit_residual_vs_mass.GetTickLength("X"))
 a.SetMoreLogLabels()
 a.SetLabelOffset(1000)
-a.Draw()
+#a.Draw()
 
 cl = ROOT.TLatex()
 cl.SetTextFont(42)
