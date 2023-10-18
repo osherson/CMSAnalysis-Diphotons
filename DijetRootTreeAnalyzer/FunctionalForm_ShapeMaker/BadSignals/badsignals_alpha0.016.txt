@@ -1,6 +1,0 @@
-Bad signal: n2 variable.
-610 0.016
-Bad signal: n2 variable.
-620 0.016
-Bad signal: n2 variable.
-630 0.016

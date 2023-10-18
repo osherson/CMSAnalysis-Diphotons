@@ -9,6 +9,11 @@
 *.jdl
 *.png
 *.out
+*.pdf
+*.csv
+*.txt
+*.log
+*.sh
 
 getEtas/
 getClassifierTrees/
@@ -139,3 +144,4 @@ DijetRootTreeAnalyzer/FunctionalForm_ShapeMaker/FitPlots
 DijetRootTreeAnalyzer/FunctionalForm_ShapeMaker/SystematicFitParams
 DijetRootTreeAnalyzer/FunctionalForm_ShapeMaker/RunCondor/*
 /DijetRootTreeAnalyzer/FunctionalForm_ShapeMaker/Analysis/Plots
+/DijetRootTreeAnalyzer/SrootB/*
