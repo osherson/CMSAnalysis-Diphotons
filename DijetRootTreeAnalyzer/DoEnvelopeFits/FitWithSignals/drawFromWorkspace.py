@@ -118,10 +118,13 @@ for ff,fh in fhists.items():
   resids[ff] = (lchi2,hfr)
 
 canv = ROOT.TCanvas('c','c',600,700)
+ROOT.gPad.SetTicky()
 canv.Divide(1,2,0,0,0)
 
 pad_1 = canv.GetPad(1)
 pad_1.SetPad(0.01,0.30,0.99,0.98)
+pad_1.SetTickx()
+pad_1.SetTicky()
 
 pad_1.SetRightMargin(0.05)
 pad_1.SetTopMargin(0.05)
@@ -134,6 +137,8 @@ pad_1.SetFrameBorderMode(0)
 pad_2 = canv.GetPad(2)
 pad_2.SetLeftMargin(0.175)#0.175
 pad_2.SetPad(0.01,0.02,0.99,0.30)#0.37
+pad_2.SetTickx()
+pad_2.SetTicky()
 pad_2.SetBottomMargin(0.35)
 pad_2.SetRightMargin(0.05)
 
@@ -149,7 +154,7 @@ for i in range(1,nBins+1):
 xRangeMax = w.var('mjj').getMax()
 myRebinnedDensityTH1.GetXaxis().SetRangeUser(w.var('mjj').getMin(),xRangeMax)
 # paper:
-myRebinnedDensityTH1.GetYaxis().SetTitle('d#sigma/dm_{4#gamma} [pb/GeV]')
+myRebinnedDensityTH1.GetYaxis().SetTitle('d#sigma/dm_{#Gamma#Gamma} [pb/GeV]')
 # PAS:
 #myRebinnedDensityTH1.GetYaxis().SetTitle('d#sigma / dm_{jj} [pb / GeV]')
 myRebinnedDensityTH1.GetYaxis().SetTitleOffset(1)
@@ -176,7 +181,11 @@ elif(abin == 6):
   myRebinnedDensityTH1.SetMaximum(9e-6)
 else:
   myRebinnedDensityTH1.SetMaximum(8.5e-6)
+
+#Looks prettier:
 myRebinnedDensityTH1.SetMinimum(1e-7)#2e-8
+#Shows errors in empty bins:
+#myRebinnedDensityTH1.SetMinimum(0)#2e-8
 
 #ROOT.gPad.SetLogy() 
 myRebinnedDensityTH1.Draw("axis")
@@ -187,24 +196,24 @@ l.SetTextSize(0.045)
 l.SetTextFont(42)
 l.SetNDC()
 #l.DrawLatex(0.7,0.96,"%i pb^{-1} (%i TeV)"%(lumi,w.var('sqrts').getVal()/1000.))
-l.DrawLatex(0.72,0.96,"138 fb^{-1} (%i TeV)"%(w.var('sqrts').getVal()/1000.))
+l.DrawLatex(0.70,0.96,"138 fb^{-1} (%i TeV)"%(w.var('sqrts').getVal()/1000.))
 #l.DrawLatex(0.72,0.96,"%.1f fb^{-1} (%i TeV)"%(lumi,w.var('sqrts').getVal()/1000.))
 # paper
 l.SetTextFont(62)
 l.SetTextSize(0.065)
-l.DrawLatex(0.20,0.89,"CMS")
+l.DrawLatex(0.22,0.88,"CMS")
 l.SetTextFont(52)
 l.SetTextSize(0.045)
-l.DrawLatex(0.31,0.89,"Preliminary")
+#l.DrawLatex(0.31,0.89,"Preliminary")
 
 l.SetTextFont(42)
 l.SetTextSize(0.045)
 l.SetTextColor(14)
 #l.DrawLatex(0.19,0.84,"%s#leq #alpha^{reco}<%s"%(alphaLowEdge, alphaHiEdge)) #Upper left
 l.SetTextColor(ROOT.kBlack)
-alpct = '{:.2f}%'.format(alphaLowEdge*100)
+alpct = '{:.2f}'.format(alphaLowEdge*100)
 ahpct = '{:.2f}%'.format(alphaHiEdge*100)
-l.DrawLatex(0.62,0.89,"%s #leq #alpha^{reco} < %s"%(alpct,ahpct)) #Upper right
+l.DrawLatex(0.63,0.89,"%s < #alpha^{reco} < %s"%(alpct,ahpct)) #Upper right
 
 leg_x1 = 0.37
 leg_y1 = 0.5
@@ -226,10 +235,10 @@ lsig.SetTextAlign(11)
 lsig.SetTextSize(0.045)
 lsig.SetTextFont(42)
 lsig.SetNDC()
-lsig.DrawLatex(0.67,0.81,"X #rightarrow #phi#phi #rightarrow (#gamma#gamma)(#gamma#gamma)")
-#lsig.DrawLatex(0.67,0.76,"(m_{X}N)/f = 1/ %i"%signalCoupling)
+lsig.DrawLatex(0.65,0.82,"X #rightarrow #phi#phi #rightarrow (#gamma#gamma)(#gamma#gamma)")
+lsig.DrawLatex(0.68,0.77,"(m_{X}N)/f = 1/%i"%signalCoupling)
 
-leg2 = ROOT.TLegend(0.65,0.67,0.94,0.79)
+leg2 = ROOT.TLegend(0.62,0.60,0.91,0.73)
 leg2.SetTextSize(0.045)
 leg2.SetTextFont(42)
 leg2.SetFillColor(ROOT.kWhite)
@@ -238,7 +247,7 @@ leg2.SetLineWidth(0)
 leg2.SetLineColor(ROOT.kWhite)
 leg2.Draw()
 
-leg3 = ROOT.TLegend(0.65,0.52,0.94,0.64)
+leg3 = ROOT.TLegend(0.62,0.45,0.91,0.58)
 leg3.SetTextSize(0.045)
 leg3.SetTextFont(42)
 leg3.SetFillColor(ROOT.kWhite)
@@ -274,8 +283,8 @@ ltitles={
   "dijet":"Dijet Fit",
   "atlas":"PowExp Fit",
   "moddijet":"ModDijet Fit",
-  "dipho":"Dipho Fit",
-  "myexp":"Pow Fit"}
+  "dipho":"Diphoton Fit",
+  "myexp":"Power-Law Fit"}
 
 drawO = ['dijet','atlas','moddijet','dipho','myexp']
 drawOrder = [bestfunc]
@@ -425,7 +434,7 @@ for (ff,(lr,resid)) in resids.items():
   resid.GetXaxis().SetTitleSize(2*0.06)
   resid.GetXaxis().SetLabelSize(2*0.05)
   # paper
-  resid.GetXaxis().SetTitle('Dicluster mass [GeV]')
+  resid.GetXaxis().SetTitle('m_{#Gamma#Gamma} [GeV]')
   resid.SetTitle("")
   resid.SetStats(0)
 
@@ -494,15 +503,19 @@ a.SetLabelOffset(1000)
 
 cl = ROOT.TLatex()
 cl.SetTextFont(42)
-cl.SetTextSize(0.08)
+cl.SetTextSize(0.10)
 cl.SetTextAlign(11)
 cl.SetNDC()
-cl.DrawLatex(0.60, 0.54, "#chi^{{2}} / NDF = {0:.2f} / {1:d} = {2:.2f}".format(
+cl.DrawLatex(0.55, 0.54, "#chi^{{2}} / NDF = {0:.2f} / {1:d} = {2:.2f}".format(
                              list_chi2AndNdf_background[4], list_chi2AndNdf_background[5],
                               list_chi2AndNdf_background[4]/list_chi2AndNdf_background[5]))
 
 ROOT.gPad.Modified()
 ROOT.gPad.Update()
 
-canv.Print("Plots/fit_abin{}.png".format(abin))
-canv.Print("Plots/fit_abin{}.C".format(abin))
+canv.Print("Plots/zeroErrors/fit_abin{}.png".format(abin))
+canv.Print("Plots/zeroErrors/fit_abin{}.pdf".format(abin))
+canv.Print("Plots/zeroErrors/fit_abin{}.C".format(abin))
+#canv.Print("Plots/zeroErrors/fit_abin{}.png".format(abin))
+#canv.Print("Plots/zeroErrors/fit_abin{}.pdf".format(abin))
+#canv.Print("Plots/zeroErrors/fit_abin{}.C".format(abin))
