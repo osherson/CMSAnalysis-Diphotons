@@ -159,7 +159,7 @@ myRebinnedDensityTH1.GetYaxis().SetTitle('d#sigma/dm_{#Gamma#Gamma} [pb/GeV]')
 #myRebinnedDensityTH1.GetYaxis().SetTitle('d#sigma / dm_{jj} [pb / GeV]')
 myRebinnedDensityTH1.GetYaxis().SetTitleOffset(1)
 myRebinnedDensityTH1.GetYaxis().SetTitleSize(0.07)
-myRebinnedDensityTH1.GetYaxis().SetLabelSize(0.05)
+myRebinnedDensityTH1.GetYaxis().SetLabelSize(0.050)
 myRebinnedDensityTH1.GetXaxis().SetLabelOffset(1000)
 myRebinnedDensityTH1.SetStats(0)
 myRebinnedDensityTH1.Scale(0)
@@ -207,24 +207,24 @@ l.SetTextSize(0.045)
 #l.DrawLatex(0.31,0.89,"Preliminary")
 
 l.SetTextFont(42)
-l.SetTextSize(0.045)
+l.SetTextSize(0.055)
 l.SetTextColor(14)
 #l.DrawLatex(0.19,0.84,"%s#leq #alpha^{reco}<%s"%(alphaLowEdge, alphaHiEdge)) #Upper left
 l.SetTextColor(ROOT.kBlack)
 alpct = '{:.2f}'.format(alphaLowEdge*100)
 ahpct = '{:.2f}%'.format(alphaHiEdge*100)
-l.DrawLatex(0.63,0.89,"%s < #alpha^{reco} < %s"%(alpct,ahpct)) #Upper right
+l.DrawLatex(0.55,0.88,"%s < #alpha^{reco} < %s"%(alpct,ahpct)) #Upper right
 
-leg_x1 = 0.37
+leg_x1 = 0.31
 leg_y1 = 0.5
 leg_height =  0.34
 #leg = ROOT.TLegend(leg_x1,leg_y1,0.5,leg_y1+leg_height) #Big legend, all functions
-leg = ROOT.TLegend(leg_x1,0.73,0.5,0.85) #Big legend, all functions
+leg = ROOT.TLegend(leg_x1,0.69,0.5,0.85) #Big legend, all functions
 leg.SetTextFont(42)
 leg.SetFillColor(ROOT.kWhite)
 leg.SetFillStyle(0)
 leg.SetLineWidth(0)
-leg.SetTextSize(0.045)
+leg.SetTextSize(0.050)
 leg.SetLineColor(ROOT.kWhite)
 leg.AddEntry(g_data,"Data","pe")
 #leg.AddEntry(background,"{} Fit".format(fitfunc),"l")
@@ -232,14 +232,14 @@ leg.Draw("F")
 
 lsig = ROOT.TLatex()
 lsig.SetTextAlign(11)
-lsig.SetTextSize(0.045)
+lsig.SetTextSize(0.050)
 lsig.SetTextFont(42)
 lsig.SetNDC()
-lsig.DrawLatex(0.65,0.82,"X #rightarrow #phi#phi #rightarrow (#gamma#gamma)(#gamma#gamma)")
-lsig.DrawLatex(0.68,0.77,"(m_{X}N)/f = 1/%i"%signalCoupling)
+lsig.DrawLatex(0.62,0.80,"X #rightarrow #phi#phi #rightarrow (#gamma#gamma)(#gamma#gamma)")
+lsig.DrawLatex(0.65,0.75,"(m_{X}N)/f = 1/%i"%signalCoupling)
 
-leg2 = ROOT.TLegend(0.62,0.60,0.91,0.73)
-leg2.SetTextSize(0.045)
+leg2 = ROOT.TLegend(0.58,0.56,0.91,0.71)
+leg2.SetTextSize(0.050)
 leg2.SetTextFont(42)
 leg2.SetFillColor(ROOT.kWhite)
 leg2.SetFillStyle(0)
@@ -247,7 +247,7 @@ leg2.SetLineWidth(0)
 leg2.SetLineColor(ROOT.kWhite)
 leg2.Draw()
 
-leg3 = ROOT.TLegend(0.62,0.45,0.91,0.58)
+leg3 = ROOT.TLegend(0.58,0.41,0.91,0.55)
 leg3.SetTextSize(0.045)
 leg3.SetTextFont(42)
 leg3.SetFillColor(ROOT.kWhite)
@@ -425,13 +425,13 @@ for (ff,(lr,resid)) in resids.items():
 
   resid.SetLineColor(ROOT.kBlack)
 
-  resid.GetYaxis().SetTitleSize(2*0.06)
-  resid.GetYaxis().SetLabelSize(2*0.05)
+  resid.GetYaxis().SetTitleSize(2*0.065)
+  resid.GetYaxis().SetLabelSize(2*0.06)
   # paper
   resid.GetYaxis().SetTitleOffset(0.6)
   resid.GetYaxis().SetTitle('#frac{(Data-Fit)}{Uncertainty}')
 
-  resid.GetXaxis().SetTitleSize(2*0.06)
+  resid.GetXaxis().SetTitleSize(2*0.08)
   resid.GetXaxis().SetLabelSize(2*0.05)
   # paper
   resid.GetXaxis().SetTitle('m_{#Gamma#Gamma} [GeV]')
@@ -483,7 +483,7 @@ zeroline.Draw("same")
 xLab = ROOT.TLatex()
 xLab.SetTextAlign(22)
 xLab.SetTextFont(42)
-xLab.SetTextSize(2*0.05)
+xLab.SetTextSize(2*0.057)
 
 xLab.DrawLatex(300, -1*pullrange*1.2, "300")
 xLab.DrawLatex(400, -1*pullrange*1.2, "400")
@@ -503,19 +503,19 @@ a.SetLabelOffset(1000)
 
 cl = ROOT.TLatex()
 cl.SetTextFont(42)
-cl.SetTextSize(0.10)
+cl.SetTextSize(0.11)
 cl.SetTextAlign(11)
 cl.SetNDC()
-cl.DrawLatex(0.55, 0.54, "#chi^{{2}} / NDF = {0:.2f} / {1:d} = {2:.2f}".format(
+cl.DrawLatex(0.50, 0.54, "#chi^{{2}} / NDF = {0:.2f} / {1:d} = {2:.2f}".format(
                              list_chi2AndNdf_background[4], list_chi2AndNdf_background[5],
                               list_chi2AndNdf_background[4]/list_chi2AndNdf_background[5]))
 
 ROOT.gPad.Modified()
 ROOT.gPad.Update()
 
-canv.Print("Plots/zeroErrors/fit_abin{}.png".format(abin))
-canv.Print("Plots/zeroErrors/fit_abin{}.pdf".format(abin))
-canv.Print("Plots/zeroErrors/fit_abin{}.C".format(abin))
+canv.Print("Plots/fit_abin{}.png".format(abin))
+canv.Print("Plots/fit_abin{}.pdf".format(abin))
+canv.Print("Plots/fit_abin{}.C".format(abin))
 #canv.Print("Plots/zeroErrors/fit_abin{}.png".format(abin))
 #canv.Print("Plots/zeroErrors/fit_abin{}.pdf".format(abin))
 #canv.Print("Plots/zeroErrors/fit_abin{}.C".format(abin))
