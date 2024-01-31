@@ -8,6 +8,10 @@ from HelperFuncs import convertToMjjHist, calculateChi2AndFillResiduals, convert
 if('q' in sys.argv):
   ROOT.gROOT.SetBatch()
 
+hepdata=False
+if('hepdata' in sys.argv):
+  hepdata=True
+
 lumi = 138000
 
 signal_mjj = [297.0, 303.0, 310.0, 317.0, 324.0, 331.0, 338.0, 345.0, 352.0, 360.0, 368.0, 376.0, 384.0, 392.0, 400.0, 409.0, 418.0, 427.0, 436.0, 445.0, 454.0, 464.0, 474.0, 484.0, 494.0, 504.0, 515.0, 526.0, 537.0, 548.0, 560.0, 572.0, 584.0, 596.0, 609.0, 622.0, 635.0, 648.0, 662.0, 676.0, 690.0, 704.0, 719.0, 734.0, 749.0, 765.0, 781.0, 797.0, 814.0, 831.0, 848.0, 866.0, 884.0, 902.0, 921.0, 940.0, 959.0, 979.0, 999.0, 1020.0, 1041.0, 1063.0, 1085.0, 1107.0, 1130.0, 1153.0, 1177.0, 1201.0, 1226.0, 1251.0, 1277.0, 1303.0, 1330.0, 1357.0, 1385.0, 1413.0, 1442.0, 1472.0, 1502.0, 1533.0, 1564.0, 1596.0, 1629.0, 1662.0, 1696.0, 1731.0, 1766.0, 1802.0, 1839.0, 1877.0, 1915.0, 1954.0, 1994.0, 2035.0, 2077.0, 2119.0, 2162.0, 2206.0, 2251.0, 2297.0, 2344.0, 2392.0, 2441.0, 2491.0, 2542.0, 2594.0, 2647.0, 2701.0, 2756.0, 2812.0, 2869.0, 2927.0, 2987.0, 3048.0, 3110.0]
@@ -24,6 +28,10 @@ sigHistLow.SetName(sigLow)
 sigHistHigh = ROOT.TH1D("sigHistHigh","sigHistHigh;;",len(signal_mjj)-1,array("d",signal_mjj))
 sigHigh=GetSignalHist(sigHistHigh, abin, lumi, signalCoupling,"high")
 sigHistHigh.SetName(sigHigh)
+
+if(hepdata):
+  hepdataFile = open("HepdataStuff/hepdata_alpha{}.csv".format(abin), "w")
+  hepdataFile.write("Dicluster mass [GeV], Event yield, Cross Section [pb/GeV]\n")
 
 fhists = {}
 
@@ -80,6 +88,7 @@ extDijetPdf = w.pdf("extDijetPdf")
 asimov = extDijetPdf.generateBinned(ROOT.RooArgSet(th1x),ROOT.RooFit.Name('central'),ROOT.RooFit.Asimov())
 h_th1x = asimov.createHistogram('h_th1x',th1x)
 h_data_th1x = dataHist.createHistogram('h_data_th1x',th1x)
+
 #c1 = ROOT.TCanvas()
 #c1.cd()
 #h_data_th1x.Draw("hist")
@@ -105,6 +114,7 @@ for i in range(0,g_data.GetN()):
     g_data.SetPointEYlow(i, (N-L)/(binWidth * lumi))
     g_data.SetPointEYhigh(i, (U-N)/(binWidth * lumi))
     g_data.SetPoint(i, g_data.GetX()[i], N/(binWidth * lumi))
+
 
 h_th1x.Scale(1.0/lumi)
 h_background = convertToMjjHist(h_th1x,x)
@@ -150,6 +160,24 @@ myRebinnedDensityTH1 = myRebinnedTH1.Clone('data_obs_density')
 for i in range(1,nBins+1):
     myRebinnedDensityTH1.SetBinContent(i, myRebinnedTH1.GetBinContent(i)/ myRebinnedTH1.GetBinWidth(i))
     myRebinnedDensityTH1.SetBinError(i, myRebinnedTH1.GetBinError(i)/ myRebinnedTH1.GetBinWidth(i))
+
+if(hepdata):
+  nbins = myRebinnedDensityTH1.GetNbinsX()
+  if(nbins != g_data.GetN()):
+    print("Houston, we have a binning problem")
+    exit()
+
+  for bin_num in range(0,nbins):
+    low_edge = myRebinnedDensityTH1.GetBinLowEdge(bin_num)
+    high_edge = myRebinnedDensityTH1.GetBinLowEdge(bin_num+1)
+    data_event_num = myRebinnedDensityTH1.GetBinContent(bin_num)
+
+    x_value = ROOT.Double(0.0)
+    data_xs_num = ROOT.Double(0.0)
+    g_data.GetPoint(bin_num, x_value, data_xs_num)
+
+    hepdataFile.write("{:.1f}-{:.1f},{:.1f},{:.3E}\n".format(low_edge, high_edge, data_event_num, data_xs_num))
+
 
 xRangeMax = w.var('mjj').getMax()
 myRebinnedDensityTH1.GetXaxis().SetRangeUser(w.var('mjj').getMin(),xRangeMax)
@@ -519,3 +547,6 @@ canv.Print("Plots/fit_abin{}.C".format(abin))
 #canv.Print("Plots/zeroErrors/fit_abin{}.png".format(abin))
 #canv.Print("Plots/zeroErrors/fit_abin{}.pdf".format(abin))
 #canv.Print("Plots/zeroErrors/fit_abin{}.C".format(abin))
+
+if(hepdata):
+  hepdataFile.close()
