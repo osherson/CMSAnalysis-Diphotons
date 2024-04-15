@@ -31,7 +31,7 @@ sigHistHigh.SetName(sigHigh)
 
 if(hepdata):
   hepdataFile = open("HepdataStuff/hepdata_alpha{}.csv".format(abin), "w")
-  hepdataFile.write("Dicluster mass [GeV], Event yield, Cross Section [pb/GeV]\n")
+  hepdataFile.write("mlow,mhigh,events,xs,xs_errLow,xs_errHigh\n")
 
 fhists = {}
 
@@ -168,15 +168,17 @@ if(hepdata):
     exit()
 
   for bin_num in range(0,nbins):
-    low_edge = myRebinnedDensityTH1.GetBinLowEdge(bin_num)
-    high_edge = myRebinnedDensityTH1.GetBinLowEdge(bin_num+1)
-    data_event_num = myRebinnedDensityTH1.GetBinContent(bin_num)
+    low_edge = myRealTH1.GetBinLowEdge(bin_num)
+    high_edge = myRealTH1.GetBinLowEdge(bin_num+1)
+    data_event_num = myRealTH1.GetBinContent(bin_num)
 
     x_value = ROOT.Double(0.0)
     data_xs_num = ROOT.Double(0.0)
     g_data.GetPoint(bin_num, x_value, data_xs_num)
+    xs_errLow = g_data.GetErrorYlow(bin_num)
+    xs_errHigh = g_data.GetErrorYhigh(bin_num)
 
-    hepdataFile.write("{:.1f}-{:.1f},{:.1f},{:.3E}\n".format(low_edge, high_edge, data_event_num, data_xs_num))
+    hepdataFile.write("{:.1f},{:.1f},{},{:.3E},{:.3E},{:.3E}\n".format(low_edge, high_edge, data_event_num, data_xs_num, xs_errLow, xs_errHigh))
 
 
 xRangeMax = w.var('mjj').getMax()
@@ -308,11 +310,11 @@ lcolors={
   "myexp":30}
 
 ltitles={
-  "dijet":"Dijet Fit",
-  "atlas":"PowExp Fit",
-  "moddijet":"ModDijet Fit",
-  "dipho":"Diphoton Fit",
-  "myexp":"Power-Law Fit"}
+  "dijet":"Dijet fit",
+  "atlas":"PowExp fit",
+  "moddijet":"ModDijet fit",
+  "dipho":"Diphoton fit",
+  "myexp":"Power-Law fit"}
 
 drawO = ['dijet','atlas','moddijet','dipho','myexp']
 drawOrder = [bestfunc]
@@ -534,7 +536,7 @@ cl.SetTextFont(42)
 cl.SetTextSize(0.11)
 cl.SetTextAlign(11)
 cl.SetNDC()
-cl.DrawLatex(0.50, 0.54, "#chi^{{2}} / NDF = {0:.2f} / {1:d} = {2:.2f}".format(
+cl.DrawLatex(0.50, 0.54, "#chi^{{2}}/NDF = {0:.2f}/{1:d} = {2:.2f}".format(
                              list_chi2AndNdf_background[4], list_chi2AndNdf_background[5],
                               list_chi2AndNdf_background[4]/list_chi2AndNdf_background[5]))
 
