@@ -96,7 +96,8 @@ def calculateChi2AndFillResiduals(data_obs_TGraph_,background_hist_,hist_fit_res
     N_massBins_ = data_obs_TGraph_.GetN()
     MinNumEvents = 10
     #MinNumEvents = 1
-    nParFit = 4
+    #nParFit = 4
+    nParFit = 3
     if workspace_.var('meff_%s'%box).getVal()>0 and workspace_.var('seff_%s'%box).getVal()>0 :
         nParFit = 6
     if workspace_.var('p54_%s'%box) != None or workspace_.var('pm4_%s'%box) != None or workspace_.var('pa4_%s'%box) != None :
@@ -255,6 +256,10 @@ if __name__ == '__main__':
                   help="save fit as a 1 GeV-binned histogram")
     parser.add_option('--words', dest="CUTSTRING", default=" ~~~~ ~~~~~ ", action='store_true',
                   help="what to write on canvas")
+    parser.add_option('--sig',dest="signal", default="X100A10" ,type="string",
+                  help="XxxAaa Signal")
+    parser.add_option('--abin',dest="abin", default=999 ,type="int",
+                  help="Alpha Bin Number")
     parser.add_option('--lowA',dest="lA", default=0. ,type="float",
                   help="alphaLow")
     parser.add_option('--hiA',dest="hA", default=0.3,type="float",
@@ -273,6 +278,7 @@ if __name__ == '__main__':
     noFit = options.noFit
     fitRegion = options.fitRegion
     plotRegion = options.plotRegion
+    signal = options.signal
     histoName = cfg.getVariables(box, "histoName")
 
     fitfunc=""
@@ -323,6 +329,10 @@ if __name__ == '__main__':
     x = array('d', cfg.getBinning(box)[0]) # mjj binning
     
     th1x = w.var('th1x')
+    #pdfi = w.var('pdf_index_DIPHOM_alpha3')
+    print(th1x.getVal())
+    #print(pdfi.getVal())
+    #time.sleep(5)
     nBins = (len(x)-1)
     th1x.setBins(nBins)
 
@@ -414,7 +424,7 @@ if __name__ == '__main__':
     rt.gStyle.SetOptStat(0)
     rt.gStyle.SetOptTitle(0)
     canv = rt.TCanvas('c','c',600,700)
-    rootFile = rt.TFile.Open(options.outDir + '/' + 'Plots_%s'%box + '.root','recreate')
+    rootFile = rt.TFile.Open(options.outDir + '/' + 'Plots_%s_%s_alpha%s'%(box,options.signal,options.abin) + '.root','recreate')
     tdirectory = rootFile.GetDirectory(options.outDir)
     if tdirectory==None:
         print "making directory"
@@ -591,8 +601,8 @@ if __name__ == '__main__':
     l.SetTextFont(42)
     l.SetNDC()
     #l.DrawLatex(0.7,0.96,"%i pb^{-1} (%i TeV)"%(lumi,w.var('sqrts').getVal()/1000.))
-    #l.DrawLatex(0.72,0.96,"%.1f fb^{-1} (%i TeV)"%(lumi/1000.,w.var('sqrts').getVal()/1000.))
-    l.DrawLatex(0.72,0.96,"%.1f fb^{-1} (%i TeV)"%(lumi,w.var('sqrts').getVal()/1000.))
+    l.DrawLatex(0.72,0.96,"%.1f fb^{-1} (%i TeV)"%(lumi/1000.,w.var('sqrts').getVal()/1000.))
+    #l.DrawLatex(0.72,0.96,"%.1f fb^{-1} (%i TeV)"%(lumi      ,w.var('sqrts').getVal()/1000.))
     # PAS
     #l.SetTextFont(62)
     #l.SetTextSize(0.055)   
@@ -652,7 +662,7 @@ if __name__ == '__main__':
     
     pullplot.Draw("histsame")
 
-    ccc.Print("crudeFitPlot_{}.png".format(box))
+    ccc.Print("crudeFitPlot_{}_{}_alpha{}.png".format(box,signal,options.abin))
 #############################################
     
 
@@ -668,9 +678,10 @@ if __name__ == '__main__':
     #pad_1.SetPad(0.01,0.36,0.99,0.98)
     #paper 
     pad_1.SetPad(0.01,0.37,0.99,0.98)
-   # pad_1.SetLogy()
+    #pad_1.SetLogy()
     if 'PF' in box or w.var('mjj').getMax() > 526:
         pad_1.SetLogx(1)
+
     pad_1.SetRightMargin(0.05)
     pad_1.SetTopMargin(0.05)
     pad_1.SetLeftMargin(0.175)
@@ -686,6 +697,7 @@ if __name__ == '__main__':
     pad_2.SetRightMargin(0.05)
     pad_2.SetGridx()
     pad_2.SetGridy()
+
     if 'PF' in box or w.var('mjj').getMax() > 1246:
         pad_2.SetLogx()
 
@@ -701,7 +713,9 @@ if __name__ == '__main__':
         if not any(checkInRegions):
             myRebinnedDensityTH1.SetBinContent(i,0)
             myRebinnedDensityTH1.SetBinError(i,0)
+
     myRebinnedDensityTH1.GetXaxis().SetRangeUser(w.var('mjj').getMin(),w.var('mjj').getMax())
+    #myRebinnedDensityTH1.GetXaxis().SetRangeUser(w.var('mjj').getMin(),1600)
     #myRebinnedDensityTH1.GetXaxis().SetRangeUser(190.,w.var('mjj').getMax()) #edw X axis range top pad
     # paper:
     myRebinnedDensityTH1.GetYaxis().SetTitle('d#sigma/dm_{4#gamma} [pb/TeV]')
@@ -716,8 +730,10 @@ if __name__ == '__main__':
     myRebinnedDensityTH1.SetMarkerColor(rt.kWhite)
     myRebinnedDensityTH1.SetLineWidth(0)    
     #Plot mins and maxes
-    myRebinnedDensityTH1.SetMaximum(20)#20
-    myRebinnedDensityTH1.SetMinimum(5e-4)#2e-8
+    myRebinnedDensityTH1.SetMaximum(2e-2)#20 #Steven changed Oct 25, 2022
+
+    #myRebinnedDensityTH1.SetMaximum(2e-5)#Linear Scale
+    myRebinnedDensityTH1.SetMinimum(5e-7)#2e-8
     myRebinnedDensityTH1.Draw("axis")
     
 #    if options.doTriggerFit or options.doSimultaneousFit or options.doSpectrumFit or options.noFit:
@@ -741,8 +757,8 @@ if __name__ == '__main__':
     l.SetTextFont(42)
     l.SetNDC()
     #l.DrawLatex(0.7,0.96,"%i pb^{-1} (%i TeV)"%(lumi,w.var('sqrts').getVal()/1000.))
-    #l.DrawLatex(0.72,0.96,"%.1f fb^{-1} (%i TeV)"%(lumi/1000.,w.var('sqrts').getVal()/1000.))
-    l.DrawLatex(0.72,0.96,"%.1f fb^{-1} (%i TeV)"%(lumi,w.var('sqrts').getVal()/1000.))
+    l.DrawLatex(0.72,0.96,"%.1f fb^{-1} (%i TeV)"%(lumi/1000.,w.var('sqrts').getVal()/1000.))
+    #l.DrawLatex(0.72,0.96,"%.1f fb^{-1} (%i TeV)"%(lumi,w.var('sqrts').getVal()/1000.))
     # PAS
     #l.SetTextFont(62)
     #l.SetTextSize(0.055)   
@@ -761,7 +777,12 @@ if __name__ == '__main__':
     if(options.lA is not None and options.hA is not None):
       l.SetTextFont(62)
       l.SetTextSize(0.055)
-      l.DrawLatex(0.22,0.75,"{} #leq #alpha < {}".format(options.lA, options.hA))
+      l.DrawLatex(0.22,0.82,"{} #leq #alpha < {}".format(options.lA, options.hA))
+
+#      if(options.lA in [0.00395,0.00597,0.00759,0.00759,0.01049]):
+#        l.DrawLatex(0.22,0.75,"Dipho function")
+#      else:
+#        l.DrawLatex(0.22,0.75,"Dijet function")
         
     if options.signalFileName!=None:
         if 'Calo' in box:
@@ -864,6 +885,7 @@ if __name__ == '__main__':
     pad_2.cd()
     
     h_fit_residual_vs_mass.GetXaxis().SetRangeUser(w.var('mjj').getMin(),w.var('mjj').getMax())
+    #h_fit_residual_vs_mass.GetXaxis().SetRangeUser(w.var('mjj').getMin(),1600)
     #h_fit_residual_vs_mass.GetXaxis().SetRangeUser(190.,w.var('mjj').getMax()) #edw X axis range bottom pad
     h_fit_residual_vs_mass.GetYaxis().SetRangeUser(-3.5,3.5)
     h_fit_residual_vs_mass.GetYaxis().SetNdivisions(210,True)
@@ -886,7 +908,7 @@ if __name__ == '__main__':
     # PAS
     #h_fit_residual_vs_mass.GetXaxis().SetTitle('Dijet Mass [GeV]')
     # paper
-    h_fit_residual_vs_mass.GetXaxis().SetTitle('Average diphoton mass [TeV]')
+    h_fit_residual_vs_mass.GetXaxis().SetTitle('Di-Cluster mass [TeV]')
 
     
     #h_fit_residual_vs_mass.SetLineColor(rt.kGreen)
@@ -934,12 +956,12 @@ if __name__ == '__main__':
         rt.gPad.Modified()
         rt.gPad.Update()
     
-    canv.Print(options.outDir+"/fit_mjj_%s_%s_%s.png"%(fitRegion.replace(',','_'),box,year))
-    canv.Print(options.outDir+"/fit_mjj_%s_%s_%s.C"%(fitRegion.replace(',','_'),box,year))
+    canv.Print(options.outDir+"/fit_mjj_%s_%s_%s_%s_alpha%s.png"%(fitRegion.replace(',','_'),box,year,signal,options.abin))
+    canv.Print(options.outDir+"/fit_mjj_%s_%s_%s_%s_alpha%s.C"%(fitRegion.replace(',','_'),box,year,signal,options.abin))
     tdirectory.cd()
     canv.Write()
 
-    outFileName = "DijetFitResults_%s_%s.root"%(box,year)
+    outFileName = "DijetFitResults_%s_%s_%s_alpha%s.root"%(box,year,signal,options.abin)
     outFile = rt.TFile(options.outDir+"/"+outFileName,'recreate')
     outFile.cd()
     w.Write()

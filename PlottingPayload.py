@@ -430,14 +430,38 @@ def stylePull(Hin, Ein, name, fitResult=None, signals=None, title=None, xTitle=N
     ROOT.gSystem.ProcessEvents()
 
 #XB = [250.0, 255.0, 261.0, 267.0, 273.0, 279.0, 285.0, 291.0, 297.0, 303.0, 310.0, 317.0, 324.0, 331.0, 338.0, 345.0, 352.0, 360.0, 368.0, 376.0, 384.0, 392.0, 400.0, 409.0, 418.0, 427.0, 436.0, 445.0, 454.0, 464.0, 474.0, 484.0, 494.0, 504.0, 515.0, 526.0, 537.0, 548.0, 560.0, 572.0, 584.0, 596.0, 609.0, 622.0, 635.0, 648.0, 662.0, 676.0, 690.0, 704.0, 719.0, 734.0, 749.0, 765.0, 781.0, 797.0, 814.0, 831.0, 848.0, 866.0, 884.0, 902.0, 921.0, 940.0, 959.0, 979.0, 999.0, 1020.0, 1041.0, 1063.0, 1085.0, 1107.0, 1130.0, 1153.0, 1177.0, 1201.0, 1226.0, 1251.0, 1277.0, 1303.0, 1330.0, 1357.0, 1385.0, 1413.0, 1442.0, 1472.0, 1502.0, 1533.0, 1564.0, 1596.0, 1629.0, 1662.0, 1696.0, 1731.0, 1766.0, 1802.0, 1839.0, 1877.0, 1915.0, 1954.0, 1994.0, 2035.0, 2077.0, 2119.0, 2162.0, 2206.0, 2251.0, 2297.0, 2344.0, 2392.0, 2441.0, 2491.0, 2542.0, 2594.0, 2647.0, 2701.0, 2756.0, 2812.0, 2869.0, 2927.0, 2987.0, 3048.0, 3110.0]
-#XB = [297.0, 303.0, 310.0, 317.0, 324.0, 331.0, 338.0, 345.0, 352.0, 360.0, 368.0, 376.0, 384.0, 392.0, 400.0, 409.0, 418.0, 427.0, 436.0, 445.0, 454.0, 464.0, 474.0, 484.0, 494.0, 504.0, 515.0, 526.0, 537.0, 548.0, 560.0, 572.0, 584.0, 596.0, 609.0, 622.0, 635.0, 648.0, 662.0, 676.0, 690.0, 704.0, 719.0, 734.0, 749.0, 765.0, 781.0, 797.0, 814.0, 831.0, 848.0, 866.0, 884.0, 902.0, 921.0, 940.0, 959.0, 979.0, 999.0, 1020.0, 1041.0, 1063.0, 1085.0, 1107.0, 1130.0, 1153.0, 1177.0, 1201.0, 1226.0, 1251.0, 1277.0, 1303.0, 1330.0, 1357.0, 1385.0, 1413.0, 1442.0, 1472.0, 1502.0, 1533.0, 1564.0, 1596.0, 1629.0, 1662.0, 1696.0, 1731.0, 1766.0, 1802.0, 1839.0, 1877.0, 1915.0, 1954.0, 1994.0, 2035.0, 2077.0, 2119.0, 2162.0, 2206.0, 2251.0, 2297.0, 2344.0, 2392.0, 2441.0, 2491.0, 2542.0, 2594.0, 2647.0, 2701.0, 2756.0, 2812.0, 2869.0, 2927.0, 2987.0, 3048.0, 3110.0]
-XB = [297.0, 303.0, 310.0, 317.0, 324.0, 331.0, 338.0, 345.0, 352.0, 360.0, 368.0, 376.0, 384.0, 392.0, 400.0, 409.0, 418.0, 427.0, 436.0, 445.0, 454.0, 464.0, 474.0, 484.0, 494.0, 504.0, 515.0, 526.0, 537.0, 548.0, 560.0, 572.0, 584.0, 596.0, 609.0, 622.0, 635.0, 648.0, 662.0, 676.0, 690.0, 704.0, 719.0, 734.0, 749.0, 765.0, 781.0, 797.0, 814.0, 831.0, 848.0, 866.0, 884.0, 902.0, 921.0, 940.0, 959.0, 979.0, 999.0, 1020.0, 1041.0, 1063.0, 1085.0, 1107.0, 1130.0, 1153.0, 1177.0, 1201.0, 1226.0, 1251.0, 1277.0, 1303.0, 1330.0, 1357.0, 1385.0, 1413.0, 1442.0, 1472.0, 1502.0, 1533.0, 1564.0, 1596.0, 1629.0, 1662.0, 1696.0]
+XB = [297.0, 303.0, 310.0, 317.0, 324.0, 331.0, 338.0, 345.0, 352.0, 360.0, 368.0, 376.0, 384.0, 392.0, 400.0, 409.0, 418.0, 427.0, 436.0, 445.0, 454.0, 464.0, 474.0, 484.0, 494.0, 504.0, 515.0, 526.0, 537.0, 548.0, 560.0, 572.0, 584.0, 596.0, 609.0, 622.0, 635.0, 648.0, 662.0, 676.0, 690.0, 704.0, 719.0, 734.0, 749.0, 765.0, 781.0, 797.0, 814.0, 831.0, 848.0, 866.0, 884.0, 902.0, 921.0, 940.0, 959.0, 979.0, 999.0, 1020.0, 1041.0, 1063.0, 1085.0, 1107.0, 1130.0, 1153.0, 1177.0, 1201.0, 1226.0, 1251.0, 1277.0, 1303.0, 1330.0, 1357.0, 1385.0, 1413.0, 1442.0, 1472.0, 1502.0, 1533.0, 1564.0, 1596.0, 1629.0, 1662.0, 1696.0, 1731.0, 1766.0, 1802.0, 1839.0, 1877.0, 1915.0, 1954.0, 1994.0, 2035.0, 2077.0, 2119.0, 2162.0, 2206.0, 2251.0, 2297.0, 2344.0, 2392.0, 2441.0, 2491.0, 2542.0, 2594.0, 2647.0, 2701.0, 2756.0, 2812.0, 2869.0, 2927.0, 2987.0, 3048.0, 3110.0]
+#XB = [297.0, 303.0, 310.0, 317.0, 324.0, 331.0, 338.0, 345.0, 352.0, 360.0, 368.0, 376.0, 384.0, 392.0, 400.0, 409.0, 418.0, 427.0, 436.0, 445.0, 454.0, 464.0, 474.0, 484.0, 494.0, 504.0, 515.0, 526.0, 537.0, 548.0, 560.0, 572.0, 584.0, 596.0, 609.0, 622.0, 635.0, 648.0, 662.0, 676.0, 690.0, 704.0, 719.0, 734.0, 749.0, 765.0, 781.0, 797.0, 814.0, 831.0, 848.0, 866.0, 884.0, 902.0, 921.0, 940.0, 959.0, 979.0, 999.0, 1020.0, 1041.0, 1063.0, 1085.0, 1107.0, 1130.0, 1153.0, 1177.0, 1201.0, 1226.0, 1251.0, 1277.0, 1303.0, 1330.0, 1357.0, 1385.0, 1413.0, 1442.0, 1472.0, 1502.0, 1533.0, 1564.0, 1596.0, 1629.0, 1662.0, 1696.0]
 #X1B = MakeNBinsFromMinToMax(2860, 250., 3110.)
 #X1B = MakeNBinsFromMinToMax(2920, 190., 3110.)
 #X1B = MakeNBinsFromMinToMax(2810, 300., 3110.)
 #X1B = MakeNBinsFromMinToMax(1399, 300., 1696.)
-X1B = Make1BinsFromMinToMax(297., 1696.)
+#X1B = Make1BinsFromMinToMax(297., 3110.)
+
+X1B = Make1BinsFromMinToMax(200., 3110.)
 AB = [0.0, 0.001, 0.002, 0.003, 0.004, 0.005, 0.006, 0.007, 0.008, 0.009, 0.01, 0.011, 0.012, 0.013, 0.014, 0.015, 0.016, 0.017, 0.018, 0.019, 0.02, 0.021, 0.022, 0.023, 0.024, 0.025, 0.027, 0.029, 0.031, 0.033, 0.035]
+#AfineB = numpy.linspace(0.00,0.03, 300001)
+
+#Read AfineB from file
+#fineFile = open("{}/DijetRootTreeAnalyzer/ConstructAlphaBins/FineBinEdges.txt".format(dir_path),"r")
+#AfineB = []
+#for line in fineFile.readlines():
+#  val = float(line)
+#  AfineB.append(val)
+#fineFile.close()
+
+AfineB = list(numpy.linspace(0.0,0.03, 10001))
+
+#Use below to line up with alpha bins
+AfineB = list(numpy.linspace(0.0,0.035, 1001))
+
+#AlphaBins = [ 0.003, 0.00347, 0.00395, 0.00444, 0.00494, 0.00545, 0.00597, 0.0065, 0.00704, 0.00759, 0.00815, 0.00872, 0.0093, 0.01049, 0.01505, 0.03]
+#for aa in AlphaBins:
+#  if(aa not in AfineB): AfineB.append(aa)
+#AfineB = sorted(AfineB)
+
+PhiFineB=list(numpy.linspace(0,100,10001))
+
 def GetDiphoShapeAnalysis(F, T, N, masym, deta, dipho, iso, alpha, trigger, scale, saveTree=False, saveSignal=""):
     # Load files:
     Chain = ROOT.TChain(T)
@@ -462,6 +486,7 @@ def GetDiphoShapeAnalysis(F, T, N, masym, deta, dipho, iso, alpha, trigger, scal
     c_XMvA = b_XMvA.GetValue()
     # Clone plots:
     XM = c_XM.Clone(N+"_"+c_XM.GetName())
+    #XM = XM.Scale(1/XM.Integral())
     X1M = c_X1M.Clone(N+"_"+c_X1M.GetName())
     for h in [XM, X1M]:
         h.SetFillColor(2)
@@ -479,6 +504,44 @@ def GetDiphoShapeAnalysis(F, T, N, masym, deta, dipho, iso, alpha, trigger, scal
 
     # Return plots:
     return (XM, X1M, XMvA)
+
+def GetDiphoShapeAnalysisPlusAlpha(F, trueAlpha, T, N, masym, deta, dipho, iso, alpha, trigger, scale, saveTree=False, saveSignal=""):
+
+    # Load files:
+    Chain = ROOT.TChain(T)
+    for f in F:
+        Chain.Add(f)
+    Rdf         =   RDF(Chain)
+    # Make cuts:
+    Rdf         =   Rdf.Filter(trigger+" > 0.")
+    Rdf         =   Rdf.Filter("clu1_pt > 90. && clu2_pt > 90. && alpha >= " + str(alpha[0]) + " && alpha < " + str(alpha[1]) + " && masym < " + str(masym) + " && deta < " + str(deta) + " && clu1_dipho > " + str(dipho) + " && clu2_dipho > " + str(dipho) + " && clu1_iso > " + str(iso) + " && clu2_iso > " + str(iso))
+    Rdf			=	Rdf.Define("fW", scale)
+    Rdf			=	Rdf.Define("calpha", "alpha - {}".format(trueAlpha))
+    # Book plots:
+    b_XM          =   Rdf.Histo1D(("XM", ";di-cluster mass (GeV); events / bin", len(XB)-1, numpy.array(XB)), "XM", "fW")
+    b_X1M          =   Rdf.Histo1D(("XM1", ";di-cluster mass (GeV); events / bin", len(X1B)-1, numpy.array(X1B)), "XM", "fW")
+    b_Ar          =   Rdf.Histo1D(("A1", ";alpha; events / bin", len(AfineB)-1, numpy.array(AfineB)), "alpha", "fW")
+    b_XMvA        =   Rdf.Histo2D(("XMvA", ";di-cluster mass (GeV);#alpha; events / bin", len(XB)-1, numpy.array(XB), len(AB)-1, numpy.array(AB)), "XM", "alpha", "fW")
+    b_Phir          =   Rdf.Histo1D(("phi1", ";avg cluster mass; events / bin", len(PhiFineB)-1, numpy.array(PhiFineB)), "aM", "fW")
+    # Fill plots:
+    c_XM = b_XM.GetValue()
+    c_X1M = b_X1M.GetValue()
+    c_Ar = b_Ar.GetValue()
+    c_XMvA = b_XMvA.GetValue()
+    c_Phir = b_Phir.GetValue()
+    # Clone plots:
+    XM = c_XM.Clone(N+"_"+c_XM.GetName())
+    X1M = c_X1M.Clone(N+"_"+c_X1M.GetName())
+    Ar = c_Ar.Clone(N+"_"+c_Ar.GetName())
+    Phir = c_Phir.Clone(N+"_"+c_Phir.GetName())
+    for h in [XM, X1M, Ar, Phir]:
+        h.SetFillColor(2)
+        h.SetLineColor(2)
+        h.SetFillStyle(3001)
+    XMvA = c_XMvA.Clone(N+"_"+c_XMvA.GetName())
+
+    # Return plots:
+    return (XM, X1M, Ar, Phir, XMvA)
 
 def RebinReso(hh):
 

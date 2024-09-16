@@ -164,8 +164,11 @@ def MakeLimitPlot(alphaBin, function):
   for ff in os.listdir(combine_dir):
     sf = ff.split("_")
     alpha_bin = sf[1]
-    alpha_bin = int(alpha_bin.replace("alpha",""))
-    if(alpha_bin != alphaBin or "_{}".format(function) not in ff): continue
+    #alpha_bin = int(alpha_bin.replace("alpha",""))
+    #if(alpha_bin != alphaBin or "_{}".format(function) not in ff): 
+    if("ALL" not in alpha_bin or "_{}".format(function) not in ff): 
+      print("continuing",alpha_bin, alphaBin)
+      continue
     xa = sf[2]
     this_x = int(xa[1:xa.find("A")])
     this_phi = float(xa[xa.find("A")+1 : ].replace("p","."))
@@ -287,6 +290,8 @@ def MakeLimitPlot(alphaBin, function):
 
 #function="dijet"
 function=sys.argv[1]
-for ab in range(0,9+1):
-  #if(ab != 0): continue
-  MakeLimitPlot(ab,function)
+#for ab in range(0,9+1):
+#  #if(ab != 0): continue
+#  MakeLimitPlot(ab,function)
+
+MakeLimitPlot("ALL",function)

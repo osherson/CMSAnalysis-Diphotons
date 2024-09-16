@@ -20,8 +20,7 @@ def ProcessPileup(InputFile):
       useModules.append(puWeight_2017())
     if "2018" in InputFile:
       useModules.append(puWeight_2018())
-
-
+    
     p = PostProcessor(OutputFolder, [InputFile], modules=useModules)
     p.run()
 

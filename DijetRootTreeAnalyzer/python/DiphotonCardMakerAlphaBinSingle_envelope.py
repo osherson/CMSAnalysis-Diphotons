@@ -10,52 +10,92 @@ def RunDataCardMaker(o):
 
     abin = str(o.ABIN)
     sig = str(o.SIG)
+    gi = o.GI
+    print("GEN OR INT",gi)
 
     if(env):
-      print("STEVEN LOOK HERE IF YOUR ENVELOPE HAS WRONG FUNCTIONS")
-      #config = " -c {}/../config/envelope2/diphoton_multi_alpha{}.config".format(dir_path,abin)
-      config = " -c {}/../config/envelope2/diphoton_multi.config".format(dir_path)
-      #config = " -c {}/../config/fourjet_inclusive_multipdf_3_func.config".format(dir_path)
+      if(abin=="ALL"):
+        config = " -c {}/../config/envelope2/diphoton_multi_alpha0.config".format(dir_path,abin)
+      else:
+        config = " -c {}/../config/envelope2/diphoton_multi_alpha{}.config".format(dir_path,abin)
       box=" -b "
     else:
-      config = " -c {}/../config/diphoton_{}".format(dir_path,str(o.FIT)) + ".config"
-      box = " -b diphoton_"
+      config = " -c {}/../config/{}".format(dir_path,str(o.FIT)) + ".config"
+      box = " -b "
+      print("CONFIG: {}".format(config))
+      print("BOX: {}".format(box))
 
-    lumi = " --lumi " + str(int(float(o.LUM)*1000.))
+    lumi = " --lumi " + str(int(float(o.LUM)))
     if o.FIT != "combine": box += "%s" % str(o.FIT)
     mass = " --mass " + str(o.SIG).split("X")[1].split("A")[0]
     savemass = " --savemass " + str(o.SIG)
     output = " -d output"
     xs = " --xsec " + o.XS
+    xssu = " --xsecsu " + o.XSsu
+    xssd = " --xsecsd " + o.XSsd
 
     yr = str(o.YEAR)
     year = " --year " + yr
     multi = " --multi {}".format(env)
+    alphabin = " --abin {}".format(abin)
 
-    if(os.path.exists(dir_path + "/../inputs/Shapes_fromGen/alphaBinning/" + abin + "/" + str(o.SIG) + "/DATA.root")):
+    if(abin=="ALL"):
+      if(not os.path.exists(dir_path + "/../inputs/Shapes_fromGen/OneBigBin/"  + str(o.SIG) + "/DATA.root")):
+        print("No data, in all loop")
+        print("Check sig {}".format(o.SIG))
+        exit()
       if(env):
-        inputs = " -i output/alpha_{}/{}/DijetFitResults_diphoton_{}_{}.root".format(abin,sig,sig,str(o.FIT))
+        inputs = " -i output/alpha_0/{}/DijetFitResults_DIPHOM_2018_{}_alpha0.root".format(sig,sig)
       else:
-        inputs = " -i output/alpha_{}/{}/DijetFitResults_diphoton_{}_{}_alpha{}.root".format(abin,sig,sig,str(o.FIT),abin)
-      inputs += " {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path)  + abin+"/"+sig+ "/DATA.root"
-      inputs += " {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_nominal.root"
-      jesup = " --jesUp {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_SU.root"
-      jesdown = " --jesDown {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_SD.root"
-      jerup = " --jerUp {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_PU.root"
-      jerdown = " --jerDown {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_PD.root"
+        inputs = " -i output/alpha_0/{}/DijetFitResults_diphoton_{}_{}_alpha0.root".format(sig,sig,str(o.FIT))
+      inputs += " {}/../inputs/Shapes_fromGen/OneBigBin/".format(dir_path)  + sig+ "/DATA.root"
+      inputs += " {}/../inputs/Shapes_fromGen/OneBigBin/".format(dir_path) + sig+"/Sig_nominal.root"
+      jesup = " --jesUp {}/../inputs/Shapes_fromGen/OneBigBin/".format(dir_path) + sig+"/Sig_SU.root"
+      jesdown = " --jesDown {}/../inputs/Shapes_fromGen/OneBigBin/".format(dir_path) +sig+"/Sig_SD.root"
+      jerup = " --jerUp {}/../inputs/Shapes_fromGen/OneBigBin/".format(dir_path) + sig+"/Sig_PU.root"
+      jerdown = " --jerDown {}/../inputs/Shapes_fromGen/OneBigBin/".format(dir_path) +sig+"/Sig_PD.root"
 
-    else:
-      print("IN ELSE LOOP")
-      exit()
-      inputs = " -i output/DijetFitResults_diphoton_{}_{}.root".format(str(o.FIT),yr)
-      inputs += " inputs/Shapes_fromInterpo/" + yr + "/" + str(o.SIG) + "/DATA.root"
-      inputs += " inputs/Shapes_fromInterpo/"+ yr + "/" + str(o.SIG)+"/Sig_nominal.root"
-      jesup = " --jesUp inputs/Shapes_fromInterpo/"+ yr + "/" + str(o.SIG)+"/Sig_SU.root"
-      jesdown = " --jesDown inputs/Shapes_fromInterpo/"+ yr + "/" + str(o.SIG)+"/Sig_SD.root"
-      jerup = " --jerUp inputs/Shapes_fromInterpo/"+ yr + "/" + str(o.SIG)+"/Sig_PU.root"
-      jerdown = " --jerDown inputs/Shapes_fromInterpo/"+ yr + "/" + str(o.SIG)+"/Sig_PD.root"
+    if(abin !="ALL"):
+      #if(os.path.exists(dir_path + "/../inputs/Shapes_fromGen/alphaBinning/" + abin + "/" + str(o.SIG) + "/DATA.root")):
+      if(gi=="gen"):
+        if(env):
+          inputs = " -i output/alpha_{}/{}/DijetFitResults_DIPHOM_2018_{}_alpha{}.root".format(abin,sig,sig,abin)
+        else:
+          inputs = " -i output/alpha_{}/{}/DijetFitResults_diphoton_{}_{}_alpha{}.root".format(abin,sig,sig,str(o.FIT),abin)
+        inputs += " {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path)  + abin+"/"+sig+ "/DATA.root"
+        inputs += " {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_nominal.root"
+        jesup = " --jesUp {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_SU.root"
+        jesdown = " --jesDown {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_SD.root"
+        jerup = " --jerUp {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_PU.root"
+        jerdown = " --jerDown {}/../inputs/Shapes_fromGen/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_PD.root"
 
-    dcstring = "python {}/../python/WriteDataCard_photons_envelope.py".format(dir_path) + config + mass + savemass + year + box + output + inputs + jesup + jesdown + jerup + jerdown + xs + lumi + multi
+      #elif(os.path.exists(dir_path + "/../inputs/Shapes_fromInterpo/alphaBinning/" + abin + "/" + str(o.SIG) + "/DATA.root")):
+      elif(gi=="int"):
+        if(env):
+          inputs = " -i output/alpha_{}/{}/DijetFitResults_DIPHOM_2018_{}_alpha{}.root".format(abin,sig,sig,abin)
+        else:
+          inputs = " -i output/alpha_{}/{}/DijetFitResults_diphoton_{}_{}_alpha{}.root".format(abin,sig,sig,str(o.FIT),abin)
+        inputs += " {}/../inputs/Shapes_fromInterpo/alphaBinning/".format(dir_path)  + abin+"/"+sig+ "/DATA.root"
+        inputs += " {}/../inputs/Shapes_fromInterpo/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_nominal.root"
+        jesup = " --jesUp {}/../inputs/Shapes_fromInterpo/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_SU.root"
+        jesdown = " --jesDown {}/../inputs/Shapes_fromInterpo/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_SD.root"
+        jerup = " --jerUp {}/../inputs/Shapes_fromInterpo/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_PU.root"
+        jerdown = " --jerDown {}/../inputs/Shapes_fromInterpo/alphaBinning/".format(dir_path) + abin +"/"+sig+"/Sig_PD.root"
+
+        #inputs += " {}/../inputs/Shapes_fromInterpo/alphaBinning_allBins/".format(dir_path)  + abin+"/"+sig+ "/DATA.root"
+        #inputs += " {}/../inputs/Shapes_fromInterpo/alphaBinning_allBins/".format(dir_path) + abin +"/"+sig+"/Sig_nominal.root"
+        #jesup = " --jesUp {}/../inputs/Shapes_fromInterpo/alphaBinning_allBins/".format(dir_path) + abin +"/"+sig+"/Sig_SU.root"
+        #jesdown = " --jesDown {}/../inputs/Shapes_fromInterpo/alphaBinning_allBins/".format(dir_path) + abin +"/"+sig+"/Sig_SD.root"
+        #jerup = " --jerUp {}/../inputs/Shapes_fromInterpo/alphaBinning_allBins/".format(dir_path) + abin +"/"+sig+"/Sig_PU.root"
+        #jerdown = " --jerDown {}/../inputs/Shapes_fromInterpo/alphaBinning_allBins/".format(dir_path) + abin +"/"+sig+"/Sig_PD.root"
+
+      else:
+        print("IN ELSE LOOP")
+        print(abin)
+        print(os.path.exists(dir_path + "/../inputs/Shapes_fromGen/alphaBinning/" + abin + "/" + str(o.SIG) + "/DATA.root"))
+        exit()
+
+    dcstring = "python {}/../python/WriteDataCard_photons_envelope.py".format(dir_path) + config + mass + savemass + year + box + output + inputs + jesup + jesdown + jerup + jerdown + xs + xssu + xssd + lumi + multi + alphabin
     print(dcstring)
     os.system(dcstring)
 
@@ -69,5 +109,8 @@ if __name__ == "__main__":
     parser.add_option("-a", "--alphabin", dest="ABIN", type=str, help="AlphaBin Number", metavar="THEALPHA")
     parser.add_option("-s", "--sig", dest="SIG", type=str, help="signal samples", metavar="THESIGNAL")
     parser.add_option("-x", "--xsec", dest="XS", type=str, help="signal xs", metavar="THESIGNALxs")
+    parser.add_option("-q", "--xsecsu", dest="XSsu", type=str, help="signal xs, scale up", metavar="THESIGNALxssu")
+    parser.add_option("-r", "--xsecsd", dest="XSsd", type=str, help="signal xs, scale up", metavar="THESIGNALxssd")
+    parser.add_option("-g", "--GenOrInt", dest="GI", type=str, help="Generated or Interpolated", metavar="GENORINT")
     (o, args) = parser.parse_args()
     RunDataCardMaker(o)

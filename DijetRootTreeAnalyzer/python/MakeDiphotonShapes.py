@@ -15,8 +15,9 @@ LUMI["2017"] = 39.670
 LUMI["2018"] = 59.320
 
 #Analysis cuts, make sure these match MakeShapes.py
-cutString = "masym < 0.25 && clu1_dipho > 0.9 && clu2_dipho > 0.9 && clu1_iso > 0.8 && clu2_iso > 0.8 && clu1_pt > 70 && clu2_pt > 70"
-#cutString = "masym < 1 && clu1_dipho > 0.9 && clu2_dipho > 0.9 && clu1_iso > 0.5 && clu2_iso > 0.5"
+#cutString = "masym < 0.25 && clu1_dipho > 0.9 && clu2_dipho > 0.9 && clu1_iso > 0.8 && clu2_iso > 0.8 && clu1_pt > 70 && clu2_pt > 70"
+cutString = "clu1_pt > 90 && clu2_pt > 90 && masym < 0.25 && deta < 1.5 && clu1_dipho > 0.9 && clu2_dipho > 0.9 && clu1_iso > 0.8 && clu2_iso > 0.8 " #Analysis
+cutString = "clu1_pt > 90 && clu2_pt > 90 && masym < 0.25 && deta < 1.5 && clu1_dipho > 0.9 && clu2_dipho > 0.9 && clu1_iso > 0.1 && clu2_iso > 0.1 " #Loose
 
 def FindAndSetMax(*args):
   if len(args) == 1: args = args[0]
@@ -564,7 +565,7 @@ if __name__ == "__main__":
   args = parser.parse_args()
 
   interpoSignalMaker(args, "pico_nom", "puWeight")
-  #interpoSignalMaker(args, "pico_nom", "puWeightUp")
-  #interpoSignalMaker(args, "pico_nom", "puWeightDown")
-  #interpoSignalMaker(args, "pico_scale_up", "puWeight")
-  #interpoSignalMaker(args, "pico_scale_down", "puWeight")
+  interpoSignalMaker(args, "pico_nom", "puWeightUp")
+  interpoSignalMaker(args, "pico_nom", "puWeightDown")
+  interpoSignalMaker(args, "pico_scale_up", "puWeight")
+  interpoSignalMaker(args, "pico_scale_down", "puWeight")

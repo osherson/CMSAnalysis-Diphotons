@@ -265,3 +265,98 @@ RVec<float> get_JetE(rvec_f idxs, rvec_f DR, rvec_f jetE, rvec_f rucluE)
   }
   return params;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+RVec<float> getClosestJetEn(rvec_f ruclu_eta, rvec_f ruclu_phi, rvec_f ruclu_energy, rvec_f moe, rvec_f jet_pt, rvec_f jet_eta, rvec_f jet_phi, rvec_f jet_mass, rvec_f jet_energy){
+
+  RVec<float> Es;
+  for (unsigned int ii=0; ii<ruclu_eta.size(); ii++){
+    Es.push_back(-999.);
+  }
+
+  for(unsigned int clu_index=0; clu_index < ruclu_eta.size(); clu_index++){
+    TLorentzVector cluster;
+    //float c_pt = ruclu_energy.at(clu_index) * TMath::Sin(TMath::ATan(TMath::Exp(-1*ZShift( ruclu_eta.at(clu_index), 0. ) ) ) * 2 );
+    //cluster.SetPtEtaPhiM( c_pt, ZShift(ruclu_eta.at(clu_index), 0.), ruclu_phi.at(clu_index), ruclu_energy.at(clu_index)*moe.at(clu_index) );
+
+    float c_pt = ruclu_energy.at(clu_index) * TMath::Sin(TMath::ATan(TMath::Exp(-1* ruclu_eta.at(clu_index) ) ) * 2 );
+    cluster.SetPtEtaPhiM( c_pt, ruclu_eta.at(clu_index), ruclu_phi.at(clu_index), ruclu_energy.at(clu_index)*moe.at(clu_index) );
+
+    float min_dr = 1000.;
+    float useE = -999.;
+
+    for(unsigned int j=0; j< jet_pt.size(); j++){
+      TLorentzVector jet;
+      jet.SetPtEtaPhiM( jet_pt.at(j), jet_eta.at(j), jet_phi.at(j), jet_mass.at(j));
+      if(cluster.DeltaR( jet ) < min_dr){
+        min_dr = cluster.DeltaR( jet );
+        useE = jet_energy.at(j);
+        }
+      }
+    Es.at(clu_index) = useE;
+    }
+
+  return Es;
+}
+
+RVec<float> getClosestJetDR(rvec_f ruclu_eta, rvec_f ruclu_phi, rvec_f ruclu_energy, rvec_f moe, rvec_f jet_pt, rvec_f jet_eta, rvec_f jet_phi, rvec_f jet_mass){
+
+  RVec<float> Es;
+  for (unsigned int ii=0; ii<ruclu_eta.size(); ii++){
+    Es.push_back(-999.);
+  }
+
+  for(unsigned int clu_index=0; clu_index < ruclu_eta.size(); clu_index++){
+    TLorentzVector cluster;
+    //float c_pt = ruclu_energy.at(clu_index) * TMath::Sin(TMath::ATan(TMath::Exp(-1*ZShift( ruclu_eta.at(clu_index), 0. ) ) ) * 2 );
+    //cluster.SetPtEtaPhiM( c_pt, ZShift(ruclu_eta.at(clu_index), 0.), ruclu_phi.at(clu_index), ruclu_energy.at(clu_index)*moe.at(clu_index) );
+
+    float c_pt = ruclu_energy.at(clu_index) * TMath::Sin(TMath::ATan(TMath::Exp(-1* ruclu_eta.at(clu_index) ) ) * 2 );
+    cluster.SetPtEtaPhiM( c_pt, ruclu_eta.at(clu_index), ruclu_phi.at(clu_index), ruclu_energy.at(clu_index)*moe.at(clu_index) );
+
+    float min_dr = 1000.;
+    float useE = -999.;
+
+    for(unsigned int j=0; j< jet_pt.size(); j++){
+      TLorentzVector jet;
+      jet.SetPtEtaPhiM( jet_pt.at(j), jet_eta.at(j), jet_phi.at(j), jet_mass.at(j));
+      if(cluster.DeltaR( jet ) < min_dr){
+        min_dr = cluster.DeltaR( jet );
+        }
+      }
+    Es.at(clu_index) = min_dr;
+    }
+
+  return Es;
+}
+
+RVec<float> getClosestJet(rvec_f ruclu_eta, rvec_f ruclu_phi, rvec_f ruclu_energy, rvec_f moe, rvec_f jet_pt, rvec_f jet_eta, rvec_f jet_phi, rvec_f jet_mass){
+
+  RVec<float> minDrs;
+  for (unsigned int ii=0; ii<ruclu_eta.size(); ii++){
+    minDrs.push_back(1000.);
+  }
+  
+  for(unsigned int clu_index=0; clu_index < ruclu_eta.size(); clu_index++){
+    TLorentzVector cluster;
+    //float c_pt = ruclu_energy.at(clu_index) * TMath::Sin(TMath::ATan(TMath::Exp(-1*ZShift( ruclu_eta.at(clu_index), 0. ) ) ) * 2 );
+    //cluster.SetPtEtaPhiM( c_pt, ZShift(ruclu_eta.at(clu_index), 0.), ruclu_phi.at(clu_index), ruclu_energy.at(clu_index)*moe.at(clu_index) );
+
+    float c_pt = ruclu_energy.at(clu_index) * TMath::Sin(TMath::ATan(TMath::Exp(-1* ruclu_eta.at(clu_index) ) ) * 2 );
+    cluster.SetPtEtaPhiM( c_pt, ruclu_eta.at(clu_index), ruclu_phi.at(clu_index), ruclu_energy.at(clu_index)*moe.at(clu_index) );
+
+    float min_dr = 1000.;
+
+    for(unsigned int j=0; j< jet_pt.size(); j++){
+      TLorentzVector jet;
+      jet.SetPtEtaPhiM( jet_pt.at(j), jet_eta.at(j), jet_phi.at(j), jet_mass.at(j));
+      if(cluster.DeltaR( jet ) < min_dr){
+        min_dr = cluster.DeltaR( jet );
+        }
+      }
+
+    minDrs.at(clu_index) = min_dr;
+    }
+
+  return minDrs;
+}

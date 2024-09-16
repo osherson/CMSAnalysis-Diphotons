@@ -69,7 +69,9 @@ def Treemaker(folder, Dataset, isData, year):
     Rdf = Rdf.Define("pt_idx", "indexes(ruclu_pt)")
     Rdf = Rdf.Define("pt_idx_1", "pt_idx[0]")
     Rdf = Rdf.Define("pt_idx_2", "pt_idx[1]")
-    Rdf = Rdf.Filter("pt_idx_1 != pt_idx_2")
+    Rdf = Rdf.Filter("pt_idx_1 != pt_idx_2", "Contains Two Separate Clusters")
+    rep = Rdf.Report()
+    rep.Print()
     #Xmass, aMass, alpha
     Rdf = Rdf.Define("XM", "get_XM(pt_idx_1, pt_idx_2, moe, ruclu_energy, ruclu_eta, ruclu_phi, pvtx_z, ruclu_pt)")
     Rdf = Rdf.Define("aM", "get_aM(pt_idx_1, pt_idx_2, moe, ruclu_energy)")

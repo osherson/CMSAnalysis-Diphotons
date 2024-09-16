@@ -113,6 +113,7 @@ SignalList = [
               ]
 
 for sig in SignalList:
+  if(sig != "X400A6"): continue
   Treemaker.Treemaker("/cms/sclark-2/RUCLU_Outputs/Signal/{}/{}/".format(year,sig), sig, False, year)
   ProcessPileup.ProcessPileup("/cms/xaastorage-2/DiPhotonsTrees/{}_{}.root".format(sig,year))
   CopyPileup.CopyPileup("/cms/xaastorage-2/DiPhotonsTrees/{}_{}.root".format(sig,year))

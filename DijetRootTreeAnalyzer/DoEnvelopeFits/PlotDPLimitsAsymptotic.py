@@ -13,6 +13,10 @@ LUMI["2017"] = 4.15
 LUMI["2018"] = 5.99
 LUMI["RunII"] = sum([LUMI[yy] for yy in LUMI.keys()])
 
+def MakeFolder(N):
+    if not os.path.exists(N):
+     os.makedirs(N)
+
 def GetTH(fN):
 	
 	TH = TGraph()
@@ -79,10 +83,13 @@ def AddCMSLumi(pad, fb, extra):
 	latex.DrawLatex(0.1265, 0.825, cmsText)
 	pad.Update()
 
-def AddAlphaRange(pad, al, ah):
-  sl = "{:.5f}".format(al)
-  sh = "{:.5f}".format(ah)
-  aText     = "%s < #alpha #leq %s"%(sl,sh)
+#def AddAlphaRange(pad, al, ah):
+def AddAlphaRange(pad, sa):
+  #sl = "{:.5f}".format(al)
+  #sh = "{:.5f}".format(ah)
+  #aText     = "%s < #alpha #leq %s"%(sl,sh)
+  ssa = "{:.3f}".format(sa)
+  aText = "Signal  #alpha = %s"%(ssa)
   lumiTextSize     = 0.45
   lumiTextOffset   = 0.15
   H = pad.GetWh()
@@ -96,11 +103,37 @@ def AddAlphaRange(pad, al, ah):
   latex.SetNDC()
   latex.SetTextAngle(0)
   latex.SetTextColor(kBlack)	
-  latex.SetTextFont(42)
+  latex.SetTextFont(62)
   latex.SetTextAlign(31) 
   latex.SetTextSize(lumiTextSize*t)	
   pad.cd()
   latex.SetTextAlign(11)
+  latex.DrawLatex(0.1265, 1-t+lumiTextOffset*t, aText)
+  pad.Update()
+
+def AddSignalAlphaRange(pad, sa):
+  ssa = "{:.3f}".format(sa)
+  aText = "Signal  #alpha = %s"%(ssa)
+  cmsTextSize = 0.5
+  cmsTextOffset = 0.15
+  cmsTextFont = 61  
+  H = pad.GetWh()
+  W = pad.GetWw()
+  l = pad.GetLeftMargin()
+  t = pad.GetTopMargin()
+  r = pad.GetRightMargin()
+  b = pad.GetBottomMargin()
+  e = 0.025
+  latex = TLatex()
+  latex.SetNDC()
+  latex.SetTextAngle(0)
+  latex.SetTextColor(kBlack)	
+  latex.SetTextFont(62)
+  latex.SetTextAlign(31) 
+  latex.SetTextSize(cmsTextSize*t)	
+  pad.cd()
+  latex.SetTextAlign(11)
+  latex.DrawLatex(0.625, 0.825, aText)
   latex.DrawLatex(0.1265, 1-t+lumiTextOffset*t, aText)
   pad.Update()
 
@@ -150,25 +183,41 @@ def GetAlphaRange(abin):
 def MakeLimitPlot(alphaBin):
   combine_dir = "combineOutput/alpha{}/".format(alphaBin)
 
-  alo, ahi = GetAlphaRange(alphaBin)
+  if(alphaBin != "ALL"):
+    alo, ahi = GetAlphaRange(alphaBin)
+  else:
+    alo, ahi = 0., 0.03
 
   print("Alpha Bin {}, {} < alpha < {}".format(alphaBin, alo, ahi))
 
   alphas = []
   flist = []
-  for ff in os.listdir(combine_dir):
-    sf = ff.split("_")
-    alpha_bin = sf[1]
-    alpha_bin = int(alpha_bin.replace("alpha",""))
-    if(alpha_bin != alphaBin): continue
-    xa = sf[2]
-    this_x = int(xa[1:xa.find("A")])
-    this_phi = float(xa[xa.find("A")+1 : ].replace("p","."))
-    this_alpha = this_phi / float(this_x)
-    alphas.append(this_alpha)
-    flist.append([this_x, this_alpha, os.path.join(combine_dir, ff)])
+  if(alphaBin == "ALL"):
+    for ff in os.listdir(combine_dir):
+      sf = ff.split("_")
+      xa = sf[2]
+      this_x = int(xa[1:xa.find("A")])
+      this_phi = float(xa[xa.find("A")+1 : xa.find(".txt")].replace("p","."))
+      this_alpha = round(this_phi / float(this_x),3)
+      alphas.append(this_alpha)
+      flist.append([this_x, this_alpha, os.path.join(combine_dir, ff)])
+
+  else:
+    for ff in os.listdir(combine_dir):
+      sf = ff.split("_")
+      alpha_bin = sf[2]
+      alpha_bin = alpha_bin.replace("alpha","")
+      if(alpha_bin != alphaBin): 
+        continue
+      xa = sf[3]
+      this_x = int(xa[1:xa.find("A")])
+      this_phi = float(xa[xa.find("A")+1 : xa.find(".root")].replace("p","."))
+      this_alpha = round(this_phi / float(this_x),3)
+      alphas.append(this_alpha)
+      flist.append([this_x, this_alpha, os.path.join(combine_dir, ff)])
 
   alphas = set(alphas)
+  print(alphas)
   nflist = numpy.array( [ numpy.array(xi) for xi in flist ] ) #Convert to np array for later selection
 
   #All Signals
@@ -198,9 +247,11 @@ def MakeLimitPlot(alphaBin):
     p2 = []
     m2 = []
 
+    print("Num points: {}".format(len(useflist)))
+
     for [xx,aa,ff] in useflist:
       if(aa != sig_alpha): continue
-      print(xx,aa,ff)
+      #print(xx,aa,ff)
 
       #F = TFile('combineOutput/{}/X{}.root'.format(year,m))
       F = TFile(ff)
@@ -226,7 +277,7 @@ def MakeLimitPlot(alphaBin):
         p2.append(T.limit)
 
     #LimitPlot = TH2F("LP", ";Four-Photon Resonance Mass (GeV);(pp #rightarrow X #rightarrow #phi#phi #rightarrow (#gamma#gamma)(#gamma#gamma)) #sigma #times B (fb)", 100, 300, 3000, 100, 0.005, 50.)
-    LimitPlot = TH2F("LP", ";Four-Photon Resonance Mass (GeV);(pp #rightarrow X #rightarrow #phi#phi #rightarrow (#gamma#gamma)(#gamma#gamma)) #sigma #times B (fb)", 100, 300, 2000, 1000, 0.005, 5000.)
+    LimitPlot = TH2F("LP", ";Four-Photon Resonance Mass (GeV);(pp #rightarrow X #rightarrow #phi#phi #rightarrow (#gamma#gamma)(#gamma#gamma)) #sigma #times B (fb)", 100, 300, 3200, 1000, 0.005, 5000.)
     LimitPlot.SetStats(0)
 
     LimitPlot.GetXaxis().SetMoreLogLabels(ROOT.kTRUE)
@@ -250,17 +301,25 @@ def MakeLimitPlot(alphaBin):
     Onesig = makeAFillGraph(x,m1,p1,kGreen,kGreen, 1001)
     Twosig = makeAFillGraph(x,m2,p2,kYellow,kYellow, 1001)
 
-#    L = TLegend(0.52,0.52,0.89,0.89)
-#    L.SetLineColor(0)
-#    L.SetFillColor(0)
-#    L.SetHeader("95% CL Limits")
-#    L.AddEntry(Obs, "observed", "PL")
-#    L.AddEntry(Exp, "expected", "PL")
-#    L.AddEntry(Onesig, "expected #pm 1#sigma", "F")
-#    L.AddEntry(Twosig, "expected #pm 2#sigma", "F")
-#    L.AddEntry(TH1, "X #rightarrow #phi#phi #rightarrow (#gamma#gamma)(#gamma#gamma) [f/N = 1]", "L")
-#    L.AddEntry(TH3, "X #rightarrow #phi#phi #rightarrow (#gamma#gamma)(#gamma#gamma) [f/N = 3]", "L")
-#    L.AddEntry(TH9, "X #rightarrow #phi#phi #rightarrow (#gamma#gamma)(#gamma#gamma) [f/N = 9]", "L")
+    hp = (len(exp)//2)+1
+    gx = [x[0],x[hp]]
+    gpoints = [exp[hp],exp[hp]]
+    gline = TGraph(len(gx), numpy.array(gx), numpy.array(gpoints))
+    gline.SetLineStyle(1)
+    gline.SetLineColor(kRed)
+    gline.SetLineWidth(2)
+
+    L = TLegend(0.52,0.52,0.89,0.89)
+    L.SetLineColor(0)
+    L.SetFillColor(0)
+    L.SetHeader("95% CL Limits")
+    L.AddEntry(Obs, "observed", "PL")
+    L.AddEntry(Exp, "expected", "PL")
+    L.AddEntry(Onesig, "expected #pm 1#sigma", "F")
+    L.AddEntry(Twosig, "expected #pm 2#sigma", "F")
+    L.AddEntry(TH1, "X #rightarrow #phi#phi #rightarrow (#gamma#gamma)(#gamma#gamma) [f/N = 1]", "L")
+    L.AddEntry(TH3, "X #rightarrow #phi#phi #rightarrow (#gamma#gamma)(#gamma#gamma) [f/N = 3]", "L")
+    L.AddEntry(TH9, "X #rightarrow #phi#phi #rightarrow (#gamma#gamma)(#gamma#gamma) [f/N = 9]", "L")
 
     C = TCanvas()
     C.cd()
@@ -273,16 +332,21 @@ def MakeLimitPlot(alphaBin):
     TH3.Draw("Lsame")
     TH9.Draw("Lsame")
     Exp.Draw("Lsame")
+    gline.Draw("Lsame")
     Obs.Draw("LPsame")
     #L.Draw("same")
     AddCMSLumi(gPad, str(LUMI["RunII"]), "Preliminary")
-    AddAlphaRange(gPad, alo, ahi)
-    savename="LimitPlots/Lim_RunII_alphaBin{}_alpha{}.png".format(alphaBin, str(sig_alpha).replace(".","p"))
+    #AddAlphaRange(gPad, alo, ahi)
+    AddAlphaRange(gPad,  sig_alpha)
+    MakeFolder("LimitPlots/alpha{}".format(alphaBin))
+    savename="LimitPlots/alpha{}/Lim_RunII_alphaBin{}_alpha{}.png".format(alphaBin, alphaBin, str(sig_alpha).replace(".","p"))
     #print("Saving plot as: {}".format(savename))
     C.Print(savename)
 
   return
 
-for ab in range(0,9):
-  if(ab > 0): continue
+#abins = ["0","1","2","3","4",'5','6','7','8','9','10','11','12','13','14']
+abins=["ALL"]
+for ab in abins:
   MakeLimitPlot(ab)
+
